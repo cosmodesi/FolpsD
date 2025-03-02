@@ -6,8 +6,6 @@
 
 # Import standard libraries
 import numpy as np
-import matplotlib
-import matplotlib.pyplot as plt
 from classy import Class
 
 
