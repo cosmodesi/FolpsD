@@ -1,6 +1,7 @@
 import warnings
 import numpy as np
 from scipy import interpolate
+from scipy import special
 
 
 def legendre(ell):
@@ -579,3 +580,116 @@ def get_pknow(k, pk, h):
     PNWkTot = np.concatenate([PNWk1, PNWk2, PNWk3])
 
     return(k, PNWkTot)
+
+
+
+def get_linear_ir(k, pk, h, pknow=None, fullrange=False, kmin=0.01, kmax=0.5, rbao=104, saveout=False):
+    """
+    Calculates the infrared resummation of the linear power spectrum.
+
+    Parameters:
+    k, pk : array_like
+        Wave numbers and power spectrum values.
+    h : float
+        Hubble parameter, H0/100.
+    pknow : array_like, optional
+        Pre-computed non-wiggle power spectrum.
+    fullrange : bool, optional
+        If True, returns the full range of k and pk_IRs.
+    kmin, kmax : float, optional
+        Minimum and maximum k values for filtering.
+    rbao : float, optional
+        BAO radius for damping.
+    saveout : bool, optional
+        If True, saves the output to a file.
+
+    Returns:
+    tuple
+        Filtered or full arrays of k and pk_IRs.
+    """
+    if pknow is None:
+        if h is None:
+            raise ValueError("Argument 'h' is required when 'pknow' is None")
+        kT, pk_nw = get_pknow(k, pk, h)
+    else:
+        pk_nw = pknow
+    
+    p = np.geomspace(10**(-6), 0.4, num=100)
+    PSL_NW = interp(p, kT, pk_nw)
+    sigma2_NW = 1 / (6 * np.pi**2) * simpson(PSL_NW * (1 - special.spherical_jn(0, p * rbao) + 2 * special.spherical_jn(2, p * rbao)), x=p)
+    pk_IRs = pk_nw + np.exp(-kT**2 * sigma2_NW)*(pk - pk_nw)
+    
+    mask = (kT >= kmin) & (kT <= kmax) & (np.arange(len(kT)) % 2 == 0)
+    newkT = kT[mask]
+    newpk = pk_IRs[mask]
+    
+    output = (kT, pk_IRs) if fullrange else (newkT, newpk)
+                             
+    if saveout:
+        np.savetxt('pk_IR.txt', np.array(output).T, delimiter=' ')
+
+    return output
+
+### new debugging ###
+
+# Finally I ended using:
+#def interp(k, x, y):  # out-of-range below
+#        from scipy.interpolate import CubicSpline
+#        return CubicSpline(x, y)(k)
+
+#and interp_new() for tool_jax.py
+
+#def interp_new(xq, x, f, method='cubic'):
+#    from jax import numpy as jnp
+#    import interpax
+
+#    """
+#    Interpolate a 1d function.
+
+#    Note
+#    ----
+#    Using interpax: https://github.com/f0uriest/interpax
+
+#    Parameters
+#    ----------
+#    xq : ndarray, shape(Nq,)
+#        query points where interpolation is desired
+#    x : ndarray, shape(Nx,)
+#        coordinates of known function values ("knots")
+#    f : ndarray, shape(Nx,...)
+#        function values to interpolate
+#    method : str
+#        method of interpolation
+
+#        - ``'nearest'``: nearest neighbor interpolation
+#        - ``'linear'``: linear interpolation
+#        - ``'cubic'``: C1 cubic splines (aka local splines)
+#        - ``'cubic2'``: C2 cubic splines (aka natural splines)
+#        - ``'catmull-rom'``: C1 cubic centripetal "tension" splines
+#        - ``'cardinal'``: C1 cubic general tension splines. If used, can also pass
+#          keyword parameter ``c`` in float[0,1] to specify tension
+#        - ``'monotonic'``: C1 cubic splines that attempt to preserve monotonicity in the
+#          data, and will not introduce new extrema in the interpolated points
+#        - ``'monotonic-0'``: same as ``'monotonic'`` but with 0 first derivatives at
+#          both endpoints
+
+#    derivative : int >= 0
+#        derivative order to calculate
+#    extrap : bool, float, array-like
+#        whether to extrapolate values beyond knots (True) or return nan (False),
+#        or a specified value to return for query points outside the bounds. Can
+#        also be passed as a 2 element array or tuple to specify different conditions
+#        for xq<x[0] and x[-1]<xq
+#    period : float > 0, None
+#        periodicity of the function. If given, function is assumed to be periodic
+#        on the interval [0,period]. None denotes no periodicity
+
+#    Returns
+#    -------
+#    fq : ndarray, shape(Nq,...)
+#        function value at query points
+#    """
+#    method = {1: 'linear', 3: 'cubic'}.get(method, method)
+#    xq = jnp.asarray(xq)
+#    shape = xq.shape
+#    return interpax.interp1d(xq.reshape(-1), x, f, method=method, extrap=False).reshape(shape + f.shape[1:])

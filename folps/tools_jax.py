@@ -4,7 +4,6 @@ import numpy as np
 
 import interpax
 
-
 from jax import config; config.update('jax_enable_x64', True)
 
 
@@ -410,12 +409,12 @@ def extrapolate(x, y, xq):
         Returns:
             slope ‘m’ and the intercept ‘b’.
         """
-        xm = np.mean(x)
-        ym = np.mean(y)
+        xm = jnp.mean(x)
+        ym = jnp.mean(y)
         npts = len(x)
 
-        SS_xy = np.sum(x * y) - npts * xm * ym
-        SS_xx = np.sum(x**2) - npts * xm**2
+        SS_xy = jnp.sum(x * y) - npts * xm * ym
+        SS_xx = jnp.sum(x**2) - npts * xm**2
         m = SS_xy / SS_xx
 
         b = ym - m * xm
@@ -440,10 +439,10 @@ def extrapolate_linear_loglog(k, pk, kcut, k_extrapolate, is_high_k=True):
         Extrapolated k and pk arrays from 'kcut' to 'k_extrapolate'.
     """
     if is_high_k:
-        cutrange = np.where(k <= kcut)
+        cutrange = jnp.where(k <= kcut)
         index_slice = slice(-6, None)
     else:
-        cutrange = np.where(k > kcut)
+        cutrange = jnp.where(k > kcut)
         index_slice = slice(None, 5)
     
     k_cut = k[cutrange]
@@ -451,29 +450,29 @@ def extrapolate_linear_loglog(k, pk, kcut, k_extrapolate, is_high_k=True):
     k_to_extrapolate = k_cut[index_slice]
     pk_to_extrapolate = pk_cut[index_slice]
 
-    delta_log_k = np.log10(k_to_extrapolate[2]) - np.log10(k_to_extrapolate[1])
-    last_or_first_k = np.log10(k_to_extrapolate[-1]) if is_high_k else np.log10(k_to_extrapolate[0])
+    delta_log_k = jnp.log10(k_to_extrapolate[2]) - jnp.log10(k_to_extrapolate[1])
+    last_or_first_k = jnp.log10(k_to_extrapolate[-1]) if is_high_k else jnp.log10(k_to_extrapolate[0])
     
     log_k_list = []
-    while last_or_first_k <= np.log10(k_extrapolate) if is_high_k else last_or_first_k > np.log10(k_extrapolate):
+    while last_or_first_k <= jnp.log10(k_extrapolate) if is_high_k else last_or_first_k > jnp.log10(k_extrapolate):
         last_or_first_k += delta_log_k if is_high_k else -delta_log_k
         log_k_list.append(last_or_first_k)
     
-    log_k_list = np.array(log_k_list) if is_high_k else np.array(list(reversed(log_k_list)))
+    log_k_list = jnp.array(log_k_list) if is_high_k else jnp.array(list(reversed(log_k_list)))
     
-    sign = np.sign(pk_to_extrapolate[1])
-    pk_to_extrapolate_log = np.log10(np.abs(pk_to_extrapolate))
-    log_extrapolated_k, log_extrapolated_pk = extrapolate(np.log10(k_to_extrapolate), pk_to_extrapolate_log, log_k_list)
+    sign = jnp.sign(pk_to_extrapolate[1])
+    pk_to_extrapolate_log = jnp.log10(jnp.abs(pk_to_extrapolate))
+    log_extrapolated_k, log_extrapolated_pk = extrapolate(jnp.log10(k_to_extrapolate), pk_to_extrapolate_log, log_k_list)
     
     extrapolated_k = 10**log_extrapolated_k
     extrapolated_pk = sign * 10**log_extrapolated_pk
     
     if is_high_k:
-        k_result = np.concatenate((k_cut, extrapolated_k))
-        pk_result = np.concatenate((pk_cut, extrapolated_pk))
+        k_result = jnp.concatenate((k_cut, extrapolated_k))
+        pk_result = jnp.concatenate((pk_cut, extrapolated_pk))
     else:
-        k_result = np.concatenate((extrapolated_k, k_cut))
-        pk_result = np.concatenate((extrapolated_pk, pk_cut))
+        k_result = jnp.concatenate((extrapolated_k, k_cut))
+        pk_result = jnp.concatenate((extrapolated_pk, pk_cut))
     
     return k_result, pk_result
 
@@ -570,9 +569,9 @@ def get_pknow(k, pk, h):
     kmin = 7 * 10**(-5) / h; kmax = 7 / h; nk = 2**16
 
     #sample ln(kP_L(k)) in nk points, k range (equidistant)
-    ksT = kmin + np.arange(nk) * (kmax - kmin) / (nk - 1)
+    ksT = kmin + jnp.arange(nk) * (kmax - kmin) / (nk - 1)
     PSL = interp(ksT, k, pk)
-    logkpk = np.log(ksT * PSL)
+    logkpk = jnp.log(ksT * PSL)
 
     #Discrete sine transf., check documentation
     FSTlogkpkT = dst(np.array(logkpk), type=1, norm="ortho")
@@ -583,30 +582,30 @@ def get_pknow(k, pk, h):
     mcutmin = 120; mcutmax = 240
 
     #Even
-    xEvenTcutmin = np.arange(1, mcutmin - 1, 1)
-    xEvenTcutmax = np.arange(mcutmax + 2, len(FSTlogkpkEvenT) + 1, 1)
+    xEvenTcutmin = jnp.arange(1, mcutmin - 1, 1)
+    xEvenTcutmax = jnp.arange(mcutmax + 2, len(FSTlogkpkEvenT) + 1, 1)
     EvenTcutmin = FSTlogkpkEvenT[0:mcutmin - 2]
     EvenTcutmax = FSTlogkpkEvenT[mcutmax + 1:len(FSTlogkpkEvenT)]
-    xEvenTcuttedT = np.concatenate((xEvenTcutmin, xEvenTcutmax))
-    nFSTlogkpkEvenTcuttedT = np.concatenate((EvenTcutmin, EvenTcutmax))
+    xEvenTcuttedT = jnp.concatenate((xEvenTcutmin, xEvenTcutmax))
+    nFSTlogkpkEvenTcuttedT = jnp.concatenate((EvenTcutmin, EvenTcutmax))
 
     #Odd
-    xOddTcutmin = np.arange(1, mcutmin, 1)
-    xOddTcutmax = np.arange(mcutmax + 1, len(FSTlogkpkEvenT) + 1, 1)
+    xOddTcutmin = jnp.arange(1, mcutmin, 1)
+    xOddTcutmax = jnp.arange(mcutmax + 1, len(FSTlogkpkEvenT) + 1, 1)
     OddTcutmin = FSTlogkpkOddT[0:mcutmin - 1]
     OddTcutmax = FSTlogkpkOddT[mcutmax:len(FSTlogkpkEvenT)]
-    xOddTcuttedT = np.concatenate((xOddTcutmin, xOddTcutmax))
-    nFSTlogkpkOddTcuttedT = np.concatenate((OddTcutmin, OddTcutmax))
+    xOddTcuttedT = jnp.concatenate((xOddTcutmin, xOddTcutmax))
+    nFSTlogkpkOddTcuttedT = jnp.concatenate((OddTcutmin, OddTcutmax))
 
     #Interpolate the FST harmonics in the BAO range
-    PreEvenT = interp(np.arange(2, mcutmax + 1, 1.), xEvenTcuttedT, nFSTlogkpkEvenTcuttedT)
-    PreOddT = interp(np.arange(0, mcutmax - 1, 1.), xOddTcuttedT, nFSTlogkpkOddTcuttedT)
-    preT = np.column_stack([PreOddT[mcutmin:mcutmax - 1], PreEvenT[mcutmin:mcutmax - 1]]).ravel()
-    preT = np.concatenate([FSTlogkpkT[:2 * mcutmin], preT, FSTlogkpkT[2 * mcutmax - 2:]])
+    PreEvenT = interp(jnp.arange(2, mcutmax + 1, 1.), xEvenTcuttedT, nFSTlogkpkEvenTcuttedT)
+    PreOddT = interp(jnp.arange(0, mcutmax - 1, 1.), xOddTcuttedT, nFSTlogkpkOddTcuttedT)
+    preT = jnp.column_stack([PreOddT[mcutmin:mcutmax - 1], PreEvenT[mcutmin:mcutmax - 1]]).ravel()
+    preT = jnp.concatenate([FSTlogkpkT[:2 * mcutmin], preT, FSTlogkpkT[2 * mcutmax - 2:]])
 
     #Inverse Sine transf.
     FSTofFSTlogkpkNWT = idst(np.array(preT), type=1, norm="ortho")
-    PNWT = np.exp(FSTofFSTlogkpkNWT)/ksT
+    PNWT = jnp.exp(FSTofFSTlogkpkNWT)/ksT
 
     PNWk = interp(k, ksT, PNWT)
     DeltaAppf = k*(PSL[7]-PNWT[7])/PNWT[7]/ksT[7]
@@ -620,6 +619,6 @@ def get_pknow(k, pk, h):
     irange3 = (k > ksT[len(ksT)-1])
     PNWk3 = pk[irange3]
 
-    PNWkTot = np.concatenate([PNWk1, PNWk2, PNWk3])
+    PNWkTot = jnp.concatenate([PNWk1, PNWk2, PNWk3])
 
     return(k, PNWkTot)
