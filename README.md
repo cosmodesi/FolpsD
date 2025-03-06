@@ -7,12 +7,6 @@ This repository contains the latest version of the FOLPS code.
 
 - Update the `jax_tools.py` file      (done! but got some erros when running folps)
 
-- Implement a function to compute the non-wiggle component, including extrapolation:  
-  `pnw(k, pk, h)`
-
-- Develop a function to perform IR resummation for the linear power spectrum:  
-  `ir_resum_linear(k, pk, h)`
-
 - Introduce the MG modifications for f(R)
 
 - dividir los inputs para las clases nonlinear y RSDmultipolos en dos formas.
