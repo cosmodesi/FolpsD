@@ -5,7 +5,9 @@ This repository contains the latest version of the FOLPS code.
 
 - Test the code again (I found a bug recently in some outputs of `table_now`), test it for `Afull=False, True`
 
-- Include `bG2` and `bGamma3` rotation 
+- Include `bG2` and `bGamma3` rotation
+
+- Include a flag to turn on/off IR-resummation (see the `FOLPSnu_v3_May25` pipeline)
 
 - Update the `jax_tools.py` file      (done! but got some erros when running folps)
 
