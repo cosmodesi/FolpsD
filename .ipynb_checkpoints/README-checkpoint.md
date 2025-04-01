@@ -3,7 +3,7 @@ This repository contains the latest version of the FOLPS code.
 
 ## To-Do List
 
-- Test the code again for `Afull=False, True`
+- Test the code again (I found a bug recently in some outputs of `table_now`), test it for `Afull=False, True`
 
 - Include `bG2` and `bGamma3` rotation
 
@@ -28,9 +28,3 @@ class MatrixCalculator:
 - Check Bispectrum and optimize it        
         
 - Introduce the MG modifications for f(R)
-<<<<<<< Updated upstream
-=======
-
--newff
-ff
->>>>>>> Stashed changes

@@ -1,7 +1,10 @@
 import warnings
+from jax import numpy as jnp
 import numpy as np
-from scipy import interpolate
-from scipy import special
+
+import interpax
+
+from jax import config; config.update('jax_enable_x64', True)
 
 
 def legendre(ell):
@@ -14,7 +17,7 @@ def legendre(ell):
     """
     if ell == 0:
 
-        return lambda x: np.ones_like(x)
+        return lambda x: jnp.ones_like(x)
 
     if ell == 2:
 
@@ -27,19 +30,58 @@ def legendre(ell):
     raise NotImplementedError('Legendre polynomial for ell = {:d} not implemented'.format(ell))
 
 
-def interp(k, x, y):
-    from scipy import interpolate
+def interp(xq, x, f, method='cubic'):
+    """
+    Interpolate a 1d function.
 
-    '''Cubic interpolator.
-    
-    Args:
-        k: coordinates at which to evaluate the interpolated values.
-        kev: x-coordinates of the data points.
-        Table: list of 1-loop contributions for the wiggle and non-wiggle
-    '''
-    f = interpolate.interp1d(x, y, kind = 'cubic', fill_value = "extrapolate")
-    
-    return np.asarray(f(k), dtype=np.float64)
+    Note
+    ----
+    Using interpax: https://github.com/f0uriest/interpax
+
+    Parameters
+    ----------
+    xq : ndarray, shape(Nq,)
+        query points where interpolation is desired
+    x : ndarray, shape(Nx,)
+        coordinates of known function values ("knots")
+    f : ndarray, shape(Nx,...)
+        function values to interpolate
+    method : str
+        method of interpolation
+
+        - ``'nearest'``: nearest neighbor interpolation
+        - ``'linear'``: linear interpolation
+        - ``'cubic'``: C1 cubic splines (aka local splines)
+        - ``'cubic2'``: C2 cubic splines (aka natural splines)
+        - ``'catmull-rom'``: C1 cubic centripetal "tension" splines
+        - ``'cardinal'``: C1 cubic general tension splines. If used, can also pass
+          keyword parameter ``c`` in float[0,1] to specify tension
+        - ``'monotonic'``: C1 cubic splines that attempt to preserve monotonicity in the
+          data, and will not introduce new extrema in the interpolated points
+        - ``'monotonic-0'``: same as ``'monotonic'`` but with 0 first derivatives at
+          both endpoints
+
+    derivative : int >= 0
+        derivative order to calculate
+    extrap : bool, float, array-like
+        whether to extrapolate values beyond knots (True) or return nan (False),
+        or a specified value to return for query points outside the bounds. Can
+        also be passed as a 2 element array or tuple to specify different conditions
+        for xq<x[0] and x[-1]<xq
+    period : float > 0, None
+        periodicity of the function. If given, function is assumed to be periodic
+        on the interval [0,period]. None denotes no periodicity
+
+    Returns
+    -------
+    fq : ndarray, shape(Nq,...)
+        function value at query points
+    """
+    method = {1: 'linear', 3: 'cubic'}.get(method, method)
+    xq = jnp.asarray(xq)
+    shape = xq.shape
+    return interpax.interp1d(xq.reshape(-1), x, f, method=method, extrap=False).reshape(shape + f.shape[1:])
+
 
 _NoValue = None
 
@@ -52,11 +94,11 @@ def tupleset(t, i, value):
 
 def true_divide(h0, h1, out=None, where=None):
     if out is None:
-        out = np.zeros_like(h1)
+        out = jnp.zeros_like(h1)
     if where is None:
         out = out.at[...].set(h0 / h1)
         return out
-    return np.where(np.asarray(where), h0 / h1, out)
+    return jnp.where(jnp.asarray(where), h0 / h1, out)
 
 
 def _basic_simpson(y, start, stop, x, dx, axis):
@@ -70,29 +112,29 @@ def _basic_simpson(y, start, stop, x, dx, axis):
     slice2 = tupleset(slice_all, axis, slice(start+2, stop+2, step))
 
     if x is None:  # Even-spaced Simpson's rule.
-        result = np.sum(y[slice0] + 4.0*y[slice1] + y[slice2], axis=axis)
+        result = jnp.sum(y[slice0] + 4.0*y[slice1] + y[slice2], axis=axis)
         result *= dx / 3.0
     else:
         # Account for possibly different spacings.
         #    Simpson's rule changes a bit.
-        h = np.diff(x, axis=axis)
+        h = jnp.diff(x, axis=axis)
         sl0 = tupleset(slice_all, axis, slice(start, stop, step))
         sl1 = tupleset(slice_all, axis, slice(start+1, stop+1, step))
         h0 = h[sl0].astype(float)
         h1 = h[sl1].astype(float)
         hsum = h0 + h1
         hprod = h0 * h1
-        h0divh1 = true_divide(h0, h1, out=np.zeros_like(h0), where=h1 != 0)
+        h0divh1 = true_divide(h0, h1, out=jnp.zeros_like(h0), where=h1 != 0)
         tmp = hsum/6.0 * (y[slice0] *
                           (2.0 - true_divide(1.0, h0divh1,
-                                                out=np.zeros_like(h0divh1),
+                                                out=jnp.zeros_like(h0divh1),
                                                 where=h0divh1 != 0)) +
                           y[slice1] * (hsum *
                                        true_divide(hsum, hprod,
-                                                      out=np.zeros_like(hsum),
+                                                      out=jnp.zeros_like(hsum),
                                                       where=hprod != 0)) +
                           y[slice2] * (2.0 - h0divh1))
-        result = np.sum(tmp, axis=axis)
+        result = jnp.sum(tmp, axis=axis)
     return result
 
 
@@ -184,14 +226,14 @@ def simpson(y, *, x=None, dx=1.0, axis=-1, even=_NoValue):
     Examples
     --------
     >>> from scipy import integrate
-    >>> import numpy as np
-    >>> x = np.arange(0, 10)
-    >>> y = np.arange(0, 10)
+    >>> import numpy as jnp
+    >>> x = jnp.arange(0, 10)
+    >>> y = jnp.arange(0, 10)
 
     >>> integrate.simpson(y, x)
     40.5
 
-    >>> y = np.power(x, 3)
+    >>> y = jnp.power(x, 3)
     >>> integrate.simpson(y, x)
     1640.5
     >>> integrate.quad(lambda x: x**3, 0, 9)[0]
@@ -201,14 +243,14 @@ def simpson(y, *, x=None, dx=1.0, axis=-1, even=_NoValue):
     1644.5
 
     """
-    y = np.asarray(y)
+    y = jnp.asarray(y)
     nd = len(y.shape)
     N = y.shape[axis]
     last_dx = dx
     first_dx = dx
     returnshape = 0
     if x is not None:
-        x = np.asarray(x)
+        x = jnp.asarray(x)
         if len(x.shape) == 1:
             shapex = [1] * nd
             shapex[axis] = x.shape[0]
@@ -266,15 +308,15 @@ def simpson(y, *, x=None, dx=1.0, axis=-1, even=_NoValue):
             slice2 = tupleset(slice_all, axis, -2)
             slice3 = tupleset(slice_all, axis, -3)
 
-            h = np.asarray([dx, dx], dtype=np.float64)
+            h = jnp.asarray([dx, dx], dtype=jnp.float64)
             if x is not None:
                 # grab the last two spacings from the appropriate axis
                 hm2 = tupleset(slice_all, axis, slice(-2, -1, 1))
                 hm1 = tupleset(slice_all, axis, slice(-1, None, 1))
 
-                diffs = np.float64(np.diff(x, axis=axis))
-                h = [np.squeeze(diffs[hm2], axis=axis),
-                     np.squeeze(diffs[hm1], axis=axis)]
+                diffs = jnp.float64(jnp.diff(x, axis=axis))
+                h = [jnp.squeeze(diffs[hm2], axis=axis),
+                     jnp.squeeze(diffs[hm1], axis=axis)]
 
             # This is the correction for the last interval according to
             # Cartwright.
@@ -291,7 +333,7 @@ def simpson(y, *, x=None, dx=1.0, axis=-1, even=_NoValue):
             alpha = true_divide(
                 num,
                 den,
-                out=np.zeros_like(den),
+                out=jnp.zeros_like(den),
                 where=den != 0
             )
 
@@ -300,7 +342,7 @@ def simpson(y, *, x=None, dx=1.0, axis=-1, even=_NoValue):
             beta = true_divide(
                 num,
                 den,
-                out=np.zeros_like(den),
+                out=jnp.zeros_like(den),
                 where=den != 0
             )
 
@@ -309,7 +351,7 @@ def simpson(y, *, x=None, dx=1.0, axis=-1, even=_NoValue):
             eta = true_divide(
                 num,
                 den,
-                out=np.zeros_like(den),
+                out=jnp.zeros_like(den),
                 where=den != 0
             )
 
@@ -367,12 +409,12 @@ def extrapolate(x, y, xq):
         Returns:
             slope ‘m’ and the intercept ‘b’.
         """
-        xm = np.mean(x)
-        ym = np.mean(y)
+        xm = jnp.mean(x)
+        ym = jnp.mean(y)
         npts = len(x)
 
-        SS_xy = np.sum(x * y) - npts * xm * ym
-        SS_xx = np.sum(x**2) - npts * xm**2
+        SS_xy = jnp.sum(x * y) - npts * xm * ym
+        SS_xx = jnp.sum(x**2) - npts * xm**2
         m = SS_xy / SS_xx
 
         b = ym - m * xm
@@ -397,10 +439,10 @@ def extrapolate_linear_loglog(k, pk, kcut, k_extrapolate, is_high_k=True):
         Extrapolated k and pk arrays from 'kcut' to 'k_extrapolate'.
     """
     if is_high_k:
-        cutrange = np.where(k <= kcut)
+        cutrange = jnp.where(k <= kcut)
         index_slice = slice(-6, None)
     else:
-        cutrange = np.where(k > kcut)
+        cutrange = jnp.where(k > kcut)
         index_slice = slice(None, 5)
     
     k_cut = k[cutrange]
@@ -408,29 +450,29 @@ def extrapolate_linear_loglog(k, pk, kcut, k_extrapolate, is_high_k=True):
     k_to_extrapolate = k_cut[index_slice]
     pk_to_extrapolate = pk_cut[index_slice]
 
-    delta_log_k = np.log10(k_to_extrapolate[2]) - np.log10(k_to_extrapolate[1])
-    last_or_first_k = np.log10(k_to_extrapolate[-1]) if is_high_k else np.log10(k_to_extrapolate[0])
+    delta_log_k = jnp.log10(k_to_extrapolate[2]) - jnp.log10(k_to_extrapolate[1])
+    last_or_first_k = jnp.log10(k_to_extrapolate[-1]) if is_high_k else jnp.log10(k_to_extrapolate[0])
     
     log_k_list = []
-    while last_or_first_k <= np.log10(k_extrapolate) if is_high_k else last_or_first_k > np.log10(k_extrapolate):
+    while last_or_first_k <= jnp.log10(k_extrapolate) if is_high_k else last_or_first_k > jnp.log10(k_extrapolate):
         last_or_first_k += delta_log_k if is_high_k else -delta_log_k
         log_k_list.append(last_or_first_k)
     
-    log_k_list = np.array(log_k_list) if is_high_k else np.array(list(reversed(log_k_list)))
+    log_k_list = jnp.array(log_k_list) if is_high_k else jnp.array(list(reversed(log_k_list)))
     
-    sign = np.sign(pk_to_extrapolate[1])
-    pk_to_extrapolate_log = np.log10(np.abs(pk_to_extrapolate))
-    log_extrapolated_k, log_extrapolated_pk = extrapolate(np.log10(k_to_extrapolate), pk_to_extrapolate_log, log_k_list)
+    sign = jnp.sign(pk_to_extrapolate[1])
+    pk_to_extrapolate_log = jnp.log10(jnp.abs(pk_to_extrapolate))
+    log_extrapolated_k, log_extrapolated_pk = extrapolate(jnp.log10(k_to_extrapolate), pk_to_extrapolate_log, log_k_list)
     
     extrapolated_k = 10**log_extrapolated_k
     extrapolated_pk = sign * 10**log_extrapolated_pk
     
     if is_high_k:
-        k_result = np.concatenate((k_cut, extrapolated_k))
-        pk_result = np.concatenate((pk_cut, extrapolated_pk))
+        k_result = jnp.concatenate((k_cut, extrapolated_k))
+        pk_result = jnp.concatenate((pk_cut, extrapolated_pk))
     else:
-        k_result = np.concatenate((extrapolated_k, k_cut))
-        pk_result = np.concatenate((extrapolated_pk, pk_cut))
+        k_result = jnp.concatenate((extrapolated_k, k_cut))
+        pk_result = jnp.concatenate((extrapolated_pk, pk_cut))
     
     return k_result, pk_result
 
@@ -527,9 +569,9 @@ def get_pknow(k, pk, h):
     kmin = 7 * 10**(-5) / h; kmax = 7 / h; nk = 2**16
 
     #sample ln(kP_L(k)) in nk points, k range (equidistant)
-    ksT = kmin + np.arange(nk) * (kmax - kmin) / (nk - 1)
+    ksT = kmin + jnp.arange(nk) * (kmax - kmin) / (nk - 1)
     PSL = interp(ksT, k, pk)
-    logkpk = np.log(ksT * PSL)
+    logkpk = jnp.log(ksT * PSL)
 
     #Discrete sine transf., check documentation
     FSTlogkpkT = dst(np.array(logkpk), type=1, norm="ortho")
@@ -540,30 +582,30 @@ def get_pknow(k, pk, h):
     mcutmin = 120; mcutmax = 240
 
     #Even
-    xEvenTcutmin = np.arange(1, mcutmin - 1, 1)
-    xEvenTcutmax = np.arange(mcutmax + 2, len(FSTlogkpkEvenT) + 1, 1)
+    xEvenTcutmin = jnp.arange(1, mcutmin - 1, 1)
+    xEvenTcutmax = jnp.arange(mcutmax + 2, len(FSTlogkpkEvenT) + 1, 1)
     EvenTcutmin = FSTlogkpkEvenT[0:mcutmin - 2]
     EvenTcutmax = FSTlogkpkEvenT[mcutmax + 1:len(FSTlogkpkEvenT)]
-    xEvenTcuttedT = np.concatenate((xEvenTcutmin, xEvenTcutmax))
-    nFSTlogkpkEvenTcuttedT = np.concatenate((EvenTcutmin, EvenTcutmax))
+    xEvenTcuttedT = jnp.concatenate((xEvenTcutmin, xEvenTcutmax))
+    nFSTlogkpkEvenTcuttedT = jnp.concatenate((EvenTcutmin, EvenTcutmax))
 
     #Odd
-    xOddTcutmin = np.arange(1, mcutmin, 1)
-    xOddTcutmax = np.arange(mcutmax + 1, len(FSTlogkpkEvenT) + 1, 1)
+    xOddTcutmin = jnp.arange(1, mcutmin, 1)
+    xOddTcutmax = jnp.arange(mcutmax + 1, len(FSTlogkpkEvenT) + 1, 1)
     OddTcutmin = FSTlogkpkOddT[0:mcutmin - 1]
     OddTcutmax = FSTlogkpkOddT[mcutmax:len(FSTlogkpkEvenT)]
-    xOddTcuttedT = np.concatenate((xOddTcutmin, xOddTcutmax))
-    nFSTlogkpkOddTcuttedT = np.concatenate((OddTcutmin, OddTcutmax))
+    xOddTcuttedT = jnp.concatenate((xOddTcutmin, xOddTcutmax))
+    nFSTlogkpkOddTcuttedT = jnp.concatenate((OddTcutmin, OddTcutmax))
 
     #Interpolate the FST harmonics in the BAO range
-    PreEvenT = interp(np.arange(2, mcutmax + 1, 1.), xEvenTcuttedT, nFSTlogkpkEvenTcuttedT)
-    PreOddT = interp(np.arange(0, mcutmax - 1, 1.), xOddTcuttedT, nFSTlogkpkOddTcuttedT)
-    preT = np.column_stack([PreOddT[mcutmin:mcutmax - 1], PreEvenT[mcutmin:mcutmax - 1]]).ravel()
-    preT = np.concatenate([FSTlogkpkT[:2 * mcutmin], preT, FSTlogkpkT[2 * mcutmax - 2:]])
+    PreEvenT = interp(jnp.arange(2, mcutmax + 1, 1.), xEvenTcuttedT, nFSTlogkpkEvenTcuttedT)
+    PreOddT = interp(jnp.arange(0, mcutmax - 1, 1.), xOddTcuttedT, nFSTlogkpkOddTcuttedT)
+    preT = jnp.column_stack([PreOddT[mcutmin:mcutmax - 1], PreEvenT[mcutmin:mcutmax - 1]]).ravel()
+    preT = jnp.concatenate([FSTlogkpkT[:2 * mcutmin], preT, FSTlogkpkT[2 * mcutmax - 2:]])
 
     #Inverse Sine transf.
     FSTofFSTlogkpkNWT = idst(np.array(preT), type=1, norm="ortho")
-    PNWT = np.exp(FSTofFSTlogkpkNWT)/ksT
+    PNWT = jnp.exp(FSTofFSTlogkpkNWT)/ksT
 
     PNWk = interp(k, ksT, PNWT)
     DeltaAppf = k*(PSL[7]-PNWT[7])/PNWT[7]/ksT[7]
@@ -577,202 +619,6 @@ def get_pknow(k, pk, h):
     irange3 = (k > ksT[len(ksT)-1])
     PNWk3 = pk[irange3]
 
-    PNWkTot = np.concatenate([PNWk1, PNWk2, PNWk3])
+    PNWkTot = jnp.concatenate([PNWk1, PNWk2, PNWk3])
 
     return(k, PNWkTot)
-
-
-
-def get_linear_ir(k, pk, h, pknow=None, fullrange=False, kmin=0.01, kmax=0.5, rbao=104, saveout=False):
-    """
-    Calculates the infrared resummation of the linear power spectrum.
-
-    Parameters:
-    k, pk : array_like
-        Wave numbers and power spectrum values.
-    h : float
-        Hubble parameter, H0/100.
-    pknow : array_like, optional
-        Pre-computed non-wiggle power spectrum.
-    fullrange : bool, optional
-        If True, returns the full range of k and pk_IRs.
-    kmin, kmax : float, optional
-        Minimum and maximum k values for filtering.
-    rbao : float, optional
-        BAO radius for damping.
-    saveout : bool, optional
-        If True, saves the output to a file.
-
-    Returns:
-    tuple
-        Filtered or full arrays of k and pk_IRs.
-    """
-    if pknow is None:
-        if h is None:
-            raise ValueError("Argument 'h' is required when 'pknow' is None")
-        kT, pk_nw = get_pknow(k, pk, h)
-    else:
-        pk_nw = pknow
-    
-    p = np.geomspace(10**(-6), 0.4, num=100)
-    PSL_NW = interp(p, kT, pk_nw)
-    sigma2_NW = 1 / (6 * np.pi**2) * simpson(PSL_NW * (1 - special.spherical_jn(0, p * rbao) + 2 * special.spherical_jn(2, p * rbao)), x=p)
-    pk_IRs = pk_nw + np.exp(-kT**2 * sigma2_NW)*(pk - pk_nw)
-    
-    mask = (kT >= kmin) & (kT <= kmax) & (np.arange(len(kT)) % 2 == 0)
-    newkT = kT[mask]
-    newpk = pk_IRs[mask]
-    
-    output = (kT, pk_IRs) if fullrange else (newkT, newpk)
-                             
-    if saveout:
-        np.savetxt('pk_IR.txt', np.array(output).T, delimiter=' ')
-
-    return output
-
-### new debugging ###
-
-# Finally I ended using:
-#def interp(k, x, y):  # out-of-range below
-#        from scipy.interpolate import CubicSpline
-#        return CubicSpline(x, y)(k)
-
-#and interp_new() for tool_jax.py
-
-#def interp_new(xq, x, f, method='cubic'):
-#    from jax import numpy as jnp
-#    import interpax
-
-#    """
-#    Interpolate a 1d function.
-
-#    Note
-#    ----
-#    Using interpax: https://github.com/f0uriest/interpax
-
-#    Parameters
-#    ----------
-#    xq : ndarray, shape(Nq,)
-#        query points where interpolation is desired
-#    x : ndarray, shape(Nx,)
-#        coordinates of known function values ("knots")
-#    f : ndarray, shape(Nx,...)
-#        function values to interpolate
-#    method : str
-#        method of interpolation
-
-#        - ``'nearest'``: nearest neighbor interpolation
-#        - ``'linear'``: linear interpolation
-#        - ``'cubic'``: C1 cubic splines (aka local splines)
-#        - ``'cubic2'``: C2 cubic splines (aka natural splines)
-#        - ``'catmull-rom'``: C1 cubic centripetal "tension" splines
-#        - ``'cardinal'``: C1 cubic general tension splines. If used, can also pass
-#          keyword parameter ``c`` in float[0,1] to specify tension
-#        - ``'monotonic'``: C1 cubic splines that attempt to preserve monotonicity in the
-#          data, and will not introduce new extrema in the interpolated points
-#        - ``'monotonic-0'``: same as ``'monotonic'`` but with 0 first derivatives at
-#          both endpoints
-
-#    derivative : int >= 0
-#        derivative order to calculate
-#    extrap : bool, float, array-like
-#        whether to extrapolate values beyond knots (True) or return nan (False),
-#        or a specified value to return for query points outside the bounds. Can
-#        also be passed as a 2 element array or tuple to specify different conditions
-#        for xq<x[0] and x[-1]<xq
-#    period : float > 0, None
-#        periodicity of the function. If given, function is assumed to be periodic
-#        on the interval [0,period]. None denotes no periodicity
-
-#    Returns
-#    -------
-#    fq : ndarray, shape(Nq,...)
-#        function value at query points
-#    """
-#    method = {1: 'linear', 3: 'cubic'}.get(method, method)
-#    xq = jnp.asarray(xq)
-#    shape = xq.shape
-#    return interpax.interp1d(xq.reshape(-1), x, f, method=method, extrap=False).reshape(shape + f.shape[1:])
-
-
-
-#### debugging ##
-from scipy.fft import dst, idst
-
-def pknwJ(k, PSLk, h):
-    '''Routine (based on J. Hamann et. al. 2010, arXiv:1003.3999) to get the non-wiggle piece of the linear power spectrum.    
-    
-    Args:
-        k: wave-number.
-        PSLk: linear power spectrum.
-        h: H0/100.
-    Returns:
-        non-wiggle piece of the linear power spectrum.
-    '''
-    #ksmin(max): k-range and Nks: points
-    ksmin = 7*10**(-5)/h; ksmax = 7/h; Nks = 2**16
-
-    #sample ln(kP_L(k)) in Nks points, k range (equidistant)
-    ksT = [ksmin + ii*(ksmax-ksmin)/(Nks-1) for ii in range(Nks)]
-    PSL = interp(ksT, k, PSLk)
-    logkpkT = np.log(ksT*PSL)
-        
-    #Discrete sine transf., check documentation
-    FSTtype = 1; m = int(len(ksT)/2)
-    FSTlogkpkT = dst(logkpkT, type = FSTtype, norm = "ortho")
-    FSTlogkpkOddT = FSTlogkpkT[::2]
-    FSTlogkpkEvenT = FSTlogkpkT[1::2]
-        
-    #cut range (remove the harmonics around BAO peak)
-    mcutmin = 120; mcutmax = 240;
-        
-    #Even
-    xEvenTcutmin = np.linspace(1, mcutmin-2, mcutmin-2)
-    xEvenTcutmax = np.linspace(mcutmax+2, len(FSTlogkpkEvenT), len(FSTlogkpkEvenT)-mcutmax-1)
-    EvenTcutmin = FSTlogkpkEvenT[0:mcutmin-2] 
-    EvenTcutmax = FSTlogkpkEvenT[mcutmax+1:len(FSTlogkpkEvenT)]
-    xEvenTcuttedT = np.concatenate((xEvenTcutmin, xEvenTcutmax))
-    nFSTlogkpkEvenTcuttedT = np.concatenate((EvenTcutmin, EvenTcutmax))
-
-
-    #Odd
-    xOddTcutmin = np.linspace(1, mcutmin-1, mcutmin-1)
-    xOddTcutmax = np.linspace(mcutmax+1, len(FSTlogkpkEvenT), len(FSTlogkpkEvenT)-mcutmax)
-    OddTcutmin = FSTlogkpkOddT[0:mcutmin-1]
-    OddTcutmax = FSTlogkpkOddT[mcutmax:len(FSTlogkpkEvenT)]
-    xOddTcuttedT = np.concatenate((xOddTcutmin, xOddTcutmax))
-    nFSTlogkpkOddTcuttedT = np.concatenate((OddTcutmin, OddTcutmax))
-
-    #Interpolate the FST harmonics in the BAO range
-    preT, = map(np.zeros,(len(FSTlogkpkT),))
-    PreEvenT = interp(np.linspace(2, mcutmax, mcutmax-1), xEvenTcuttedT, nFSTlogkpkEvenTcuttedT)
-    PreOddT = interp(np.linspace(0, mcutmax-2, mcutmax-1), xOddTcuttedT, nFSTlogkpkOddTcuttedT)
-    for ii in range(m):
-        if (mcutmin < ii+1 < mcutmax):
-            preT[2*ii+1] = PreEvenT[ii]
-            preT[2*ii] = PreOddT[ii]
-        if (mcutmin >= ii+1 or mcutmax <= ii+1):
-            preT[2*ii+1] = FSTlogkpkT[2*ii+1]
-            preT[2*ii] = FSTlogkpkT[2*ii]
-                
-        
-    #Inverse Sine transf.
-    FSTofFSTlogkpkNWT = idst(preT, type = FSTtype, norm = "ortho")
-    PNWT = np.exp(FSTofFSTlogkpkNWT)/ksT
-
-    PNWk = interp(k, ksT, PNWT)
-    DeltaAppf = k*(PSL[7]-PNWT[7])/PNWT[7]/ksT[7]
-
-    irange1 = np.where((k < 1e-3))
-    PNWk1 = PSLk[irange1]/(DeltaAppf[irange1] + 1)
-
-    irange2 = np.where((1e-3 <= k) & (k <= ksT[len(ksT)-1]))
-    PNWk2 = PNWk[irange2]
-        
-    irange3 = np.where((k > ksT[len(ksT)-1]))
-    PNWk3 = PSLk[irange3]
-        
-    PNWkTot = np.concatenate((PNWk1, PNWk2, PNWk3))
-        
-    return(k, PNWkTot)
-
