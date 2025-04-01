@@ -25,12 +25,7 @@ class MatrixCalculator:
         """Inicializa la clase con el backend elegido (NumPy/JAX) y sus funciones asociadas."""
         self.backend = backend_functions
 ```
+------------------------
 - Check Bispectrum and optimize it        
         
 - Introduce the MG modifications for f(R)
-<<<<<<< Updated upstream
-=======
-
--newff
-ff
->>>>>>> Stashed changes
