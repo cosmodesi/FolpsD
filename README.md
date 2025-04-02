@@ -15,7 +15,7 @@ This repository contains the latest version of the FOLPS code.
   Que reciban de input parametros que NO dependan de la cosmologia,
   minetras que para las funciones que se ejecutan, alli si vayan los parametros que se varian
 
-- Ver la mejor forma de conectar el BackendManager con las funciones del folps.py, quizas:
+- [DONE] Ver la mejor forma de conectar el BackendManager con las funciones del folps.py, quizas:
 
 algo asi: 
 
