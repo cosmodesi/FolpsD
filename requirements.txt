@@ -1,0 +1,5 @@
+numpy
+jax
+cython
+sphinx
+sphinx_rtd_theme
