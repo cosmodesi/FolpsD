@@ -28,4 +28,6 @@ class MatrixCalculator:
 ------------------------
 - Check Bispectrum and optimize it        
         
+- Include VDG models (standard and keeping deltaP)        
+        
 - Introduce the MG modifications for f(R)
