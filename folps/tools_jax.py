@@ -1,6 +1,8 @@
 import warnings
+import warnings
 from jax import numpy as jnp
 import numpy as np
+from scipy import special
 
 import interpax
 
@@ -622,3 +624,52 @@ def get_pknow(k, pk, h):
     PNWkTot = jnp.concatenate([PNWk1, PNWk2, PNWk3])
 
     return(k, PNWkTot)
+
+
+
+def get_linear_ir(k, pk, h, pknow=None, fullrange=False, kmin=0.01, kmax=0.5, rbao=104, saveout=False):
+    """
+    Calculates the infrared resummation of the linear power spectrum.
+
+    Parameters:
+    k, pk : array_like
+        Wave numbers and power spectrum values.
+    h : float
+        Hubble parameter, H0/100.
+    pknow : array_like, optional
+        Pre-computed non-wiggle power spectrum.
+    fullrange : bool, optional
+        If True, returns the full range of k and pk_IRs.
+    kmin, kmax : float, optional
+        Minimum and maximum k values for filtering.
+    rbao : float, optional
+        BAO radius for damping.
+    saveout : bool, optional
+        If True, saves the output to a file.
+
+    Returns:
+    tuple
+        Filtered or full arrays of k and pk_IRs.
+    """
+    if pknow is None:
+        if h is None:
+            raise ValueError("Argument 'h' is required when 'pknow' is None")
+        kT, pk_nw = get_pknow(k, pk, h)
+    else:
+        pk_nw = pknow
+    
+    p = jnp.geomspace(10**(-6), 0.4, num=100)
+    PSL_NW = interp(p, kT, pk_nw)
+    sigma2_NW = 1 / (6 * jnp.pi**2) * simpson(PSL_NW * (1 - special.spherical_jn(0, p * rbao) + 2 * special.spherical_jn(2, p * rbao)), x=p)
+    pk_IRs = pk_nw + jnp.exp(-kT**2 * sigma2_NW)*(pk - pk_nw)
+    
+    mask = (kT >= kmin) & (kT <= kmax) & (jnp.arange(len(kT)) % 2 == 0)
+    newkT = kT[mask]
+    newpk = pk_IRs[mask]
+    
+    output = (kT, pk_IRs) if fullrange else (newkT, newpk)
+                             
+    if saveout:
+        jnp.savetxt('pk_IR.txt', jnp.array(output).T, delimiter=' ')
+
+    return output
