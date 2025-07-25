@@ -673,3 +673,46 @@ def get_linear_ir(k, pk, h, pknow=None, fullrange=False, kmin=0.01, kmax=0.5, rb
         jnp.savetxt('pk_IR.txt', jnp.array(output).T, delimiter=' ')
 
     return output
+
+
+
+def get_linear_ir_ini(k, pkl, pklnw, h=0.6711, k_BAO=1.0 / 104.):
+    """
+    Computes the initial infrared-resummed linear power spectrum using a fixed BAO scale.
+
+    Parameters
+    ----------
+    k : array_like
+        Wavenumbers [h/Mpc].
+    pkl : array_like
+        Linear power spectrum with wiggles.
+    pklnw : array_like
+        Linear no-wiggle (smooth) power spectrum.
+    h : float, optional
+        Hubble parameter, H0/100. Default is 0.6711.
+    k_BAO : float, optional
+        Inverse of the BAO scale in [1/Mpc]. Default is 1.0 / 104.
+
+    Returns
+    -------
+    tuple of ndarray
+        Tuple containing:
+            - k : Wavenumbers [h/Mpc].
+            - pkl_IR : Infrared-resummed power spectrum.
+    """
+    # Integration range (geometric spacing)
+    p = np.geomspace(1e-6, 0.4, num=100)
+
+    # Interpolate no-wiggle spectrum on integration grid
+    pk_nw_interp = interp(p, k, pklnw)
+
+    # Compute damping factor Sigma^2
+    j0 = special.spherical_jn(0, p / k_BAO)
+    j2 = special.spherical_jn(2, p / k_BAO)
+    integrand = pk_nw_interp * (1 - j0 + 2 * j2)
+    sigma2 = 1 / (6 * jnp.pi**2) * simpson(integrand, x=p)
+
+    # Apply IR resummation damping
+    pkl_IR = pklnw + jnp.exp(-k**2 * sigma2) * (pkl - pklnw)
+
+    return k, pkl_IR

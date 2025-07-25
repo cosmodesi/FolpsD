@@ -817,7 +817,6 @@ def NonLinear(inputpkl, CosmoParams, EdSkernels=False):
         # D function:
         I2uudd_1 = P22[15]   #  f^2*mu^2
         I2uudd_2 = P22[16]   #  f^2*mu^4
-        print(P22[15])
         
         I3uuud_2 = P22[17]   #  f^3*mu^4
         I3uuud_3 = P22[18]   #  f^3*mu^6

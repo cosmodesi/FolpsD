@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+# In[ ]:
+
+
 #===========================================================================================================================
 #============= ============= ============= ============  FOLPSν  ============== ============== ============= =============== 
 # This is a code for efficiently evaluating the redshift space power spectrum in the presence of massive neutrinos.
@@ -20,9 +23,8 @@ from scipy.special import spherical_jn
 from scipy.special import eval_legendre
 from scipy.integrate import quad
 import sys
-from scipy.interpolate import interp1d
 
-from scipy.fftpack import dst, idst
+
 
 def interp(k, x, y):
     '''Cubic spline interpolation.
@@ -39,36 +41,25 @@ def interp(k, x, y):
     
 
 
-def Matrices(Nfftlog = None):    
-    '''M matrices. They do not depend on the cosmology, so they are computed only one time.
+def Matrices(Nfftlog = None, A_full = False):    
+    '''M matrices. They do not depend on the cosmology, so they are computed only once.
     
     Args:
-        if 'Nfftlog = None' (or not specified) the code use as default 'Nfftlog = 128'. 
-        to use a different number of sample points, just specify it as 'Nfftlog =  number'.
-        we recommend using the default mode, see Fig.~8 at arXiv:2208.02791. 
+        Nfftlog (int): Number of sample points. Default is 128.
+    
     Returns:
-        All the M matrices.
+        tuple: All the M matrices.
     '''
     global M22matrices, M13vectors, bnu_b, N
-
-
-    remove_DeltaP=False  #change to True for VDG
-
+    global Afull
     
-    k_min = 10**(-7); k_max = 100.
-    b_nu = -0.1;   #Not yet tested for other values
+    Afull = A_full
     
-    if Nfftlog == None:
-        N = 128
-        
-    else:
-        N = Nfftlog
+    k_min = 10**(-7)
+    k_max = 100.
+    b_nu = -0.1      #Do not change: Not yet tested for other values
+    N = 128 if Nfftlog is None else Nfftlog
 
-
-    if remove_DeltaP:
-        print("removing $\Delta P(k,\mu)$")#... WARNING: This violates momentum conservation!!!")
-    # else:
-    #     print("keeping $\Delta P(k,\mu)$")
     
     #Eq.~ 4.19 at arXiv:2208.02791
     def Imatrix(nu1, nu2):
@@ -77,7 +68,7 @@ def Matrices(Nfftlog = None):
     
     #M22-type
     def M22(nu1, nu2):
-    
+        
         #Overdensity and velocity
         def M22_dd(nu1, nu2):
             return Imatrix(nu1,nu2)*(3/2-nu1-nu2)*(1/2-nu1-nu2)*( (nu1*nu2)*(98*(nu1+nu2)**2 - 14*(nu1+nu2) + 36) - 91*(nu1+nu2)**2+ 3*(nu1+nu2) + 58)/(196*nu1*(1+nu1)*(1/2-nu1)*nu2*(1+nu2)*(1/2-nu2))
@@ -109,104 +100,60 @@ def Matrices(Nfftlog = None):
         
         def MtAfkmpfpfp_33(nu1, nu2):
             return Imatrix(nu1,nu2)*((-3+2*(nu1+nu2))*(-1+2*(nu1+nu2))*(-13*(1+nu1)+2*(-11+nu1*(-1+14*nu1))*nu2 + 4*(3+7*nu1)*nu2**2))/(28*nu1*(1+nu1)*nu2*(1+nu2)*(-1+2*nu2))
-
-# Some B functions, not called by default
-
-
-        def MB2_21(nu1, nu2):
-        
-        	matrix=-2*((-15*Imatrix(-3 + nu1,2 + nu2))/64. + (15*Imatrix(-2 + nu1,1 + nu2))/16. + (3*Imatrix(-2 + nu1,2 + nu2))/4. - (45*Imatrix(-1 + nu1,nu2))/32. - (9*Imatrix(-1 + nu1,1 + nu2))/8. - (27*Imatrix(-1 + nu1,2 + nu2))/32. + (15*Imatrix(nu1,-1 + nu2))/16. + (3*Imatrix(nu1,1 + nu2))/16. + (3*Imatrix(nu1,2 + nu2))/8. - (15*Imatrix(1 + nu1,-2 + nu2))/64. + (3*Imatrix(1 + nu1,-1 + nu2))/8. - (3*Imatrix(1 + nu1,nu2))/32. - (3*Imatrix(1 + nu1,2 + nu2))/64.)
-        	return matrix
-        
-        
-         
-        
-             
-        def MB3_21(nu1, nu2):
-        	matrix=-2*((35*Imatrix(-3 + nu1,2 + nu2))/128. - (35*Imatrix(-2 + nu1,1 + nu2))/32. - (25*Imatrix(-2 + nu1,2 + nu2))/32. + (105*Imatrix(-1 + nu1,nu2))/64. + (45*Imatrix(-1 + nu1,1 + nu2))/32. + (45*Imatrix(-1 + nu1,2 + nu2))/64. - (35*Imatrix(nu1,-1 + nu2))/32. - (15*Imatrix(nu1,nu2))/32. - (9*Imatrix(nu1,1 + nu2))/32. - (5*Imatrix(nu1,2 + nu2))/32. + (35*Imatrix(1 + nu1,-2 + nu2))/128. - (5*Imatrix(1 + nu1,-1 + nu2))/32. - (3*Imatrix(1 + nu1,nu2))/64. - Imatrix(1 + nu1,1 + nu2)/32. - (5*Imatrix(1 + nu1,2 + nu2))/128.)
-        	return  matrix
-                  
-
-        
-        def MB2_22(nu1, nu2):
-            matrix= Imatrix(nu1, nu2)*(-9*(-3 + 2*nu1 + 2*nu2)*(-1 + 2*nu1 + 2*nu2)*(3 + 4*nu1**2 + nu1*(2 - 12*nu2) + 2*nu2 + 4*nu2**2))/(64.*nu1*(1 + nu1)*nu2*(1 + nu2)*(-4 + nu1 + nu2)*(-3 + nu1 + nu2))
-            return matrix 
-                  
-        def MB3_22(nu1, nu2):
-            matrix= Imatrix(nu1, nu2)*(3*(-3 + 2*nu1 + 2*nu2)*(-1 + 2*nu1 + 2*nu2)*(1 + 2*nu1 + 2*nu2)*(3 + 4*nu1**2 + nu1*(2 - 12*nu2) + 2*nu2 + 4*nu2**2))/(64.*nu1*(1 + nu1)*nu2*(1 + nu2)*(-4 + nu1 + nu2)*(-3 + nu1 + nu2))
-            return matrix 
-               
-        def MB4_22(nu1, nu2):
-            matrix= Imatrix(nu1, nu2)*((-3 + 2*nu1)*(-3 + 2*nu2)*(-3 + 2*nu1 + 2*nu2)*(-1 + 2*nu1 + 2*nu2)*(1 + 2*nu1 + 2*nu2)*(3 + 2*nu1 + 2*nu2))/(64.*nu1*(1 + nu1)*nu2*(1 + nu2)*(-4 + nu1 + nu2)*(-3 + nu1 + nu2))
-            return matrix 
-
-    
-        
-
         
         #D function
-        def MB1_11(nu1, nu2):  #(B.55)
+        def MB1_11(nu1, nu2):
             return Imatrix(nu1,nu2)*(3-2*(nu1+nu2))/(4*nu1*nu2)
         
-        def MC1_11(nu1, nu2):  #(B.58)
-            if remove_DeltaP:
-                matrix=0.0* Imatrix(nu1, nu2)
-            else: 
-                matrix=Imatrix(nu1,nu2)*((-3+2*nu1)*(-3+2*(nu1+nu2)))/(4*nu2*(1+nu2)*(-1+2*nu2))
-            return matrix
+        def MC1_11(nu1, nu2):
+            return Imatrix(nu1,nu2)*((-3+2*nu1)*(-3+2*(nu1+nu2)))/(4*nu2*(1+nu2)*(-1+2*nu2))
         
-        def MB2_11(nu1, nu2):   #(B.56)
+        def MB2_11(nu1, nu2):
             return Imatrix(nu1,nu2)*((-3+2*(nu1+nu2))*(-1+2*(nu1+nu2)))/(4*nu1*nu2)
         
-        def MC2_11(nu1, nu2):  #(B.59)
-            if remove_DeltaP:
-                matrix=0.0* Imatrix(nu1, nu2)
-            else: 
-                matrix=Imatrix(nu1,nu2)*((-3+2*(nu1+nu2))*(-1+2*(nu1+nu2)))/(4*nu2*(1+nu2))
-            return matrix
-
+        def MC2_11(nu1, nu2):
+            return Imatrix(nu1,nu2)*((-3+2*(nu1+nu2))*(-1+2*(nu1+nu2)))/(4*nu2*(1+nu2))
         
         def MD2_21(nu1, nu2):
-            if remove_DeltaP:
-                matrix=MB2_21(nu1, nu2)
-            else: 
-                matrix=Imatrix(nu1,nu2)*((-1+2*nu1-4*nu2)*(-3+2*(nu1+nu2))*(-1+2*(nu1+nu2)))/(4*nu1*nu2*(-1+nu2+2*nu2**2))
-            return matrix
+            return Imatrix(nu1,nu2)*((-1+2*nu1-4*nu2)*(-3+2*(nu1+nu2))*(-1+2*(nu1+nu2)))/(4*nu1*nu2*(-1+nu2+2*nu2**2))
         
         def MD3_21(nu1, nu2):
-            if remove_DeltaP:
-                matrix=MB3_21(nu1, nu2)
-            else: 
-                matrix=Imatrix(nu1,nu2)*((3-2*(nu1+nu2))*(1-4*(nu1+nu2)**2))/(4*nu1*nu2*(1+nu2))
-            return matrix
+            return Imatrix(nu1,nu2)*((3-2*(nu1+nu2))*(1-4*(nu1+nu2)**2))/(4*nu1*nu2*(1+nu2))
         
         def MD2_22(nu1, nu2):
-            if remove_DeltaP:
-                matrix=MB2_22(nu1, nu2)
-            else: 
-                matrix=Imatrix(nu1,nu2)*(3*(3-2*(nu1+nu2))*(1-2*(nu1+nu2)))/(32*nu1*(1+nu1)*nu2*(1+nu2))
-            return matrix
+            return Imatrix(nu1,nu2)*(3*(3-2*(nu1+nu2))*(1-2*(nu1+nu2)))/(32*nu1*(1+nu1)*nu2*(1+nu2))
         
         def MD3_22(nu1, nu2):
-            if remove_DeltaP:
-                matrix=MB3_22(nu1, nu2)
-            else: 
-                matrix=Imatrix(nu1,nu2)*((3-2*(nu1+nu2))*(1-4*(nu1+nu2)**2)*(1+2*(nu1**2-4*nu1*nu2+nu2**2)))/(16*nu1*(1+nu1)*(-1+2*nu1)*nu2*(1+nu2)*(-1+2*nu2))
-            return matrix
+            return Imatrix(nu1,nu2)*((3-2*(nu1+nu2))*(1-4*(nu1+nu2)**2)*(1+2*(nu1**2-4*nu1*nu2+nu2**2)))/(16*nu1*(1+nu1)*(-1+2*nu1)*nu2*(1+nu2)*(-1+2*nu2))
         
         def MD4_22(nu1, nu2):
-            if remove_DeltaP:
-                matrix=MB4_22(nu1, nu2)
-            else: 
-                matrix=Imatrix(nu1,nu2)*((9-4*(nu1+nu2)**2)*(1-4*(nu1+nu2)**2))/(32*nu1*(1+nu1)*nu2*(1+nu2))
-            return matrix
-    
+            return Imatrix(nu1,nu2)*((9-4*(nu1+nu2)**2)*(1-4*(nu1+nu2)**2))/(32*nu1*(1+nu1)*nu2*(1+nu2))
         
-        return (M22_dd(nu1, nu2), M22_dt_fp(nu1, nu2), M22_tt_fpfp(nu1, nu2), M22_tt_fkmpfp(nu1, nu2),
+        #A function: contributions due to b2 & bs2
+        def MtAfkmpfp_22_b2(nu1, nu2):
+            return Imatrix(nu1,nu2) * ( (2*(nu1+nu2) - 3) * (2*(nu1+nu2) - 1) )/(2*nu1*nu2) 
+        
+        def MtAfkmpfp_22_bs2(nu1, nu2):
+            return Imatrix(nu1,nu2) * ( (2*(nu1+nu2) -3) * (2*(nu1+nu2) - 1) * (-1 - nu2 + nu1*(2*nu2 - 1)) )/(6*nu1*(1+nu1)*nu2*(1+nu2))
+        
+        if Afull:
+            return (
+                M22_dd(nu1, nu2), M22_dt_fp(nu1, nu2), M22_tt_fpfp(nu1, nu2), M22_tt_fkmpfp(nu1, nu2),
                 MtAfp_11(nu1, nu2), MtAfkmpfp_12(nu1, nu2), MtAfkmpfp_22(nu1, nu2), MtAfpfp_22(nu1, nu2), 
                 MtAfkmpfpfp_23(nu1, nu2), MtAfkmpfpfp_33(nu1, nu2), MB1_11(nu1, nu2), MC1_11(nu1, nu2), 
                 MB2_11(nu1, nu2), MC2_11(nu1, nu2), MD2_21(nu1, nu2), MD3_21(nu1, nu2), MD2_22(nu1, nu2), 
-                MD3_22(nu1, nu2), MD4_22(nu1, nu2))
+                MD3_22(nu1, nu2), MD4_22(nu1, nu2),
+                MtAfkmpfp_22_b2(nu1, nu2), MtAfkmpfp_22_bs2(nu1, nu2)
+            )
+        
+        else:
+            return (
+                M22_dd(nu1, nu2), M22_dt_fp(nu1, nu2), M22_tt_fpfp(nu1, nu2), M22_tt_fkmpfp(nu1, nu2),
+                MtAfp_11(nu1, nu2), MtAfkmpfp_12(nu1, nu2), MtAfkmpfp_22(nu1, nu2), MtAfpfp_22(nu1, nu2), 
+                MtAfkmpfpfp_23(nu1, nu2), MtAfkmpfpfp_33(nu1, nu2), MB1_11(nu1, nu2), MC1_11(nu1, nu2), 
+                MB2_11(nu1, nu2), MC2_11(nu1, nu2), MD2_21(nu1, nu2), MD3_21(nu1, nu2), MD2_22(nu1, nu2), 
+                MD3_22(nu1, nu2), MD4_22(nu1, nu2)
+            )
     
     
     #M22-type Biasing
@@ -232,23 +179,33 @@ def Matrices(Nfftlog = None):
 
         def MPbs2t(nu1, nu2):
             return  Imatrix(nu1,nu2)*((-3+2*(nu1+nu2))*(-19-10*nu2+nu1*(39-30*nu2+14*nu1*(-1+2*nu2))))/(84*nu1*(1+nu1)*nu2*(1+nu2))
-
-        def MB1_21(nu1, nu2):
-            if remove_DeltaP:
-                matrix=Imatrix(nu1, nu2)*(3*(-3 + 2*nu1)*(-3 + 2*nu1 + 2*nu2))/ (8.*nu1*nu2*(1 + nu2)*(-3 + nu1 + nu2))
-            else:
-                matrix=0.0* Imatrix(nu1, nu2)
-            return  matrix
-
-        def MB1_22(nu1, nu2):
-            if remove_DeltaP:
-                matrix= Imatrix(nu1, nu2)*(-15*(-3 + 2*nu1)*(-3 + 2*nu2)*(-3 + 2*nu1 + 2*nu2)) / (64.*nu1*(1 + nu1)*nu2*(1 + nu2)*(-4 + nu1 + nu2)*(-3 + nu1 + nu2))
-            else:
-                matrix=0.0* Imatrix(nu1, nu2)
-            return  matrix        
         
-        return (MPb1b2(nu1, nu2), MPb1bs2(nu1, nu2), MPb22(nu1, nu2), MPb2bs2(nu1, nu2), 
-                MPb2s2(nu1, nu2), MPb2t(nu1, nu2), MPbs2t(nu1, nu2),MB1_21(nu1, nu2),MB1_22(nu1, nu2))
+        #A function: contributions due to b2 & bs2
+        def MtAfp_11_b2(nu1, nu2):
+            return Imatrix(nu1,nu2) * ( 4*(nu1+nu2) - 6)/nu1
+        
+        def MtAfp_11_bs2(nu1, nu2):
+            return Imatrix(nu1,nu2) * ( (2*nu1-1) * (2*nu2-3) * (2*(nu1+nu2) - 3) )/(3*nu1*(1+nu1)*nu2)
+        
+        def MtAfkmpfp_12_b2(nu1, nu2):
+            return Imatrix(nu1,nu2) * (3 - 2*(nu1+nu2))/(2*nu1*nu2)
+        
+        def MtAfkmpfp_12_bs2(nu1, nu2):
+            return Imatrix(nu1,nu2) * ( (5+2*nu1*(nu2-2) - 4*nu2) * (3 - 2*(nu1+nu2)) )/(6*nu1*(1+nu1)*nu2*(1+nu2))
+        
+        if Afull:
+            return (
+                MPb1b2(nu1, nu2), MPb1bs2(nu1, nu2), MPb22(nu1, nu2), MPb2bs2(nu1, nu2), 
+                MPb2s2(nu1, nu2), MPb2t(nu1, nu2), MPbs2t(nu1, nu2),
+                MtAfp_11_b2(nu1, nu2), MtAfp_11_bs2(nu1, nu2), 
+                MtAfkmpfp_12_b2(nu1, nu2), MtAfkmpfp_12_bs2(nu1, nu2)
+            )
+        
+        else:
+            return (
+                MPb1b2(nu1, nu2), MPb1bs2(nu1, nu2), MPb22(nu1, nu2), MPb2bs2(nu1, nu2), 
+                MPb2s2(nu1, nu2), MPb2t(nu1, nu2), MPbs2t(nu1, nu2)
+            )
     
     
     #M13-type
@@ -329,7 +286,7 @@ def Matrices(Nfftlog = None):
     
     #FFTLog bias for the biasing spectra Pb1b2,...
     bnu_b = 15.1*b_nu
-    
+
     M22T =  M22type(k_min, k_max, N, b_nu, M22)
     M22biasT = M22type(k_min, k_max, N, bnu_b, M22bias)
     M22matrices = np.concatenate((M22T, M22biasT))
@@ -342,6 +299,158 @@ def Matrices(Nfftlog = None):
     print('M matrices have been computed')
   
     return (M22matrices, M13vectors)
+
+
+
+
+def LinearRegression(inputxy): 
+    '''Linear regression.
+    
+    Args:
+        inputxy: data set with x- and y-coordinates.
+    Returns:
+        slope ‘m’ and the intercept ‘b’.
+    '''
+    xm = np.mean(inputxy[0])
+    ym = np.mean(inputxy[1])
+    Npts = len(inputxy[0])
+    
+    SS_xy = np.sum(inputxy[0]*inputxy[1]) - Npts*xm*ym
+    SS_xx = np.sum(inputxy[0]**2) - Npts*xm**2
+    m = SS_xy/SS_xx
+    
+    b = ym - m*xm
+    return (m, b)
+
+
+
+
+def Extrapolate(inputxy, outputx):
+    '''Extrapolation.
+    
+    Args:
+        inputxy: data set with x- and y-coordinates.
+        outputx: x-coordinates of extrapolation.
+    Returns:
+        extrapolates the data set ‘inputxy’ to the range given by ‘outputx’.
+    '''
+    m, b = LinearRegression(inputxy)
+    outxy = [(outputx[ii], m*outputx[ii]+b) for ii in range(len(outputx))]
+    
+    return np.array(np.transpose(outxy))
+
+
+
+
+def ExtrapolateHighkLogLog(inputT, kcutmax, kmax):
+    '''Extrapolation for high-k values.
+    
+    Args:
+        inputT: k-coordinates and linear power spectrum.
+        kcutmax: value of ‘k’ from which ‘inputT’ will be interpolated.
+        kmax: value of ‘k’ up to which ‘inputT’ will be interpolated.
+    Returns:
+        extrapolation for high-k values (from ‘kcutmax’ to ‘kmax’) for a given linear power spectrum ‘ inputT’.
+    '''
+    cutrange = np.where(inputT[0]<= kcutmax)
+    inputcutT = np.array([inputT[0][cutrange], inputT[1][cutrange]])
+    listToExtT = inputcutT[0][-6:]
+    tableToExtT = np.array([listToExtT, inputcutT[1][-6:]])
+    delta = np.log10(listToExtT[2])-np.log10(listToExtT[1])
+    lastk = np.log10(listToExtT[-1])
+    
+    logklist = [];
+    while (lastk <= np.log10(kmax)):
+        logklistT = lastk + delta;
+        lastk = logklistT
+        logklist.append(logklistT)
+    logklist = np.array(logklist)
+    
+    sign = np.sign(tableToExtT[1][1])
+    tableToExtT = np.log10(np.abs(tableToExtT))
+    logextT = Extrapolate(tableToExtT, logklist)
+    
+    output = np.array([10**logextT[0], sign*10**logextT[1]])
+    output = np.concatenate((inputcutT, output), axis=1)
+        
+    
+    return output
+
+
+
+
+def ExtrapolateLowkLogLog(inputT, kcutmin, kmin):
+    '''Extrapolation for low-k values.
+    
+    Args:
+        inputT: k-coordinates and linear power spectrum.
+        kcutmin: value of ‘k’ from which ‘inputT’ will be interpolated.
+        kmin: value of ‘k’ up to which ‘inputT’ will be interpolated.
+    Returns:
+        extrapolation for low-k values (from ‘kcutmin’ to ‘kmin’) for a given linear power spectrum ‘inputT’.
+    '''
+    cutrange = np.where(inputT[0] > kcutmin)
+    inputcutT = np.array([inputT[0][cutrange], inputT[1][cutrange]])
+    listToExtT = inputcutT[0][:5]
+    tableToExtT = np.array([listToExtT, inputcutT[1][:5]])
+    delta = np.log10(listToExtT[2])-np.log10(listToExtT[1])
+    firstk = np.log10(listToExtT[0])
+    
+    logklist = [];
+    while (firstk > np.log10(kmin)):
+        logklistT = firstk - delta;
+        firstk = logklistT
+        logklist.append(logklistT)
+    logklist = np.array(list(reversed(logklist)))
+    
+    sign = np.sign(tableToExtT[1][1])
+    tableToExtT = np.log10(np.abs(tableToExtT))
+    logextT = Extrapolate(tableToExtT, logklist)
+    
+    output = np.array([10**logextT[0], sign*10**logextT[1]])
+    output = np.concatenate((output, inputcutT), axis=1)
+        
+    
+    return output
+
+
+
+
+def ExtrapolatekLogLog(inputT, kcutmin, kmin, kcutmax, kmax):
+    '''Extrapolation at low-k and high-k.
+    
+    Args:
+        inputT: k-coordinates and linear power spectrum.
+        kcutmin, kcutmax: value of ‘k’ from which ‘inputT’ will be interpolated.
+        kmin, kmax: value of ‘k’ up to which ‘inputT’ will be interpolated.
+    Returns:
+        combines extrapolation al low-k and high-k.
+    '''
+    output = ExtrapolateLowkLogLog(ExtrapolateHighkLogLog(inputT, kcutmax, kmax), kcutmin, kmin)
+    
+    return output
+
+
+
+
+def Extrapolate_inputpkl(inputT):
+    '''Extrapolation to the input linear power spectrum.
+    
+    Args:
+        inputT: k-coordinates and linear power spectrum.
+    Returns:
+        extrapolates the input linear power spectrum ‘inputT’ to low-k or high-k if needed.
+    '''
+    kcutmin = min(inputT[0]); kmin = 10**(-5);
+    kcutmax = max(inputT[0]); kmax = 200
+    
+    if ((kmin < kcutmin) or (kmax > kcutmax)):
+        output = ExtrapolatekLogLog(inputT, kcutmin, kmin, kcutmax, kmax)
+        
+    else:
+        output = inputT
+        
+    return output
 
 
 
@@ -500,7 +609,6 @@ def pknwJ(k, PSLk, h):
     preT, = map(np.zeros,(len(FSTlogkpkT),))
     PreEvenT = interp(np.linspace(2, mcutmax, mcutmax-1), xEvenTcuttedT, nFSTlogkpkEvenTcuttedT)
     PreOddT = interp(np.linspace(0, mcutmax-2, mcutmax-1), xOddTcuttedT, nFSTlogkpkOddTcuttedT)
-
     for ii in range(m):
         if (mcutmin < ii+1 < mcutmax):
             preT[2*ii+1] = PreEvenT[ii]
@@ -508,8 +616,6 @@ def pknwJ(k, PSLk, h):
         if (mcutmin >= ii+1 or mcutmax <= ii+1):
             preT[2*ii+1] = FSTlogkpkT[2*ii+1]
             preT[2*ii] = FSTlogkpkT[2*ii]
-
-         
                 
         
     #Inverse Sine transf.
@@ -576,298 +682,424 @@ def cmM(k_min, k_max, N, b_nu, inputpkT):
 
 
 
-
-
-
-
-
-# import numpy as np
-# from scipy import integrate
-# from scipy.interpolate import interp1d
-
-def NonLinear(inputpkl, CosmoParams, EdSkernels=False):
-    '''Optimized 1-loop corrections to the linear power spectrum.
+def NonLinear(inputpkl, CosmoParams, kminout=0.001, kmaxout=0.5, nk = 120, EdSkernels = False):
+    '''1-loop corrections to the linear power spectrum.
     
     Args:
+        If 'EdSkernels = True' (default: 'False', fk-kernels), EdS-kernels will be employed.        
         inputpkl: k-coordinates and linear power spectrum.
-        CosmoParams: [z_pk, omega_b, omega_cdm, omega_ncdm, h]
-        EdSkernels: If True, use EdS-kernels (default: False)
+        CosmoParams: Set of cosmological parameters [z_pk, omega_b, omega_cdm, omega_ncdm, h] in that order.
+                   z_pk: redshift.
+                   omega_i = omega_i = Omega_i h², where i=baryons (b), CDM (cdm), massive neutrinos (ncdm).
+                   h = H0/100. 
     Returns:
-        Tuple of (TableOut, TableOut_NW) with 1-loop contributions
+        list of 1-loop contributions for the wiggle and non-wiggle (also computed here) linear power spectra.
     '''
-    # global M22matrices, M13vectors  # Access the matrices defined by Matrices()
     global TableOut, TableOut_NW, f0, kTout, sigma2w, sigma2w_NW
+    
     global z_pk, omega_b, omega_cdm, omega_ncdm, h
-
-    remove_DeltaP=False     #change to True for VDG
-    
-    # Check if matrices are defined
-    if 'M22matrices' not in globals() or 'M13vectors' not in globals():
-        raise RuntimeError("Matrices must be computed first by calling Matrices()")
-    
-    # Extract cosmological parameters
-    z_pk, omega_b, omega_cdm, omega_ncdm, h = CosmoParams
-    
-    # Constants
-    k_min, k_max = 1e-7, 100.0
-    b_nu = -0.1
-    N = 128  # Default FFTLog points
-    
-    # Extrapolate input power spectrum
-    inputpkT = Extrapolate_inputpkl(inputpkl)
-    
-    # Output k-range
-    kminout, kmaxout = 0.001, 0.5
-    kTout = np.logspace(np.log10(kminout), np.log10(kmaxout), num=120)
     
 
+    #CosmoParams
+    (z_pk, omega_b, omega_cdm, omega_ncdm, h) = CosmoParams
     
-    # Precompute frequently used values
-    log_kratio = np.log(k_max/k_min)
-    jj = np.arange(N+1)
-    ietam = (2*np.pi*1j/log_kratio) * (jj - N/2) * (N-1)/N
-    etamT = b_nu + ietam
-    bnu_b = 15.1*b_nu
-    etamT_b = bnu_b + ietam
+    k_min = 10**(-7); k_max = 100.
+    b_nu = -0.1;   #Not yet tested for other values
     
-    # Evaluation: f(k)/f0 and linear power spectrums
+          
+    #Extrapolates the linear power spectrum if needed. 
+    inputpkT = Extrapolate_inputpkl(inputpkl) 
+    
+    
+    ################################ KTOUT ###########################################    
+    
+    #kminout = 0.001; kmaxout = 0.5;
+    
+    kTout = np.logspace(np.log10(kminout), np.log10(kmaxout), num=nk)
+
+    
+    ##################################################################################
+    
+    def P22type(kTout, inputpkT, inputpkTf, inputpkTff, M22matrices, k_min,
+                k_max, N, b_nu):
+        
+        if Afull:
+            (M22_dd, M22_dt_fp, M22_tt_fpfp, M22_tt_fkmpfp, 
+             MtAfp_11, MtAfkmpfp_12, MtAfkmpfp_22, 
+             MtAfpfp_22, MtAfkmpfpfp_23, MtAfkmpfpfp_33, 
+             MB1_11, MC1_11, MB2_11, MC2_11, MD2_21, MD3_21, MD2_22, MD3_22, MD4_22, 
+             MtAfkmpfp_22_b2, MtAfkmpfp_22_bs2,
+             MPb1b2, MPb1bs2, MPb22, MPb2bs2, MPb2s2, MPb2t, MPbs2t,
+             MtAfp_11_b2, MtAfp_11_bs2, 
+             MtAfkmpfp_12_b2, MtAfkmpfp_12_bs2) = M22matrices
+        
+        else:
+            (M22_dd, M22_dt_fp, M22_tt_fpfp, M22_tt_fkmpfp, MtAfp_11, MtAfkmpfp_12, 
+             MtAfkmpfp_22, MtAfpfp_22, MtAfkmpfpfp_23, MtAfkmpfpfp_33, MB1_11, MC1_11, 
+             MB2_11, MC2_11, MD2_21, MD3_21, MD2_22, MD3_22, MD4_22, MPb1b2, MPb1bs2, 
+             MPb22, MPb2bs2, MPb2s2, MPb2t, MPbs2t) = M22matrices
+        
+        #matter coefficients 
+        cmT = cmM(k_min, k_max, N, b_nu, inputpkT)
+        cmTf = cmM(k_min, k_max, N, b_nu, inputpkTf)
+        cmTff = cmM(k_min, k_max, N, b_nu, inputpkTff)
+        
+        #biased tracers coefficients
+        bnu_b = 15.1*b_nu
+        cmT_b = cmM(k_min, k_max, N, bnu_b, inputpkT)
+        cmTf_b = cmM(k_min, k_max, N, bnu_b, inputpkTf)
+        
+        #creating the zeros of P22
+        #Ploop
+        P22dd, P22dt, P22tt = map(np.zeros,3*(len(kTout),))
+        #Bias
+        Pb1b2, Pb1bs2, Pb22, Pb2bs2, Pb2s2, Pb2t, Pbs2t = map(np.zeros,7*(len(kTout),))
+        #A-TNS
+        I1udd_1b, I2uud_1b, I3uuu_3b, I2uud_2b, I3uuu_2b = map(np.zeros,5*(len(kTout),))          
+        #D-RSD
+        I2uudd_1D, I2uudd_2D, I3uuud_2D, I3uuud_3D, I4uuuu_2D, I4uuuu_3D, I4uuuu_4D = map(np.zeros,7*(len(kTout),))
+        #A-TNS: b2, bs2
+        I1udd_1b_b2, I2uud_1b_b2, I2uud_2b_b2, I1udd_1b_bs2, I2uud_1b_bs2, I2uud_2b_bs2 = map(np.zeros,6*(len(kTout),))
+
+        
+        #etaT = bias_nu + i*eta_m
+        etamT = np.zeros(N+1, dtype = complex)
+        etamT_b = np.zeros(N+1, dtype = complex)
+        for jj in range(N+1):
+            ietam = (2*np.pi*1j/np.log(k_max/k_min)) * (jj - N/2) *(N-1)/(N)
+            etamT[jj] = b_nu + ietam 
+            etamT_b[jj] = bnu_b + ietam
+            
+        for ii in range(len(kTout)):
+            K = kTout[ii]
+            precvec = K**(etamT) 
+            vec = cmT * precvec
+            vecf = cmTf * precvec
+            vecff = cmTff * precvec
+            
+            precvec_b = K**(etamT_b)
+            vec_b = cmT_b * precvec_b
+            vecf_b = cmTf_b * precvec_b
+            
+            P22dd[ii] = (K**3 * vec @ M22_dd @ vec).real 
+            P22dt[ii] = (2*K**3 * vecf @ M22_dt_fp @ vec).real 
+            P22tt[ii] = K**3 *(vecff @ M22_tt_fpfp @ vec + vecf @ M22_tt_fkmpfp @ vecf).real
+            
+            Pb1b2[ii] = (K**3 * vec_b @ MPb1b2 @ vec_b).real 
+            Pb1bs2[ii] = (K**3 * vec_b @ MPb1bs2 @ vec_b).real
+            Pb22[ii] = (K**3 * vec_b @ MPb22 @ vec_b).real  
+            Pb2bs2[ii] = (K**3 * vec_b @ MPb2bs2 @ vec_b).real
+            Pb2s2[ii] = (K**3 * vec_b @ MPb2s2 @ vec_b).real
+            Pb2t[ii] = (K**3 * vecf_b @ MPb2t @ vec_b).real
+            Pbs2t[ii] = (K**3 * vecf_b @ MPbs2t @ vec_b).real
+            
+            I1udd_1b[ii] = (K**3 * vecf @ MtAfp_11 @ vec).real 
+            I2uud_1b[ii] = (K**3 * vecf @ MtAfkmpfp_12 @ vecf).real
+            I3uuu_3b[ii] = (K**3 * vecff @ MtAfkmpfpfp_33 @ vecf).real
+            I2uud_2b[ii] = K**3 * (vecf @ MtAfkmpfp_22 @ vecf + vecff @ MtAfpfp_22 @ vec).real 
+            I3uuu_2b[ii] = (K**3 * vecff @ MtAfkmpfpfp_23 @ vecf).real
+            
+            I2uudd_1D[ii] = K**3 * (vecf @ MB1_11 @ vecf + vec @ MC1_11 @ vecff).real
+            I2uudd_2D[ii] = K**3 * (vecf @ MB2_11 @ vecf + vec @ MC2_11 @ vecff).real
+            I3uuud_2D[ii] = (K**3 * vecf @ MD2_21 @ vecff).real 
+            I3uuud_3D[ii] = (K**3 * vecf @ MD3_21 @ vecff).real 
+            I4uuuu_2D[ii] = (K**3 * vecff @ MD2_22 @ vecff).real 
+            I4uuuu_3D[ii] = (K**3 * vecff @ MD3_22 @ vecff).real 
+            I4uuuu_4D[ii] = (K**3 * vecff @ MD4_22 @ vecff).real 
+            
+            if Afull:
+                I1udd_1b_b2[ii] = (K**3 * vecf_b @ MtAfp_11_b2 @ vec_b).real
+                I2uud_1b_b2[ii] = (K**3 * vecf_b @ MtAfkmpfp_12_b2 @ vecf_b).real
+                I2uud_2b_b2[ii] = (K**3 * vecf @ MtAfkmpfp_22_b2 @ vecf).real
+        
+                I1udd_1b_bs2[ii] = (K**3 * vecf_b @ MtAfp_11_bs2 @ vec_b).real
+                I2uud_1b_bs2[ii] = (K**3 * vecf_b @ MtAfkmpfp_12_bs2 @ vecf_b).real
+                I2uud_2b_bs2[ii] = (K**3 * vecf @ MtAfkmpfp_22_bs2 @ vecf).real
+        
+        if Afull:
+            return (
+            P22dd, P22dt, P22tt, Pb1b2, Pb1bs2, Pb22, Pb2bs2, Pb2s2, 
+            Pb2t, Pbs2t, I1udd_1b, I2uud_1b, I3uuu_3b, I2uud_2b, 
+            I3uuu_2b, I2uudd_1D, I2uudd_2D, I3uuud_2D, I3uuud_3D,
+            I4uuuu_2D, I4uuuu_3D, I4uuuu_4D,
+            I1udd_1b_b2, I2uud_1b_b2, I2uud_2b_b2,
+            I1udd_1b_bs2, I2uud_1b_bs2, I2uud_2b_bs2
+            )
+        
+        else:
+            return (
+            P22dd, P22dt, P22tt, Pb1b2, Pb1bs2, Pb22, Pb2bs2, Pb2s2, 
+            Pb2t, Pbs2t, I1udd_1b, I2uud_1b, I3uuu_3b, I2uud_2b, 
+            I3uuu_2b, I2uudd_1D, I2uudd_2D, I3uuud_2D, I3uuud_3D,
+            I4uuuu_2D, I4uuuu_3D, I4uuuu_4D
+                   )
+    
+    def P13type(kTout, inputpkT, inputpkTf, inputpkTff, inputfkT, M13vectors, 
+                k_min, k_max, N, b_nu):
+                
+        (M13_dd, M13_dt_fk, M13_tt_fk, Mafk_11, Mafp_11, Mafkfp_12, Mafpfp_12, 
+         Mafkfkfp_33, Mafkfpfp_33, Msigma23) = M13vectors
+        
+        
+        #condition for EdS-kernels or fk-kernels (default: fk-kernels)
+        if EdSkernels == False:
+            Fkoverf0 = interp(kTout, inputfkT[0], inputfkT[1])
+        else:
+            Fkoverf0 = np.full(len(kTout), 1.0)
+            
+        
+        #matter coefficients 
+        cmT = cmM(k_min, k_max, N, b_nu, inputpkT)
+        cmTf = cmM(k_min, k_max, N, b_nu, inputpkTf)
+        cmTff = cmM(k_min, k_max, N, b_nu, inputpkTff)
+        
+        #biased tracers coefficients
+        bnu_b = 15.1*b_nu
+        cmT_b = cmM(k_min, k_max, N, bnu_b, inputpkT)
+        cmTf_b = cmM(k_min, k_max, N, bnu_b, inputpkTf)
+        
+        #creating the zeros of P13 
+        #Ploop
+        P13dd, P13dt, P13tt = map(np.zeros,3*(len(kTout),))
+        #Bias
+        sigma23 = np.zeros(len(kTout))
+        #A-TNS
+        I1udd_1a, I2uud_1a, I3uuu_3a = map(np.zeros,3*(len(kTout),))
+        
+        #etaT = bias_nu + i*eta_m
+        etamT = np.zeros(N+1, dtype = complex)
+        etamT_b = np.zeros(N+1, dtype = complex)
+        for jj in range(N+1):
+            ietam = (2*np.pi*1j/np.log(k_max/k_min)) * (jj - N/2) *(N-1)/(N)
+            etamT[jj] = b_nu + ietam 
+            etamT_b[jj] = bnu_b + ietam
+        
+        sigma2psi = 1/(6 * np.pi**2) * scipy.integrate.simps(inputpkT[1], inputpkT[0])
+        sigma2v = 1/(6 * np.pi**2) * scipy.integrate.simps(inputpkTf[1], inputpkTf[0]) 
+        sigma2w = 1/(6 * np.pi**2) * scipy.integrate.simps(inputpkTff[1], inputpkTff[0])
+        
+        for ii in range(len(kTout)):
+            K = kTout[ii]
+            precvec = K**(etamT) 
+            vec = cmT * precvec
+            vecf = cmTf * precvec 
+            vecff = cmTff * precvec
+            vecfM13dt_fk = vecf @ M13_dt_fk
+            
+            precvec_b = K**(etamT_b)
+            vec_b = cmT_b * precvec_b
+            vecf_b = cmTf_b * precvec_b
+            
+            P13dd[ii] = (K**3 * vec @ M13_dd).real - 61/105 * K**2 * sigma2psi
+            P13dt[ii] = 0.5 *(K**3 * (Fkoverf0[ii] * vec @ M13_dt_fk + vecfM13dt_fk)).real - (23/21*sigma2psi * Fkoverf0[ii] + 2/21*sigma2v)* K**2  
+            P13tt[ii] = (K**3 * Fkoverf0[ii] * (Fkoverf0[ii] * vec @ M13_tt_fk + vecfM13dt_fk ) ).real - (169/105*sigma2psi * Fkoverf0[ii] + 4/21 * sigma2v)* Fkoverf0[ii]* K**2 
+            
+            sigma23[ii] = (K**3 * vec_b @ Msigma23).real 
+            
+            I1udd_1a[ii] = K**3 * (Fkoverf0[ii] * vec @ Mafk_11 + vecf @ Mafp_11).real + (92/35*sigma2psi * Fkoverf0[ii] - 18/7*sigma2v)*K**2 
+            I2uud_1a[ii] = K**3 * (Fkoverf0[ii] * vecf @ Mafkfp_12 + vecff @ Mafpfp_12).real - (38/35*Fkoverf0[ii] *sigma2v + 2/7*sigma2w)*K**2 
+            I3uuu_3a[ii] = K**3 * Fkoverf0[ii] * (Fkoverf0[ii] * vecf @ Mafkfkfp_33 + vecff @ Mafkfpfp_33).real - (16/35*Fkoverf0[ii]*sigma2v + 6/7*sigma2w)*Fkoverf0[ii]*K**2 
+        
+        return (P13dd, P13dt, P13tt, sigma23, I1udd_1a, I2uud_1a, I3uuu_3a)
+       
+    
+    #Evaluation: f(k)/f0 and linear power spectrums
     h, OmM0, fnu, Massnu = CosmoParam(h, omega_b, omega_cdm, omega_ncdm)    
     inputfkT = fOverf0EH(z_pk, inputpkT[0], OmM0, h, fnu)
     f0 = inputfkT[2]
     
-    # Handle EdS vs fk kernels
-    if EdSkernels:
-        Fkoverf0 = np.ones_like(kTout)
-        inputpkTf = (inputpkT[0], inputpkT[1])
-        inputpkTff = (inputpkT[0], inputpkT[1])
+    
+    
+    #condition for EdS-kernels or fk-kernels (default: fk-kernels)
+    if EdSkernels == False:
+        Fkoverf0 = interp(kTout, inputfkT[0], inputfkT[1])
     else:
-        Fkoverf0 = interp1d(inputfkT[0], inputfkT[1], bounds_error=False, fill_value="extrapolate")(kTout)
+        Fkoverf0 = np.full(len(kTout), 1.0)
+        
+        
+    
+    #Non-wiggle linear power spectrum
+    inputpkT_NW = pknwJ(inputpkT[0], inputpkT[1], h)
+    
+    
+    #condition for EdS-kernels or fk-kernels (default: fk-kernels)
+    if EdSkernels == False:
+        
         inputpkTf = (inputpkT[0], inputpkT[1]*inputfkT[1])
         inputpkTff = (inputpkT[0], inputpkT[1]*(inputfkT[1])**2)
-    
-    # Non-wiggle linear power spectrum
-    inputpkT_NW = pknwJ_beta(inputpkT[0], inputpkT[1], h)
-    
-    if EdSkernels:
-        inputpkTf_NW = (inputpkT_NW[0], inputpkT_NW[1])
-        inputpkTff_NW = (inputpkT_NW[0], inputpkT_NW[1])
-    else:
+        
         inputpkTf_NW = (inputpkT_NW[0], inputpkT_NW[1]*inputfkT[1])
         inputpkTff_NW = (inputpkT_NW[0], inputpkT_NW[1]*(inputfkT[1])**2)
     
-    # Vectorized P22type calculation
-    def vectorized_P22(kTout, inputpkT, inputpkTf, inputpkTff):
+    else:
+        inputpkTf = (inputpkT[0], inputpkT[1])
+        inputpkTff = (inputpkT[0], inputpkT[1])
+        
+        inputpkTf_NW = (inputpkT_NW[0], inputpkT_NW[1])
+        inputpkTff_NW = (inputpkT_NW[0], inputpkT_NW[1])
+          
         
         
-        (M22_dd, M22_dt_fp, M22_tt_fpfp, M22_tt_fkmpfp, MtAfp_11, MtAfkmpfp_12, 
-         MtAfkmpfp_22, MtAfpfp_22, MtAfkmpfpfp_23, MtAfkmpfpfp_33, MB1_11, MC1_11, 
-         MB2_11, MC2_11, MD2_21, MD3_21, MD2_22, MD3_22, MD4_22, MPb1b2, MPb1bs2, 
-         MPb22, MPb2bs2, MPb2s2, MPb2t, MPbs2t,MB1_21,MB1_22) = M22matrices
-
-
-        # Precompute coefficients
-        cmT = cmM(k_min, k_max, N, b_nu, inputpkT)
-        cmTf = cmM(k_min, k_max, N, b_nu, inputpkTf)
-        cmTff = cmM(k_min, k_max, N, b_nu, inputpkTff)
-        cmT_b = cmM(k_min, k_max, N, bnu_b, inputpkT)
-        cmTf_b = cmM(k_min, k_max, N, bnu_b, inputpkTf)
-        
-        # Prepare output arrays
-        results = [np.zeros_like(kTout) for _ in range(24)]
-        
-        # Vectorized computation over kTout
-        K = kTout[:, None]  # Shape (120, 1)
-        precvec = K**etamT  # Shape (120, N+1)
-        
-        vec = cmT * precvec
-        vecf = cmTf * precvec
-        vecff = cmTff * precvec
-        vec_b = cmT_b * (K**etamT_b)
-        vecf_b = cmTf_b * (K**etamT_b)
-        
-        # Compute all P22 terms
-        results[0] = (    kTout**3 * np.sum(vec  @ M22_dd      * vec, axis=1)).real
-        results[1] = (2 * kTout**3 * np.sum(vecf @ M22_dt_fp   * vec, axis=1)).real
-        results[2] = (kTout**3 * (np.sum(vecff   @ M22_tt_fpfp * vec, axis=1) + 
-                      np.sum(vecf @ M22_tt_fkmpfp * vecf, axis=1))).real
-        
-        # Bias terms
-        results[3] = (kTout**3 * np.sum(vec_b  @ MPb1b2  * vec_b, axis=1)).real
-        results[4] = (kTout**3 * np.sum(vec_b  @ MPb1bs2 * vec_b, axis=1)).real
-        results[5] = (kTout**3 * np.sum(vec_b  @ MPb22   * vec_b, axis=1)).real
-        results[6] = (kTout**3 * np.sum(vec_b  @ MPb2bs2 * vec_b, axis=1)).real
-        results[7] = (kTout**3 * np.sum(vec_b  @ MPb2s2  * vec_b, axis=1)).real
-        results[8] = (kTout**3 * np.sum(vecf_b @ MPb2t   * vec_b, axis=1)).real
-        results[9] = (kTout**3 * np.sum(vecf_b @ MPbs2t  * vec_b, axis=1)).real
-        
-        # A-TNS terms
-        results[10] = (kTout**3 * np.sum(vecf  @ MtAfp_11       * vec, axis=1)).real
-        results[11] = (kTout**3 * np.sum(vecf  @ MtAfkmpfp_12   * vecf, axis=1)).real
-        results[12] = (kTout**3 * np.sum(vecff @ MtAfkmpfpfp_33 * vecf, axis=1)).real
-        results[13] = (kTout**3 * (np.sum(vecf @ MtAfkmpfp_22   * vecf, axis=1) + 
-                         np.sum(vecff @ MtAfpfp_22 * vec, axis=1))).real
-        results[14] = (kTout**3 * np.sum(vecff @ MtAfkmpfpfp_23 * vecf, axis=1)).real
-        
-        # D-RSD terms
-        results[17] = (kTout**3 * np.sum(vecf  @ MD2_21 * vecff, axis=1)).real
-        results[18] = (kTout**3 * np.sum(vecf  @ MD3_21 * vecff, axis=1)).real
-        results[19] = (kTout**3 * np.sum(vecff @ MD2_22 * vecff, axis=1)).real
-        results[20] = (kTout**3 * np.sum(vecff @ MD3_22 * vecff, axis=1)).real
-        results[21] = (kTout**3 * np.sum(vecff @ MD4_22 * vecff, axis=1)).real
-        # =0 if C is kept:  
-        results[22] = (kTout**3 * np.sum(vecf_b @ MB1_21 * vec_b, axis=1)).real
-        results[23] = (kTout**3 * np.sum(vecf_b @ MB1_22 * vecf_b, axis=1)).real
-
-        
-        return tuple(results)
+    #P22type contributions 
+    P22 = P22type(kTout, inputpkT, inputpkTf, inputpkTff, M22matrices, k_min, k_max, N, b_nu)
+    P22_NW = P22type(kTout, inputpkT_NW, inputpkTf_NW, inputpkTff_NW, M22matrices, k_min, k_max, N, b_nu)
     
-    # Vectorized P13type calculation
-    def vectorized_P13(kTout, inputpkT, inputpkTf, inputpkTff, inputfkT):
-        
-        (M13_dd, M13_dt_fk, M13_tt_fk, Mafk_11, Mafp_11, Mafkfp_12, Mafpfp_12, 
-         Mafkfkfp_33, Mafkfpfp_33, Msigma23) = M13vectors
-        # Precompute coefficients
-        cmT = cmM(k_min, k_max, N, b_nu, inputpkT)
-        cmTf = cmM(k_min, k_max, N, b_nu, inputpkTf)
-        cmTff = cmM(k_min, k_max, N, b_nu, inputpkTff)
-        cmT_b = cmM(k_min, k_max, N, bnu_b, inputpkT)
-
-        # Prepare output arrays
-        results = [np.zeros_like(kTout) for _ in range(7)]
-
-        # Compute sigma values
-        sigma2psi = integrate.simps(inputpkT[1], inputpkT[0]) / (6 * np.pi**2)
-        sigma2v   = integrate.simps(inputpkTf[1], inputpkTf[0]) / (6 * np.pi**2)
-        sigma2w   = integrate.simps(inputpkTff[1], inputpkTff[0]) / (6 * np.pi**2)
-
-        # Vectorized computation over kTout
-        K = kTout[:, None]  # Shape (120, 1)
-        precvec = K**etamT   # Shape (120, N+1)
-
-        vec = cmT * precvec  # Shape (120, N+1)
-        vecf = cmTf * precvec
-        vecff = cmTff * precvec
-        vec_b = cmT_b * (K**etamT_b)
-
-        # Fix axis handling for matrix products
-        vec_M13_dd = vec @ M13_dd  # Result shape depends on M13_dd dimensions
-
-        # Compute P13 terms - remove axis=1 since results are already 1D
-        M13dd = (kTout**3 * (vec @ M13_dd)).real - (61/105) * kTout**2 * sigma2psi
-        vecfM13dt_fk = vecf @ M13_dt_fk
-
-        M13dt = 0.5 * (kTout**3 * (Fkoverf0 * (vec @ M13_dt_fk) + vecfM13dt_fk)).real - (
-            (23/21)*sigma2psi * Fkoverf0 + (2/21)*sigma2v) * kTout**2
-
-        M13tt = (kTout**3 * Fkoverf0 * (Fkoverf0 * (vec @ M13_tt_fk) + vecfM13dt_fk)).real - (
-            (169/105)*sigma2psi * Fkoverf0 + (4/21)*sigma2v) * Fkoverf0 * kTout**2
-
-        results[0] = M13dd
-        results[1] = M13dt
-        results[2] = M13tt
-        results[3] = (kTout**3 * (vec_b @ Msigma23)).real
-
-        # A-TNS terms
-        results[4] = (kTout**3 * (Fkoverf0 * (vec @ Mafk_11) + (vecf @ Mafp_11))).real + (
-                      (92/35)*sigma2psi * Fkoverf0 - (18/7)*sigma2v) * kTout**2
-
-        results[5] = (kTout**3 * (Fkoverf0 * (vecf @ Mafkfp_12) + (vecff @ Mafpfp_12))).real - (
-                      (38/35)*Fkoverf0 * sigma2v + (2/7)*sigma2w) * kTout**2
-
-        results[6] = (kTout**3 * Fkoverf0 * (Fkoverf0 * (vecf @ Mafkfkfp_33) + 
-                      (vecff @ Mafkfpfp_33))).real - (
-                      (16/35)*Fkoverf0 * sigma2v + (6/7)*sigma2w) * Fkoverf0 * kTout**2
-        
-        return tuple(results), sigma2w
     
-    # Compute P22 and P13 terms
-    P22    = vectorized_P22(kTout, inputpkT, inputpkTf, inputpkTff)
-    P22_NW = vectorized_P22(kTout, inputpkT_NW, inputpkTf_NW, inputpkTff_NW)
     
-    P13overpkl,    sigma2w    = vectorized_P13(kTout, inputpkT, inputpkTf, inputpkTff, inputfkT)
-    P13overpkl_NW, sigma2w_NW = vectorized_P13(kTout, inputpkT_NW, inputpkTf_NW, inputpkTff_NW, inputfkT)
+    #P13type contributions
+    P13overpkl = P13type(kTout, inputpkT, inputpkTf, inputpkTff, inputfkT, M13vectors, k_min, k_max, N, b_nu)
+    P13overpkl_NW = P13type(kTout, inputpkT_NW, inputpkTf_NW, inputpkTff_NW, inputfkT, M13vectors, k_min, k_max, N, b_nu)
     
-    # Interpolate linear power spectra
-    pk_l = interp1d(inputpkT[0], inputpkT[1], bounds_error=False, fill_value="extrapolate")(kTout)
-    pk_l_NW = interp1d(inputpkT_NW[0], inputpkT_NW[1], bounds_error=False, fill_value="extrapolate")(kTout)
+    #print(P13overpkl)
     
-    # Compute final results
-    def compute_final_results(P22, P13, pk, Fkoverf0, sigma2w):
-        Ploop_dd = P22[0] + P13[0] * pk
-        Ploop_dt = P22[1] + P13[1] * pk
-        Ploop_tt = P22[2] + P13[2] * pk
+    #Computations for Table
+    pk_l = np.interp(kTout, inputpkT[0], inputpkT[1])
+    pk_l_NW = np.interp(kTout,inputpkT_NW[0], inputpkT_NW[1])
         
-        Pb1b2  = P22[3]
-        Pb1bs2 = P22[4]
-        Pb22   = P22[5] - interp1d(kTout, P22[5], fill_value="extrapolate")(1e-10)
-        Pb2bs2 = P22[6] - interp1d(kTout, P22[6], fill_value="extrapolate")(1e-10)
-        Pb2s2  = P22[7] - interp1d(kTout, P22[7], fill_value="extrapolate")(1e-10)
-        Pb2t   = P22[8]
-        Pbs2t  = P22[9]
-        sigma23pkl = P13[3] * pk
+    
+    sigma2w = 1/(6 * np.pi**2) * scipy.integrate.simps(inputpkTff[1], inputpkTff[0])
+    sigma2w_NW = 1/(6 * np.pi**2) * scipy.integrate.simps(inputpkTff_NW[1], inputpkTff_NW[0])
+    #print(sigma2w_NW)
 
-        # A function:
-        I1udd_1 = P13[4] * pk + P22[10]
-        I2uud_1 = P13[5] * pk + P22[11]
-        I2uud_2 = (P13[6] * pk) / Fkoverf0 + Fkoverf0 * P13[4] * pk + P22[13]
-        I3uuu_2 = Fkoverf0 * P13[5] * pk + P22[14]
-        I3uuu_3 = P13[6] * pk + P22[12]
-
-
-        # D function:
-        I2uudd_1 = P22[15]   #  f^2*mu^2
-        I2uudd_2 = P22[16]   #  f^2*mu^4
-        print(P22[15])
-        
-        I3uuud_2 = P22[17]   #  f^3*mu^4
-        I3uuud_3 = P22[18]   #  f^3*mu^6
-        
-        I4uuuu_2 = P22[19]   #  f^4*mu^4
-        I4uuuu_3 = P22[20]   #  f^4*mu^6
-        I4uuuu_4 = P22[21]   #  f^4*mu^8
-
-            # =0 if C is kept.
-        I3uuud_1_B = P22[22]  # term f^3*mu^2  I3uuud1D = I3uuud1B + I3uuud1C = 0   
-        I4uuuu_1_B = P22[23]  # term f^4*mu^3  I4uuud1D = I4uuud1B + I4uuud1C = 0
-        
-        return (kTout, pk, Fkoverf0, Ploop_dd, Ploop_dt, Ploop_tt, 
-                Pb1b2, Pb1bs2, Pb22, Pb2bs2, Pb2s2, sigma23pkl, Pb2t, Pbs2t, 
-                I1udd_1, I2uud_1, I2uud_2, I3uuu_2, I3uuu_3, 
-                I2uudd_1, I2uudd_2, 
-                I3uuud_2, I3uuud_3, I4uuuu_2, I4uuuu_3, I4uuuu_4,
-                I3uuud_1_B,I4uuuu_1_B, 
-                f0, sigma2w)        
-        
-        # return (kTout, pk, Fkoverf0, Ploop_dd, Ploop_dt, Ploop_tt, 
-        #         Pb1b2, Pb1bs2, Pb22, Pb2bs2, Pb2s2, sigma23pkl, Pb2t, Pbs2t, 
-        #         I1udd_1, I2uud_1, I2uud_2, I3uuu_2, I3uuu_3, 
-        #         P22[15], P22[16], 
-        #         P22[17], P22[18], P22[19], P22[20], P22[21], 
-        #         f0, sigma2w)
+    Ploop_dd = P22[0] + P13overpkl[0]*pk_l
+    print(P13overpkl[0]*pk_l)
+    Ploop_dt = P22[1] + P13overpkl[1]*pk_l
+    Ploop_tt = P22[2] + P13overpkl[2]*pk_l
     
-    TableOut    = compute_final_results(P22, P13overpkl, pk_l, Fkoverf0, sigma2w)
-    TableOut_NW = compute_final_results(P22_NW, P13overpkl_NW, pk_l_NW, Fkoverf0, sigma2w_NW)
+    Pb1b2 = P22[3];        
+    Pb1bs2 = P22[4];          
+    Pb22 = P22[5]-interp(10**(-10), kTout, P22[5]);    
+    #print(Pb22)
+    Pb2bs2 = P22[6]-interp(10**(-10), kTout, P22[6]);
+    Pb2s2 = P22[7]-interp(10**(-10), kTout, P22[7]); 
+    sigma23pkl = P13overpkl[3]*pk_l
+    Pb2t = P22[8]; 
+    Pbs2t = P22[9];
     
-    return TableOut, TableOut_NW
+    I1udd_1 = P13overpkl[4]*pk_l + P22[10];
+    I2uud_1 = P13overpkl[5]*pk_l + P22[11];
+    I2uud_2 = (P13overpkl[6]*pk_l)/Fkoverf0 + Fkoverf0*P13overpkl[4]*pk_l + P22[13];
+    I3uuu_2 = Fkoverf0*P13overpkl[5]*pk_l + P22[14];
+    I3uuu_3 = P13overpkl[6]*pk_l + P22[12];
+    
+    I2uudd_1D = P22[15];   I2uudd_2D = P22[16];   I3uuud_2D = P22[17];
+    I3uuud_3D = P22[18];   I4uuuu_2D = P22[19];   I4uuuu_3D = P22[20];
+    I4uuuu_4D = P22[21];
+    
+    if Afull:
+        #A function: b2 and bs2 contributions
+        I1udd_1_b2 = P22[22];    I1udd_1_bs2 = P22[25];       
+        I2uud_1_b2 = P22[23];    I2uud_1_bs2 = P22[26];    
+        I2uud_2_b2 = P22[24];    I2uud_2_bs2 = P22[27];    
+    
+    
+    if Afull:
+        TableOut = (kTout, pk_l, Fkoverf0, Ploop_dd, Ploop_dt, Ploop_tt, 
+                    Pb1b2, Pb1bs2, Pb22, Pb2bs2, Pb2s2, sigma23pkl, Pb2t, Pbs2t, 
+                    I1udd_1, I2uud_1, I2uud_2, I3uuu_2, I3uuu_3, I2uudd_1D, 
+                    I2uudd_2D, I3uuud_2D, I3uuud_3D, I4uuuu_2D, I4uuuu_3D, 
+                    I4uuuu_4D,
+                    I1udd_1_b2, I2uud_1_b2, I2uud_2_b2,
+                    I1udd_1_bs2, I2uud_1_bs2, I2uud_2_bs2,
+                    f0, sigma2w)
+    
+    else:
+        TableOut = (kTout, pk_l, Fkoverf0, Ploop_dd, Ploop_dt, Ploop_tt, 
+                    Pb1b2, Pb1bs2, Pb22, Pb2bs2, Pb2s2, sigma23pkl, Pb2t, Pbs2t, 
+                    I1udd_1, I2uud_1, I2uud_2, I3uuu_2, I3uuu_3, I2uudd_1D, 
+                    I2uudd_2D, I3uuud_2D, I3uuud_3D, I4uuuu_2D, I4uuuu_3D, 
+                    I4uuuu_4D, f0, sigma2w)
+    
+    
+    ######################## Non- Wiggle ########################################
+    
+    Ploop_dd_NW = P22_NW[0] + P13overpkl_NW[0]*pk_l_NW;
+    print(P13overpkl_NW[0]*pk_l_NW)
+    Ploop_dt_NW = P22_NW[1] + P13overpkl_NW[1]*pk_l_NW;
+    Ploop_tt_NW = P22_NW[2] + P13overpkl_NW[2]*pk_l_NW;
+    
+    Pb1b2_NW = P22_NW[3];        
+    Pb1bs2_NW = P22_NW[4];          
+    Pb22_NW = P22_NW[5]-interp(10**(-10), kTout, P22_NW[5]);
+    Pb2bs2_NW = P22_NW[6]-interp(10**(-10), kTout, P22_NW[6]); 
+    Pb2s2_NW = P22_NW[7]-interp(10**(-10), kTout, P22_NW[7]);
+    sigma23pkl_NW = P13overpkl_NW[3]*pk_l_NW;
+    Pb2t_NW = P22_NW[8];        
+    Pbs2t_NW = P22_NW[9];         
+    
+    I1udd_1_NW = P13overpkl_NW[4]*pk_l_NW + P22_NW[10];
+    I2uud_1_NW = P13overpkl_NW[5]*pk_l_NW + P22_NW[11];
+    I2uud_2_NW = (P13overpkl_NW[6]*pk_l_NW)/Fkoverf0 + Fkoverf0*P13overpkl_NW[4]*pk_l_NW + P22_NW[13];
+    I3uuu_2_NW = Fkoverf0*P13overpkl_NW[5]*pk_l_NW + P22_NW[14];
+    I3uuu_3_NW = P13overpkl_NW[6]*pk_l_NW + P22_NW[12];
+    
+    I2uudd_1D_NW = P22_NW[15];   I2uudd_2D_NW = P22_NW[16];   I3uuud_2D_NW = P22_NW[17];
+    I3uuud_3D_NW = P22_NW[18];   I4uuuu_2D_NW = P22_NW[19];   I4uuuu_3D_NW = P22_NW[20];
+    I4uuuu_4D_NW = P22_NW[21];
+    
+    if Afull:
+        #A function: b2 and bs2 contributions
+        I1udd_1_b2_NW = P22_NW[22];    I1udd_1_bs2_NW = P22_NW[25];       
+        I2uud_1_b2_NW = P22_NW[23];    I2uud_1_bs2_NW = P22_NW[26];    
+        I2uud_2_b2_NW = P22_NW[24];    I2uud_2_bs2_NW = P22_NW[27];    
+    
+    
+    if Afull:
+        TableOut_NW = (kTout, pk_l_NW, Fkoverf0, Ploop_dd_NW, Ploop_dt_NW, Ploop_tt_NW, 
+                       Pb1b2_NW, Pb1bs2_NW, Pb22_NW, Pb2bs2_NW, Pb2s2_NW, sigma23pkl_NW, 
+                       Pb2t_NW, Pbs2t_NW, I1udd_1_NW, I2uud_1_NW, I2uud_2_NW, I3uuu_2_NW, 
+                       I3uuu_3_NW, I2uudd_1D_NW, I2uudd_2D_NW, I3uuud_2D_NW, I3uuud_3D_NW, 
+                       I4uuuu_2D_NW, I4uuuu_3D_NW, I4uuuu_4D_NW, 
+                       I1udd_1_b2_NW, I2uud_1_b2_NW, I2uud_2_b2_NW,
+                       I1udd_1_bs2_NW, I2uud_1_bs2_NW, I2uud_2_bs2_NW,
+                       f0, sigma2w_NW)
+    
+    else:
+        TableOut_NW = (kTout, pk_l_NW, Fkoverf0, Ploop_dd_NW, Ploop_dt_NW, Ploop_tt_NW, 
+                       Pb1b2_NW, Pb1bs2_NW, Pb22_NW, Pb2bs2_NW, Pb2s2_NW, sigma23pkl_NW, 
+                       Pb2t_NW, Pbs2t_NW, I1udd_1_NW, I2uud_1_NW, I2uud_2_NW, I3uuu_2_NW, 
+                       I3uuu_3_NW, I2uudd_1D_NW, I2uudd_2D_NW, I3uuud_2D_NW, I3uuud_3D_NW, 
+                       I4uuuu_2D_NW, I4uuuu_3D_NW, I4uuuu_4D_NW, f0, sigma2w_NW)
+    
+    return (TableOut, TableOut_NW)
+
+
 
 
 def TableOut_interp(k):
-    nobjects = 27
+    '''Interpolation of non-linear terms given by the wiggle power spectra.
+    
+    Args:
+        k: wave-number.
+    Returns:
+        Interpolates the non-linear terms given by the wiggle power spectra.
+    '''
+    n_A = 6 if Afull else 0
+    nobjects = 25 + n_A
     Tableout = np.zeros((nobjects + 1, len(k)))
     for ii in range(nobjects):
         Tableout[ii][:] = interp(k, kTout, TableOut[1+ii])
-        Tableout[27][:] = sigma2w
+        Tableout[25+n_A][:] = sigma2w
     return Tableout
 
 
+
+
 def TableOut_NW_interp(k):
-    nobjects = 27
+    '''Interpolation of non-linear terms given by the non-wiggle power spectra.
+    
+    Args:
+        k: wave-number.
+    Returns:
+        Interpolates the non-linear terms given by the non-wiggle power spectra.
+    '''
+    n_A = 6 if Afull else 0
+    nobjects = 25 + n_A
     Tableout_NW = np.zeros((nobjects + 1, len(k)))
     for ii in range(nobjects):
         Tableout_NW[ii][:] = interp(k, kTout, TableOut_NW[1+ii])
-        Tableout_NW[27][:] = sigma2w_NW
+        Tableout_NW[25+n_A][:] = sigma2w_NW
     return Tableout_NW
-
 
 
 
@@ -891,18 +1123,21 @@ def PEFTs(kev, mu, NuisanParams, Table):
     
     #NuisanParams
     (b1, b2, bs2, b3nl, alpha0, alpha2, alpha4, 
-                ctilde, alphashot0, alphashot2, PshotP, avir) = NuisanParams
-
-    
-    remove_DeltaP=False    #change to True for VDG
-    Winfty_all=False       #change to False for VDG and no analytical marginalization
+                ctilde, alphashot0, alphashot2, PshotP) = NuisanParams
     
     #Table
-    (pkl, Fkoverf0, Ploop_dd, Ploop_dt, Ploop_tt, Pb1b2, Pb1bs2, Pb22, Pb2bs2, 
+    if Afull:
+        (pkl, Fkoverf0, Ploop_dd, Ploop_dt, Ploop_tt, Pb1b2, Pb1bs2, Pb22, Pb2bs2, 
          Pb2s2, sigma23pkl, Pb2t, Pbs2t, I1udd_1, I2uud_1, I2uud_2, I3uuu_2, I3uuu_3, 
          I2uudd_1D, I2uudd_2D, I3uuud_2D, I3uuud_3D, I4uuuu_2D, I4uuuu_3D, I4uuuu_4D, 
-     I3uuud_1B,I4uuuu_1B,
-     sigma2w) = Table
+         I1udd_1_b2, I2uud_1_b2, I2uud_2_b2,
+         I1udd_1_bs2, I2uud_1_bs2, I2uud_2_bs2,
+         sigma2w) = Table
+    
+    else:
+        (pkl, Fkoverf0, Ploop_dd, Ploop_dt, Ploop_tt, Pb1b2, Pb1bs2, Pb22, Pb2bs2, 
+         Pb2s2, sigma23pkl, Pb2t, Pbs2t, I1udd_1, I2uud_1, I2uud_2, I3uuu_2, I3uuu_3, 
+         I2uudd_1D, I2uudd_2D, I3uuud_2D, I3uuud_3D, I4uuuu_2D, I4uuuu_3D, I4uuuu_4D, sigma2w) = Table
     
     fk = Fkoverf0*f0
         
@@ -928,34 +1163,50 @@ def PEFTs(kev, mu, NuisanParams, Table):
     def Af(mu, f0):
         return (f0*mu**2 * I1udd_1 + f0**2 * (mu**2 * I2uud_1 + mu**4 * I2uud_2)
                     + f0**3 * (mu**4 * I3uuu_2 +  mu**6 * I3uuu_3)) 
+    
+    def Af_b2(mu, f0):
+        return (f0*mu**2 * I1udd_1_b2 +  f0**2 * (mu**2 * I2uud_1_b2 +  mu**4 * I2uud_2_b2) )
+    
+    def Af_bs2(mu, f0):
+        return (f0*mu**2 * I1udd_1_bs2 +  f0**2 * (mu**2 * I2uud_1_bs2 +  mu**4 * I2uud_2_bs2) )
         
     def Df(mu, f0):
         return (f0**2 * (mu**2 * I2uudd_1D + mu**4 * I2uudd_2D) 
-                    + f0**3 * (mu**2 * I3uuud_1B + mu**4 * I3uuud_2D + mu**6 * I3uuud_3D)
-                    + f0**4 * (mu**2 * I4uuuu_1B + mu**4 * I4uuuu_2D + mu**6 * I4uuuu_3D + mu**8 * I4uuuu_4D))
+                    + f0**3 * (mu**4 * I3uuud_2D + mu**6 * I3uuud_3D)
+                    + f0**4 * (mu**4 * I4uuuu_2D + mu**6 * I4uuuu_3D + mu**8 * I4uuuu_4D))
         
         
     #Introducing bias in RSD functions, eq.~ A.32 & A.33 at arXiv: 2208.02791
     def ATNS(mu, b1):
-        return b1**3 * Af(mu, f0/b1)
+        return b1**3 * Af(mu, f0/b1) 
+    
+    def ATNS_b2_bs2(mu, b1, b2, bs2):
+        return b1**3 * Af_b2(mu, f0/b1) * b2/(2*b1) +  b1**3 * Af_bs2(mu, f0/b1) * bs2/(2*b1)
         
     def DRSD(mu, b1):
         return b1**4 * Df(mu, f0/b1)
         
     def GTNS(mu, b1):
-        if remove_DeltaP:
-            gtns= 0
-        else:
-            gtns=-((kev*mu*f0)**2 *sigma2w*(b1**2 * pkl + 2*b1*f0*mu**2 * Pdt_L 
+        return -((kev*mu*f0)**2 *sigma2w*(b1**2 * pkl + 2*b1*f0*mu**2 * Pdt_L 
                                    + f0**2 * mu**4 * Ptt_L))
-        return gtns
         
         
     #One-loop SPT power spectrum in redshift space
     def PloopSPTs(mu, b1, b2, bs2, b3nl):
-        return (PddXloop(b1, b2, bs2, b3nl) + 2*f0*mu**2 * PdtXloop(b1, b2, bs2, b3nl)
+        
+        if Afull:
+            return (
+                    PddXloop(b1, b2, bs2, b3nl) + 2*f0*mu**2 * PdtXloop(b1, b2, bs2, b3nl)
                     + mu**4 * f0**2 * PttXloop(b1, b2, bs2, b3nl) + ATNS(mu, b1) + DRSD(mu, b1)
-                    + GTNS(mu, b1))
+                    + GTNS(mu, b1) + ATNS_b2_bs2(mu, b1, b2, bs2)
+            )
+        
+        else: 
+            return (
+                    PddXloop(b1, b2, bs2, b3nl) + 2*f0*mu**2 * PdtXloop(b1, b2, bs2, b3nl)
+                    + mu**4 * f0**2 * PttXloop(b1, b2, bs2, b3nl) + ATNS(mu, b1) + DRSD(mu, b1)
+                    + GTNS(mu, b1)
+            )
         
         
     #Linear Kaiser power spectrum
@@ -972,47 +1223,9 @@ def PEFTs(kev, mu, NuisanParams, Table):
     #Stochastics noise
     def Pshot(mu, alphashot0, alphashot2, PshotP):
         return PshotP*(alphashot0 + alphashot2 * (kev*mu)**2)
-
-    def Winfty(mu,avir):
-        lambda2= (f0*kev*mu*avir)**2
-        exp = - lambda2 * sigma2w /(1+lambda2)
-        W   =np.exp(exp) / np.sqrt(1+lambda2)
-        return W 
-
-
-    def Wexp(mu,avir):
-        lambda2= (f0*kev*mu*avir)**2
-        exp = - lambda2 * sigma2w
-        W   =np.exp(exp)
-        return W  
-
-    def Wlorentz(mu,avir):
-        lambda2= (f0*kev*mu*avir)**2
-        x2 = lambda2 * sigma2w
-        W   = 1.0/(1.0+x2)
-        return W 
-
-    Damping='lor'
-    
-    if Damping==None: 
-        W=1  # EFT if keeps DeltaP
-    elif Damping=='exp':
-        W=Wexp(mu,avir)
-    elif Damping=='lor':
-        W=Wlorentz(mu,avir)
-    elif Damping=='vdg':
-        W=Winfty(mu,avir)
-
-
-
-    PK = W*PloopSPTs(mu, b1, b2, bs2, b3nl)  + Pshot(mu, alphashot0, alphashot2, PshotP)
-
-    if Winfty_all==False:
-        W = 1.0
         
-    PK = PK + W * ( Pcts(mu, alpha0, alpha2, alpha4) + PctNLOs(mu, b1, ctilde) )
-
-    return PK 
+    return (PloopSPTs(mu, b1, b2, bs2, b3nl) + Pcts(mu, alpha0, alpha2, alpha4)
+                + PctNLOs(mu, b1, ctilde) + Pshot(mu, alphashot0, alphashot2, PshotP))
 
 
 
@@ -1124,7 +1337,7 @@ def Table_interp(k, kev, Table):
 
 
 
-def RSDmultipoles(kev, NuisanParams, Omfid = -1, AP = False):
+def RSDmultipoles(kev, NuisanParams, Omfid = -1, AP = False, IR = True, bias="folps"):
     '''Redshift space power spectrum multipoles.
     
     Args:
@@ -1138,17 +1351,29 @@ def RSDmultipoles(kev, NuisanParams, Omfid = -1, AP = False):
                    alpha0, alpha2, alpha4: EFT parameters.
                    ctilde: parameter for NL0 ∝ Kaiser power spectrum.
                    alphashot0, alphashot2, PshotP: stochastic noise parameters.
-                   avir: a^2_vir, for VDG
     Returns:
        Redshift space power spectrum multipoles (monopole, quadrupole and hexadecapole) at 'kev'.
     '''
             
     #NuisanParams
-    (b1, b2, bs2, b3nl, alpha0, alpha2, alpha4, 
-                ctilde, alphashot0, alphashot2, PshotP, avir) = NuisanParams
+    if bias == "folps":
+        if NuisanParams is None:
+            NuisanParams = [1.0, 0.5, 0.3, 0.1, 0.01, 0.02, 0.03, 0.04, 0.001, 0.002, 0.003]
+        (b1, b2, bs2, b3nl, alpha0, alpha2, alpha4, ctilde, alphashot0, alphashot2, PshotP) = NuisanParams
 
-    remove_DeltaP=False    #change to True for VDG
-    Winfty_all=False       #change to False for VDG and no analytical marginalization
+    elif bias == "classpt":
+        if NuisanParams is None:
+            raise ValueError("NuisanParams must be provided for classpt bias.")
+        (b1_classPT, b2_classPT, bG2_classPT, bGamma3_classPT, alpha0, alpha2, alpha4, 
+         ctilde, alphashot0, alphashot2, PshotP) = NuisanParams
+        b1 = b1_classPT
+        b2 = b2_classPT - 4/3 * bG2_classPT
+        bs2 = 2 * bG2_classPT
+        b3nl = -32/21 * (bG2_classPT + 2/5 * bGamma3_classPT)
+        
+        #update bias paremters
+        NuisanParams = [b1, b2, bs2, b3nl, alpha0, alpha2, alpha4, 
+                        ctilde, alphashot0, alphashot2, PshotP]
     
     if AP == True and Omfid == -1:
         sys.exit("Introduce the fiducial value of the dimensionless matter density parameter as ‘Omfid = value’.")
@@ -1173,7 +1398,10 @@ def RSDmultipoles(kev, NuisanParams, Omfid = -1, AP = False):
             Table_true = Table_interp(k_true, kev, Table)
             Table_NW_true = Table_interp(k_true, kev, Table_NW)
             
-            Sigma2T = Sigma2Total(k_true, mu_true, Table_NW_true)
+            if IR == True:
+                Sigma2T = Sigma2Total(k_true, mu_true, Table_NW_true)
+            else:
+                Sigma2T = 0
             
             Fkoverf0 = Table_true[1]; fk = Fkoverf0*f0
             pkl = Table_true[0]; pkl_NW = Table_NW_true[0];
@@ -1187,7 +1415,12 @@ def RSDmultipoles(kev, NuisanParams, Omfid = -1, AP = False):
             
             k = kev; Fkoverf0 = Table[1]; fk = Fkoverf0*f0
             pkl = Table[0]; pkl_NW = Table_NW[0];
-            Sigma2T = Sigma2Total(kev, mu, Table_NW)
+            
+            if IR == True:
+                Sigma2T = Sigma2Total(kev, mu, Table_NW)
+            else:
+                Sigma2T = 0
+            
             
             return ((b1 + fk * mu**2)**2 * (pkl_NW + np.exp(-k**2 * Sigma2T)*(pkl-pkl_NW)*(1 + k**2 * Sigma2T) )
                 + np.exp(-k**2 * Sigma2T)*PEFTs(k, mu, NuisanParams, Table) 
@@ -1196,7 +1429,7 @@ def RSDmultipoles(kev, NuisanParams, Omfid = -1, AP = False):
     
     if AP == True:
         
-        Nx = 6                                         #Points
+        Nx = 8                                         #Points
         xGL, wGL = scipy.special.roots_legendre(Nx)    #x=cosθ and weights
         
         def ModelPkl0(Table, Table_NW):
@@ -1219,7 +1452,7 @@ def RSDmultipoles(kev, NuisanParams, Omfid = -1, AP = False):
     
     else:
         
-        Nx = 6                                         #Points
+        Nx = 8                                         #Points
         xGL, wGL = scipy.special.roots_legendre(Nx)    #x=cosθ and weights
         
         def ModelPkl0(Table, Table_NW):
@@ -1254,7 +1487,7 @@ def RSDmultipoles(kev, NuisanParams, Omfid = -1, AP = False):
 
 
 
-def RSDmultipoles_marginalized_const(kev, NuisanParams, Omfid = -1, AP = False, Hexa = False):
+def RSDmultipoles_marginalized_const(kev, NuisanParams, Omfid = -1, AP = False, Hexa = False, bias="folps"):
     '''Redshift space power spectrum multipoles 'const': Pℓ,const 
       (α->0, marginalizing over the EFT and stochastic parameters).
     
@@ -1270,18 +1503,29 @@ def RSDmultipoles_marginalized_const(kev, NuisanParams, Omfid = -1, AP = False, 
                    alpha0, alpha2, alpha4: EFT parameters.
                    ctilde: parameter for NL0 ∝ Kaiser power spectrum.
                    alphashot0, alphashot2, PshotP: stochastic noise parameters.
-                   avir: a^2_vir for VDG
     Returns:
        Redshift space power spectrum multipoles (monopole, quadrupole and hexadecapole) at 'kev'.
     '''
     
     #NuisanParams
-    (b1, b2, bs2, b3nl, alpha0, alpha2, alpha4, 
-                ctilde, alphashot0, alphashot2, PshotP, avir) = NuisanParams
+    if bias == "folps":
+        if NuisanParams is None:
+            NuisanParams = [1.0, 0.5, 0.3, 0.1, 0.01, 0.02, 0.03, 0.04, 0.001, 0.002, 0.003]
+        (b1, b2, bs2, b3nl, alpha0, alpha2, alpha4, ctilde, alphashot0, alphashot2, PshotP) = NuisanParams
 
-    
-    remove_DeltaP=False    #change to True for VDG
-    Winfty_all=False       #change to False for VDG and no analytical marginalization
+    elif bias == "classpt":
+        if NuisanParams is None:
+            raise ValueError("NuisanParams must be provided for classpt bias.")
+        (b1_classPT, b2_classPT, bG2_classPT, bGamma3_classPT, alpha0, alpha2, alpha4, 
+         ctilde, alphashot0, alphashot2, PshotP) = NuisanParams
+        b1 = b1_classPT
+        b2 = b2_classPT - 4/3 * bG2_classPT
+        bs2 = 2 * bG2_classPT
+        b3nl = -32/21 * (bG2_classPT + 2/5 * bGamma3_classPT)
+        
+        #update bias paremters
+        NuisanParams = [b1, b2, bs2, b3nl, alpha0, alpha2, alpha4, 
+                        ctilde, alphashot0, alphashot2, PshotP]
     
     if AP == True and Omfid == -1:
         sys.exit("Introduce the fiducial value of the dimensionless matter density parameter as ‘Omfid = value’.")
@@ -1302,7 +1546,7 @@ def RSDmultipoles_marginalized_const(kev, NuisanParams, Omfid = -1, AP = False, 
         alpha0, alpha2, alpha4, alphashot0, alphashot2 = np.zeros(5)
         
         NuisanParams_const = (b1, b2, bs2, b3nl, alpha0, alpha2, alpha4, 
-                              ctilde, alphashot0, alphashot2, PshotP, avir)
+                              ctilde, alphashot0, alphashot2, PshotP)
         
         
         if AP == True:
@@ -1335,7 +1579,7 @@ def RSDmultipoles_marginalized_const(kev, NuisanParams, Omfid = -1, AP = False, 
                 + (1 - np.exp(-k**2 * Sigma2T))*PEFTs(k, mu, NuisanParams_const, Table_NW))
         
         
-    Nx = 6                                         #Points
+    Nx = 8                                         #Points
     xGL, wGL = scipy.special.roots_legendre(Nx)    #x=cosθ and weights
     
     def ModelPkl0_const(Table, Table_NW):
@@ -1406,7 +1650,7 @@ def PEFTs_derivatives(k, mu, pkl, PshotP):
 
 
 
-def RSDmultipoles_marginalized_derivatives(kev, NuisanParams, Omfid = -1, AP = False, Hexa = False):
+def RSDmultipoles_marginalized_derivatives(kev, NuisanParams, Omfid = -1, AP = False, Hexa = False, bias="folps"):
     '''Redshift space power spectrum multipoles 'derivatives': Pℓ,i=∂Pℓ/∂α_i 
       (derivatives with respect to the EFT and stochastic parameters).
     
@@ -1427,12 +1671,25 @@ def RSDmultipoles_marginalized_derivatives(kev, NuisanParams, Omfid = -1, AP = F
     '''
             
     #NuisanParams
-    (b1, b2, bs2, b3nl, alpha0, alpha2, alpha4, 
-                ctilde, alphashot0, alphashot2, PshotP, avir) = NuisanParams
+    if bias == "folps":
+        if NuisanParams is None:
+            NuisanParams = [1.0, 0.5, 0.3, 0.1, 0.01, 0.02, 0.03, 0.04, 0.001, 0.002, 0.003]
+        (b1, b2, bs2, b3nl, alpha0, alpha2, alpha4, ctilde, alphashot0, alphashot2, PshotP) = NuisanParams
 
-    
-    remove_DeltaP=False    #change to True for VDG
-    
+    elif bias == "classpt":
+        if NuisanParams is None:
+            raise ValueError("NuisanParams must be provided for classpt bias.")
+        (b1_classPT, b2_classPT, bG2_classPT, bGamma3_classPT, alpha0, alpha2, alpha4, 
+         ctilde, alphashot0, alphashot2, PshotP) = NuisanParams
+        b1 = b1_classPT
+        b2 = b2_classPT - 4/3 * bG2_classPT
+        bs2 = 2 * bG2_classPT
+        b3nl = -32/21 * (bG2_classPT + 2/5 * bGamma3_classPT)
+        
+        #update bias paremters
+        NuisanParams = [b1, b2, bs2, b3nl, alpha0, alpha2, alpha4, 
+                        ctilde, alphashot0, alphashot2, PshotP]
+        
     if AP == True and Omfid == -1:
         sys.exit("Introduce the fiducial value of the dimensionless matter density parameter as ‘Omfid = value’.")
      
@@ -1501,7 +1758,7 @@ def RSDmultipoles_marginalized_derivatives(kev, NuisanParams, Omfid = -1, AP = F
             return (PIRs_alpha0, PIRs_alpha2, PIRs_alpha4, PIRs_alphashot0, PIRs_alphashot2)
         
         
-    Nx = 6    
+    Nx = 8    
     xGL, wGL = scipy.special.roots_legendre(Nx)    #x=cosθ and weights
     
     def ModelPkl0_derivatives(Table, Table_NW):
@@ -1561,12 +1818,12 @@ def startProduct(A, B, invCov):
          The result of: A @ InvCov @ B^{T}
     '''
     
-    return A @ invCov @ B.T 
+    return A @ invCov @ B.T
 
 
 
 
-def compute_L0(Pl_const, Pl_data, invCov):
+def compute_L0(Pl_const, Pl_data, invCov, mu_prior = 0, sigma_prior = np.inf):
     '''Computes the term L0 of the marginalized Likelihood.
     
     Args:
@@ -1580,14 +1837,23 @@ def compute_L0(Pl_const, Pl_data, invCov):
     
     D_const = Pl_const - Pl_data
     
-    L0 = -0.5 * startProduct(D_const, D_const, invCov)             #eq. 2.4 notes on marginalization
+    L0 = -0.5 * startProduct(D_const, D_const, invCov)   
+    
+    # Adding prior to L0
+    if isinstance(sigma_prior, (int, float)):
+        mu_prior2 = np.dot(np.array(mu_prior), np.array(mu_prior))
+        L0 += -0.5 * (mu_prior2 / (sigma_prior ** 2) )
+    else:
+        mu_prior2 = np.dot(np.array(mu_prior), np.array(mu_prior))
+        sigma_prior2 = np.dot(np.array(sigma_prior), np.array(sigma_prior))
+        L0 += -0.5 * (mu_prior2 / sigma_prior2)
     
     return L0
 
 
 
 
-def compute_L1i(Pl_i, Pl_const, Pl_data, invCov):
+def compute_L1i(Pl_i, Pl_const, Pl_data, invCov, mu_prior = 0, sigma_prior = np.inf):
     '''Computes the term L1i of the marginalized Likelihood.
     
     Args:
@@ -1603,22 +1869,30 @@ def compute_L1i(Pl_i, Pl_const, Pl_data, invCov):
     
     D_const = Pl_const - Pl_data  
     
-    ndim = len(Pl_i)
+    #ndim = len(Pl_i)
     
     #computing L1i
-    L1i = np.zeros(ndim)
+    #L1i = np.zeros(ndim)
     
-    for ii in range(ndim):
-        term1 = startProduct(Pl_i[ii], D_const, invCov)
-        term2 = startProduct(D_const, Pl_i[ii], invCov)
-        L1i[ii] = -0.5 * (term1 + term2)
+    #for ii in range(ndim):
+    #    term1 = startProduct(Pl_i[ii], D_const, invCov)
+    #    term2 = startProduct(D_const, Pl_i[ii], invCov)
+    #    L1i[ii] = -0.5 * (term1 + term2)
+    
+    L1i = - startProduct(Pl_i, D_const, invCov)
+    
+    # Adding prior to L1i
+    if isinstance(sigma_prior, (int, float)):
+        L1i += np.array(mu_prior) / (sigma_prior ** 2)
+    else:
+        L1i += np.array(mu_prior) / np.array(sigma_prior) ** 2
     
     return L1i
 
 
 
 
-def compute_L2ij(Pl_i, invCov):
+def compute_L2ij(Pl_i, invCov, sigma_prior = np.inf):
     '''Computes the term L2ij of the marginalized Likelihood.
     
     Args:
@@ -1630,622 +1904,22 @@ def compute_L2ij(Pl_i, invCov):
          array for L2ij
     '''
     
-    ndim = len(Pl_i)
+    #ndim = len(Pl_i)
     
     #Computing L2ij
-    L2ij = np.zeros((ndim, ndim))
+    #L2ij = np.zeros((ndim, ndim))
     
-    for ii in range (ndim):
-        for jj in range (ndim):
-            L2ij[ii, jj] = startProduct(Pl_i[ii], Pl_i[jj], invCov)
+    #for ii in range (ndim):
+        #for jj in range (ndim):
+            #L2ij[ii, jj] = startProduct(Pl_i[ii], Pl_i[jj], invCov)
+    
+    L2ij = startProduct(Pl_i, Pl_i, invCov)
             
-    return L2ij
-
-
-
-
-
-
-
-
-
-###########################################################################
-############### Functions for the bispectrum
-##########################################################################
-
-## Numpy interpolator, faster but only linear
-
-def pklIR_f(k,pklIRT):
-    return np.interp(k, pklIRT[0], pklIRT[1])
-
-
-
-
-# This function should be located in another place, and should e called only if it was not computed before with the 
-# NonLinear function. This is the slowest part of the process. 
-def pklIR(inputpkT, h=0.6711, fullrange=False):
-
-    pklnw=pknwJ_beta(inputpkT[0], inputpkT[1], h)
-    kT = pklnw[0]; pkl_NW = pklnw[1]; pkl = inputpkT[1];
-        
-    kinit = 10**(-6);  kS = 0.4;                                  #integration limits
-    pT = np.logspace(np.log10(kinit),np.log10(kS), num = 10**2)   #integration range
-        
-    PSL_NW = interp(pT, kT, pkl_NW)
-    k_BAO = 1/104                                                 #BAO scale
-        
-    #Sigma2 = 1/(6 * np.pi**2)*scipy.integrate.simps(PSL_NW*(1 - spherical_jn(0, pT/k_BAO) 
-    #                                            + 2*spherical_jn(2, pT/k_BAO)), pT)
-        
-    Sigma2 = 1/(6 * np.pi**2) * scipy.integrate.simpson(PSL_NW*(1 - spherical_jn(0, pT/k_BAO) 
-                                                + 2*spherical_jn(2, pT/k_BAO)), pT)
-
-    pklIRs = pkl_NW + np.exp(-kT**2 * Sigma2)*(pkl-pkl_NW)
-    
-    #kT=np.array(kT)
-    #pklIRs=np.array(pklIRs)
-    #array1=np.array([kT,pklIRs])
-    
-    kmin, kmax = 0.01, 0.5  # Replace with your desired values
-
-    newkT = []
-    newpk = []
-    for i in range(len(kT)):
-        if ((kT[i] >= kmin) & (kT[i] <= kmax) & (i % 2 == 0)):
-            newkT.append(kT[i])
-            newpk.append(pklIRs[i])
-            
-        
-    if (fullrange==True): output = (kT,pklIRs)
-    else: output = (newkT,newpk)
-
-    output=np.array(output)
-
-    np.savetxt('pklIR.txt', output.T, delimiter=' ') 
-
-        
-    return output
-
-
-
-def pklIR_ini(k, pkl, pklnw, h=0.6711, k_BAO = 1.0/104.):
-
-    kinit = 10**(-6);  kS = 0.4;
-    pT = np.logspace(np.log10(kinit),np.log10(kS), num = 10**2)   #integration range        
-    PSL_NW = interp(pT, k, pklnw)
-        
-    Sigma2 = 1/(6 * np.pi**2) * scipy.integrate.simpson(PSL_NW*(1 - spherical_jn(0, pT/k_BAO) 
-                                                + 2*spherical_jn(2, pT/k_BAO)), pT)
-
-    pklIRs = pklnw + np.exp(-k**2 * Sigma2)*(pkl-pklnw)
-    
-
-    output = (k,pklIRs)
-
-    output=np.array(output)
-
-    #np.savetxt('pklIR.txt', output.T, delimiter=' ') 
-        
-    return output
-
-
-
-# This function should be located in another place, and should e called only if it was not computed f(k) before
-def f0_function(z,OmM0):
-    
-    def OmM(eta):
-        return 1/(1 + ((1-OmM0)/OmM0)* np.exp(3*eta) )
-        
-    def f1(eta):
-        return 2 - 3/2 * OmM(eta)
-        
-    def f2(eta):
-        return 3/2 * OmM(eta)
-        
-    etaini = -6;  #initial eta, early enough to evolve as EdS (D + \propto a)
-    zfin = z;
-        
-    def etaofz(z):
-        return np.log(1/(1 + z))
-        
-    etafin = etaofz(zfin); 
-        
-    from scipy.integrate import odeint
-        
-    #Differential eqs.
-    def Deqs(Df, eta):
-        Df, Dprime = Df
-        return [Dprime, f2(eta)*Df - f1(eta)*Dprime]
-        
-    #eta range and initial conditions
-    eta = np.linspace(etaini, etafin, 1001)   
-    Df0 = np.exp(etaini)
-    Df_p0 = np.exp(etaini)
-        
-    #solution
-    Dplus, Dplusp = odeint(Deqs, [Df0,Df_p0], eta).T
-    
-    Dplusp_ = interp(etaofz(zfin), eta, Dplusp)
-    Dplus_ = interp(etaofz(zfin), eta, Dplus)
-    f0 = Dplusp_/Dplus_ 
-        
-    return f0
-
-
-
-
-def Qij(ki, kj, xij, mui, muj, f, bisp_nuis_params):
-
-    b1, b2, bs, c1, c2, Bshot, Pshot, avir = bisp_nuis_params
-
-    fi=f; fj=f; fij=f;
-    Z1i = b1 + fi * mui**2;
-    Z1j = b1 + fj * muj**2;
-    # Z1efti = Z1i - c1*(ki*mui)**2;
-    # Z1eftj = Z1j - c1*(kj*muj)**2 ;
-    
-    kmu = ki*mui + kj*muj;
-    mu2 = kmu**2 / (ki**2 + kj**2 + 2*ki*kj*xij);
-    crossterm = 1.0/2.0*kmu * ( fj * muj / kj * Z1i  +  fi * mui / ki * Z1j  ) 
-
-    advection = xij/2.0 *(ki/kj + kj/ki)
-    F2 = 5.0/7.0 + 2.0/7.0 * xij**2 + advection
-    G2 = 3.0/7.0 + 4.0/7.0 * xij**2 + advection
-    
-    Z2 = b1*F2 + fij*mu2*G2 + crossterm + b2/2.0 + bs*(xij**2 - 1.0/3.0);
-    
-    # Qij = 2*Z1efti*Z1eftj * Z2;
-    Qij = 2 * Z2;
-    
-    return  Qij
-
-
-
-
-def bispectrum(k1, k2, x12, mu1, phi, f, sigma2v, bisp_nuis_params, qpar, qperp, pk_in):
-
-    b1, b2, bs, c1, c2, Bshot, Pshot, avir = bisp_nuis_params
-
-    cosphi=np.cos(phi)
-    APtransf = APtransforms(k1, k2, x12, mu1, cosphi, qpar, qperp)
-    k1AP, k2AP, k3AP, x12AP, x23AP, x31AP, mu1AP, mu2AP, mu3AP,cosphi = APtransf
-
-    Q12 = Qij(k1AP, k2AP, x12AP, mu1AP, mu2AP, f, bisp_nuis_params);
-    Q13 = Qij(k1AP, k3AP, x31AP, mu1AP, mu3AP, f, bisp_nuis_params);
-    Q23 = Qij(k2AP, k2AP, x23AP, mu2AP, mu3AP, f, bisp_nuis_params);
-
-    pk1 = pklIR_f(k1AP,pk_in);
-    pk2 = pklIR_f(k2AP,pk_in);
-    pk3 = pklIR_f(k3AP,pk_in);
-
-    f1=f; f2=f; f3=f;
-    Z1_1 = b1 + f1 * mu1AP**2;
-    Z1_2 = b1 + f2 * mu2AP**2;
-    Z1_3 = b1 + f3 * mu3AP**2;
-    Z1eft1 = Z1_1 - (c1*mu1AP**2 + c2*mu1AP**4)*k1AP**2
-    Z1eft2 = Z1_2 - (c1*mu2AP**2 + c2*mu2AP**4)*k2AP**2
-    Z1eft3 = Z1_3 - (c1*mu3AP**2 + c2*mu3AP**4)*k3AP**2
-
-    B12 = Q12 * Z1eft1*pk1 * Z1eft2*pk2;
-    B13 = Q13 * Z1eft1*pk1 * Z1eft3*pk3;
-    B23 = Q23 * Z1eft3*pk2 * Z1eft3*pk3;
-
-    sigma2w = 10  #cambiar por sigma2v
-
-    l2 = (k1AP*mu1AP)**2 + (k2AP*mu2AP)**2 + (k3AP*mu3AP)**2
-    l2 = 0.5 * l2 * (f0*avir)**2
-    Winfty = np.exp(- l2 * sigma2v /(1+l2) ) / np.sqrt((1+l2)**3) 
-    Wlor = 1.0/(1.0+l2*sigma2v)
-
-    Damping='lor'    
-    if Damping==None: 
-        W=1  # EFT if keeps DeltaP
-    elif Damping=='lor':
-        W=Wlor
-    elif Damping=='vdg':
-        W=Winfty
-
-    
-    
-    ### Noise 
-    # To match eq.3.14 of 2110.10161, one makes (1+Pshot) -> (1+Pshot)/bar-n; Bshot -> Bshot/bar-n
-    shot =(b1*Bshot + 2.0*(1+Pshot)*f1*mu1AP**2)*Z1eft1*pk1 
-    + (b1*Bshot + 2.0*(1+Pshot)*f2*mu2AP**2)*Z1eft2*pk2 
-    + (b1*Bshot + 2.0*(1+Pshot)*f3*mu3AP**2)*Z1eft3*pk3  
-    + (1+Pshot)**2
-
-
-    bispectrum = W*(B12 + B13 + B23) + shot
-    alpha      = qpar*qperp**2
-    bispectrum = bispectrum / alpha**2
-    
-    return bispectrum
-
-
-
-
-
-def Bisp_Sugiyama(bisp_cosmo_params, bisp_nuis_params, pk_input, z_pk, 
-                  k1k2pairs, Omfid=-1,precision=[4,5,5]):
-
-    OmM, h = bisp_cosmo_params
-
-    qperp, qpar = 1, 1
-
-    if Omfid > 0:
-        qperp = DA(OmM, z_pk)/DA(Omfid, z_pk) 
-        qpar  = Hubble(Omfid, z_pk)/Hubble(OmM, z_pk) 
-        #Om computed for any cosmology
-        #OmM = CosmoParam(h, omega_b, omega_cdm, omega_ncdm)[1]
-
-    f = f0_function(z_pk,OmM);
-
-    
-    sigma2v_  = integrate.simps(pk_input[1], pk_input[0]) / (6 * np.pi**2)
-    sigma2v_ *= 1.05  #correction due to k cut
-    # print(sigma2v_)
-
-    #These are tables for GL pairs [phi,mu,x] [[x1,w1],[x2,w2],....]. We should compute them here
-    tablesGL=tablesGL_f(precision)
-
-    size=len(k1k2pairs)
-
-    B000=np.zeros(size)
-    B202=np.zeros(size)
-    
-    for ii in range(size):
-        k1,k2 = k1k2pairs[ii]
-        B000[ii], B202[ii] = Sugiyama_B000_B202(k1, k2, f, sigma2v_, bisp_nuis_params, qpar, qperp, tablesGL,pk_input)
-    
-    return(B000,B202)
-
-
-
-
-
-
-
-def Sugiyama_B000_B202(k1, k2, f, sigma2v, bisp_nuis_params, qpar, qperp, tablesGL, pk_in):
-    phiGL = tablesGL[0]  
-    xGL = tablesGL[1]    
-    muGL = tablesGL[2]  
-    
-    # Extract values and weights
-    phi_values = phiGL[:, 0] 
-    phi_weights = phiGL[:, 1] 
-    
-    mu_values = muGL[:, 0]  
-    mu_weights = muGL[:, 1] 
-    
-    x_values = xGL[:, 0] 
-    x_weights = xGL[:, 1]
-    
-    # Constants
-    fourpi = 12.53667061
-    normB000 = 0.5 / fourpi
-    normB202 = 5.0 / 2.0 / fourpi
-    
-    # Create meshgrid for vectorized computation
-    x_mesh, mu_mesh, phi_mesh = np.meshgrid(x_values, mu_values, phi_values, indexing='ij')
-    
-    # Compute bispectrum for all combinations
-    bisp = bispectrum(
-        k1, k2,
-        x_mesh,
-        mu_mesh,
-        phi_mesh,
-        f, sigma2v, bisp_nuis_params, qpar, qperp, pk_in
-    )
-    
-    # Multiply by phi weights and sum over phi dimension (axis=2)
-    int_phi = 2 * np.sum(bisp * phi_weights, axis=2)
-    
-    # Compute B000 integral
-    int_mu_B000  = np.sum(int_phi * mu_weights, axis=1)
-    int_all_B000 = np.sum(int_mu_B000 * x_weights)
-    
-    # Compute B202 integral
-    leg2 = 0.5 * (-1.0 + 3.0 * mu_values**2)
-    int_mu_B202  = np.sum(int_phi * leg2 * mu_weights, axis=1)
-    int_all_B202 = np.sum(int_mu_B202 * x_weights)
-    
-    B000 = int_all_B000 * normB000
-    B202 = int_all_B202 * normB202
-    
-    return B000, B202
-
-
-
-
-
-#These are GL pairs [[x1,w1],[x2,w2],....]. We should compute them here
-def tablesGL_f(precision=[4,5,5]):
-
-    Nphi,Nx,Nmu = precision
-                                
-    Pi= np.pi
-    
-    phi_roots, phi_weights = scipy.special.roots_legendre(Nphi) 
-    phi_roots = Pi/2 * phi_roots + Pi/2;  phi_weights = Pi/2 * phi_weights
-    phiGL=np.array([phi_roots,phi_weights]).T
-    
-    x_roots, x_weights = scipy.special.roots_legendre(Nx) 
-    xGL=np.array([x_roots,x_weights]).T
-    
-    mu_roots, mu_weights = scipy.special.roots_legendre(Nmu) 
-    muGL=np.array([mu_roots,mu_weights]).T 
-    tablesGL = [phiGL,xGL,muGL]
-    
-    return tablesGL
-
-
-
-def kAP(k, mu, qpar, qperp):
-    return k / qperp * np.sqrt(1 + mu**2 * (-1 + (qperp**2) / (qpar**2)))
-
-def muAP(mu, qpar, qperp):
-    return (mu * qperp / qpar) / np.sqrt(1 + mu**2 * (-1 + (qperp**2) / (qpar**2)))
-
-def APtransforms(k1, k2, x12, mu1, cosphi, qpar, qperp):
-    k3 = np.sqrt(k1**2 + k2**2 + 2 * k1 * k2 * x12)
-    mu2 = np.sqrt(1 - mu1**2) * np.sqrt(1 - x12**2) * cosphi + mu1 * x12
-    mu3 = -k1 / k3 * mu1 - k2 / k3 * mu2
-
-    k1AP = kAP(k1, mu1, qpar, qperp)
-    k2AP = kAP(k2, mu2, qpar, qperp)
-    k3AP = kAP(k3, mu3, qpar, qperp)
-
-    mu1AP = muAP(mu1, qpar, qperp)
-    mu2AP = muAP(mu2, qpar, qperp)
-    mu3AP = muAP(mu3, qpar, qperp)
-
-    x12AP = (k3AP**2 - k1AP**2 - k2AP**2) / (2 * k1AP * k2AP)
-    x31AP = -(k1AP + k2AP*x12AP)/k3AP
-    x23AP = -(k2AP + k1AP*x12AP)/k3AP
-
-    output = np.array([k1AP, k2AP, k3AP, x12AP, x23AP, x31AP, mu1AP, mu2AP, mu3AP,cosphi])
-    
-    return output
-
-
-
-
-
-def LinearRegression(inputxy): 
-    '''Linear regression.
-    
-    Args:
-        inputxy: data set with x- and y-coordinates.
-    Returns:
-        slope ‘m’ and the intercept ‘b’.
-    '''
-    xm = np.mean(inputxy[0])
-    ym = np.mean(inputxy[1])
-    Npts = len(inputxy[0])
-    
-    SS_xy = np.sum(inputxy[0]*inputxy[1]) - Npts*xm*ym
-    SS_xx = np.sum(inputxy[0]**2) - Npts*xm**2
-    m = SS_xy/SS_xx
-    
-    b = ym - m*xm
-    return (m, b)
-
-
-
-
-def Extrapolate(inputxy, outputx):
-    '''Extrapolation.
-    
-    Args:
-        inputxy: data set with x- and y-coordinates.
-        outputx: x-coordinates of extrapolation.
-    Returns:
-        extrapolates the data set ‘inputxy’ to the range given by ‘outputx’.
-    '''
-    m, b = LinearRegression(inputxy)
-    outxy = [(outputx[ii], m*outputx[ii]+b) for ii in range(len(outputx))]
-    
-    return np.array(np.transpose(outxy))
-
-
-
-
-def ExtrapolateHighkLogLog(inputT, kcutmax, kmax):
-    '''Extrapolation for high-k values.
-    
-    Args:
-        inputT: k-coordinates and linear power spectrum.
-        kcutmax: value of ‘k’ from which ‘inputT’ will be interpolated.
-        kmax: value of ‘k’ up to which ‘inputT’ will be interpolated.
-    Returns:
-        extrapolation for high-k values (from ‘kcutmax’ to ‘kmax’) for a given linear power spectrum ‘ inputT’.
-    '''
-    cutrange = np.where(inputT[0]<= kcutmax)
-    inputcutT = np.array([inputT[0][cutrange], inputT[1][cutrange]])
-    listToExtT = inputcutT[0][-6:]
-    tableToExtT = np.array([listToExtT, inputcutT[1][-6:]])
-    delta = np.log10(listToExtT[2])-np.log10(listToExtT[1])
-    lastk = np.log10(listToExtT[-1])
-    
-    logklist = [];
-    while (lastk <= np.log10(kmax)):
-        logklistT = lastk + delta;
-        lastk = logklistT
-        logklist.append(logklistT)
-    logklist = np.array(logklist)
-    
-    sign = np.sign(tableToExtT[1][1])
-    tableToExtT = np.log10(np.abs(tableToExtT))
-    logextT = Extrapolate(tableToExtT, logklist)
-    
-    output = np.array([10**logextT[0], sign*10**logextT[1]])
-    output = np.concatenate((inputcutT, output), axis=1)
-        
-    
-    return output
-
-
-
-
-def ExtrapolateLowkLogLog(inputT, kcutmin, kmin):
-    '''Extrapolation for low-k values.
-    
-    Args:
-        inputT: k-coordinates and linear power spectrum.
-        kcutmin: value of ‘k’ from which ‘inputT’ will be interpolated.
-        kmin: value of ‘k’ up to which ‘inputT’ will be interpolated.
-    Returns:
-        extrapolation for low-k values (from ‘kcutmin’ to ‘kmin’) for a given linear power spectrum ‘inputT’.
-    '''
-    cutrange = np.where(inputT[0] > kcutmin)
-    inputcutT = np.array([inputT[0][cutrange], inputT[1][cutrange]])
-    listToExtT = inputcutT[0][:5]
-    tableToExtT = np.array([listToExtT, inputcutT[1][:5]])
-    delta = np.log10(listToExtT[2])-np.log10(listToExtT[1])
-    firstk = np.log10(listToExtT[0])
-    
-    logklist = [];
-    while (firstk > np.log10(kmin)):
-        logklistT = firstk - delta;
-        firstk = logklistT
-        logklist.append(logklistT)
-    logklist = np.array(list(reversed(logklist)))
-    
-    sign = np.sign(tableToExtT[1][1])
-    tableToExtT = np.log10(np.abs(tableToExtT))
-    logextT = Extrapolate(tableToExtT, logklist)
-    
-    output = np.array([10**logextT[0], sign*10**logextT[1]])
-    output = np.concatenate((output, inputcutT), axis=1)
-        
-    
-    return output
-
-
-
-
-def ExtrapolatekLogLog(inputT, kcutmin, kmin, kcutmax, kmax):
-    '''Extrapolation at low-k and high-k.
-    
-    Args:
-        inputT: k-coordinates and linear power spectrum.
-        kcutmin, kcutmax: value of ‘k’ from which ‘inputT’ will be interpolated.
-        kmin, kmax: value of ‘k’ up to which ‘inputT’ will be interpolated.
-    Returns:
-        combines extrapolation al low-k and high-k.
-    '''
-    output = ExtrapolateLowkLogLog(ExtrapolateHighkLogLog(inputT, kcutmax, kmax), kcutmin, kmin)
-    
-    return output
-
-
-
-
-def Extrapolate_inputpkl(inputT):
-    '''Extrapolation to the input linear power spectrum.
-    
-    Args:
-        inputT: k-coordinates and linear power spectrum.
-    Returns:
-        extrapolates the input linear power spectrum ‘inputT’ to low-k or high-k if needed.
-    '''
-    kcutmin = min(inputT[0]); kmin = 10**(-5);
-    kcutmax = max(inputT[0]); kmax = 200
-    
-    if ((kmin < kcutmin) or (kmax > kcutmax)):
-        output = ExtrapolatekLogLog(inputT, kcutmin, kmin, kcutmax, kmax)
-        
+    # Adding prior variances to L2ij
+    if isinstance(sigma_prior, (int, float)):
+        L2ij += 1 / (sigma_prior ** 2)
     else:
-        output = inputT
-        
-    return output
-
-
-
-def pknwJ_beta(k, PSLk, h):
-    '''Routine (based on J. Hamann et. al. 2010, arXiv:1003.3999) to get the non-wiggle piece of the linear power spectrum.    
-    
-    Args:
-        k: wave-number.
-        PSLk: linear power spectrum.
-        h: H0/100.
-    Returns:
-        non-wiggle piece of the linear power spectrum.
-    '''
-    #ksmin(max): k-range and Nks: points
-    ksmin = 7*10**(-5)/h; ksmax = 7/h; Nks = 2**16
-
-    #sample ln(kP_L(k)) in Nks points, k range (equidistant)
-    ksT = [ksmin + ii*(ksmax-ksmin)/(Nks-1) for ii in range(Nks)]
-    PSL = interp(ksT, k, PSLk)
-    logkpkT = np.log(ksT*PSL)
-        
-    #Discrete sine transf., check documentation
-    FSTtype = 1; m = int(len(ksT)/2)
-    FSTlogkpkT = dst(logkpkT, type = FSTtype, norm = "ortho")
-    FSTlogkpkOddT = FSTlogkpkT[::2]
-    FSTlogkpkEvenT = FSTlogkpkT[1::2]
-        
-    #cut range (remove the harmonics around BAO peak)
-    mcutmin = 120; mcutmax = 240;
-        
-    #Even
-    xEvenTcutmin = np.linspace(1, mcutmin-2, mcutmin-2)
-    xEvenTcutmax = np.linspace(mcutmax+2, len(FSTlogkpkEvenT), len(FSTlogkpkEvenT)-mcutmax-1)
-    EvenTcutmin = FSTlogkpkEvenT[0:mcutmin-2] 
-    EvenTcutmax = FSTlogkpkEvenT[mcutmax+1:len(FSTlogkpkEvenT)]
-    xEvenTcuttedT = np.concatenate((xEvenTcutmin, xEvenTcutmax))
-    nFSTlogkpkEvenTcuttedT = np.concatenate((EvenTcutmin, EvenTcutmax))
-
-
-    #Odd
-    xOddTcutmin = np.linspace(1, mcutmin-1, mcutmin-1)
-    xOddTcutmax = np.linspace(mcutmax+1, len(FSTlogkpkEvenT), len(FSTlogkpkEvenT)-mcutmax)
-    OddTcutmin = FSTlogkpkOddT[0:mcutmin-1]
-    OddTcutmax = FSTlogkpkOddT[mcutmax:len(FSTlogkpkEvenT)]
-    xOddTcuttedT = np.concatenate((xOddTcutmin, xOddTcutmax))
-    nFSTlogkpkOddTcuttedT = np.concatenate((OddTcutmin, OddTcutmax))
-
-    #Interpolate the FST harmonics in the BAO range
-    preT, = map(np.zeros,(len(FSTlogkpkT),))
-    PreEvenT = interp(np.linspace(2, mcutmax, mcutmax-1), xEvenTcuttedT, nFSTlogkpkEvenTcuttedT)
-    PreOddT = interp(np.linspace(0, mcutmax-2, mcutmax-1), xOddTcuttedT, nFSTlogkpkOddTcuttedT)
-
-
-    ii = np.arange(m)
-    mask = (mcutmin < ii + 1) & (ii + 1 < mcutmax)
-    not_mask = ~mask
-    
-    preT = np.empty_like(FSTlogkpkT)
-    
-    # Use interpolated values inside the BAO cut range
-    preT[2*ii[mask]+1] = PreEvenT[ii[mask]]
-    preT[2*ii[mask]]   = PreOddT[ii[mask]]
-    
-    # Use original values outside the BAO cut range
-    preT[2*ii[not_mask]+1] = FSTlogkpkT[2*ii[not_mask]+1]
-    preT[2*ii[not_mask]]   = FSTlogkpkT[2*ii[not_mask]]   
-         
-                
-        
-    #Inverse Sine transf.
-    FSTofFSTlogkpkNWT = idst(preT, type = FSTtype, norm = "ortho")
-    PNWT = np.exp(FSTofFSTlogkpkNWT)/ksT
-
-    PNWk = interp(k, ksT, PNWT)
-    DeltaAppf = k*(PSL[7]-PNWT[7])/PNWT[7]/ksT[7]
-
-    irange1 = np.where((k < 1e-3))
-    PNWk1 = PSLk[irange1]/(DeltaAppf[irange1] + 1)
-
-    irange2 = np.where((1e-3 <= k) & (k <= ksT[len(ksT)-1]))
-    PNWk2 = PNWk[irange2]
-        
-    irange3 = np.where((k > ksT[len(ksT)-1]))
-    PNWk3 = PSLk[irange3]
-        
-    PNWkTot = np.concatenate((PNWk1, PNWk2, PNWk3))
-        
-    return(k, PNWkTot)
-
+        L2ij += np.diag(1 / np.array(sigma_prior) ** 2)
+            
+    return L2ij 
 

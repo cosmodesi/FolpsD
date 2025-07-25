@@ -25,7 +25,7 @@
 import os
 import scipy
 from scipy import special
-
+from scipy import integrate
 
 # Global variable to store the preferred backend (default: 'numpy')
 PREFERRED_BACKEND = os.environ.get("FOLPS_BACKEND", "numpy")  #options:"numpy" & "jax" 
@@ -49,7 +49,7 @@ class BackendManager:
                     print("⚠️ No GPU found. Using JAX with CPU.")
 
                 from jax import numpy as np
-                from tools_jax import interp, simpson, legendre, extrapolate, extrapolate_pklin, get_pknow, get_linear_ir
+                from tools_jax import interp, simpson, legendre, extrapolate, extrapolate_pklin, get_pknow, get_linear_ir, get_linear_ir_ini
                 self.modules = {
                     "np": np,
                     "interp": interp,
@@ -59,6 +59,7 @@ class BackendManager:
                     "extrapolate_pklin": extrapolate_pklin,
                     "get_pknow": get_pknow,
                     "get_linear_ir":get_linear_ir,
+                    "get_linear_ir_ini":get_linear_ir_ini,
                 }
                 #self.using_jax = True
                 self.backend = 'jax'
@@ -69,7 +70,7 @@ class BackendManager:
         elif preferred_backend == 'numpy':
             print("✅ Using NumPy with CPU.")
             import numpy as np
-            from tools import interp, simpson, legendre, extrapolate, extrapolate_pklin, get_pknow, get_linear_ir
+            from tools import interp, simpson, legendre, extrapolate, extrapolate_pklin, get_pknow, get_linear_ir, get_linear_ir_ini
             self.modules = {
                 "np": np,
                 "interp": interp,
@@ -79,6 +80,7 @@ class BackendManager:
                 "extrapolate_pklin": extrapolate_pklin,
                 "get_pknow": get_pknow,
                 "get_linear_ir":get_linear_ir,
+                "get_linear_ir_ini":get_linear_ir_ini,
             }
             #self.using_jax = False
             self.backend = 'numpy'
@@ -102,6 +104,7 @@ extrapolate = backend_manager.get_module("extrapolate")
 extrapolate_pklin = backend_manager.get_module("extrapolate_pklin")
 get_pknow = backend_manager.get_module("get_pknow")
 get_linear_ir = backend_manager.get_module("get_linear_ir")
+get_linear_ir_ini = backend_manager.get_module("get_linear_ir_ini")
 backend = backend_manager.backend
 #using_jax = backend_manager.using_jax
 
@@ -284,15 +287,23 @@ class MatrixCalculator:
     Returns:
         list: A list containing all computed M matrices.
     """
-    def __init__(self, nfftlog=128, A_full=True):
-        global A_full_status
+    def __init__(self, nfftlog=128, A_full=True, remove_DeltaP=False):
+        global A_full_status, remove_DeltaP_status
         self.nfftlog = nfftlog
         self.kmin = 10**(-7)
         self.kmax = kmax=100.
         self.b_nu = -0.1  # not yet tested for other values
         self.A_full = A_full
         A_full_status = A_full
-        self.filename = f'matrices_nfftlog{self.nfftlog}_Afull{A_full_status}.npy'
+        
+        self.remove_DeltaP = remove_DeltaP
+        remove_DeltaP_status = remove_DeltaP
+        
+        self.filename = f'matrices_nfftlog{self.nfftlog}_Afull_{A_full_status}_remove-DeltaP_{remove_DeltaP_status}.npy'
+    
+        
+        if remove_DeltaP:
+            print("removing $\Delta P(k,\mu)$... WARNING: This violates momentum conservation!!!")
         
     def Imatrix(self, nu1, nu2):
         return 1 / (8 * np.pi**(3 / 2.)) * (special.gamma(3 / 2. - nu1) * special.gamma(3 / 2. - nu2) * special.gamma(nu1 + nu2 - 3 / 2.))\
@@ -333,33 +344,70 @@ class MatrixCalculator:
         def MtAfkmpfpfp_33(nu1, nu2):
             return self.Imatrix(nu1,nu2)*((-3+2*(nu1+nu2))*(-1+2*(nu1+nu2))*(-13*(1+nu1)+2*(-11+nu1*(-1+14*nu1))*nu2 + 4*(3+7*nu1)*nu2**2))/(28*nu1*(1+nu1)*nu2*(1+nu2)*(-1+2*nu2))
         
+        #Some B functions, not called by default
+        def MB2_21(nu1, nu2):
+            return -2*((-15*self.Imatrix(-3 + nu1,2 + nu2))/64. + (15*self.Imatrix(-2 + nu1,1 + nu2))/16. + (3*self.Imatrix(-2 + nu1,2 + nu2))/4. - (45*self.Imatrix(-1 + nu1,nu2))/32. - (9*self.Imatrix(-1 + nu1,1 + nu2))/8. - (27*self.Imatrix(-1 + nu1,2 + nu2))/32. + (15*self.Imatrix(nu1,-1 + nu2))/16. + (3*self.Imatrix(nu1,1 + nu2))/16. + (3*self.Imatrix(nu1,2 + nu2))/8. - (15*self.Imatrix(1 + nu1,-2 + nu2))/64. + (3*self.Imatrix(1 + nu1,-1 + nu2))/8. - (3*self.Imatrix(1 + nu1,nu2))/32. - (3*self.Imatrix(1 + nu1,2 + nu2))/64.)
+       
+        def MB3_21(nu1, nu2):
+            return -2*((35*self.Imatrix(-3 + nu1,2 + nu2))/128. - (35*self.Imatrix(-2 + nu1,1 + nu2))/32. - (25*self.Imatrix(-2 + nu1,2 + nu2))/32. + (105*self.Imatrix(-1 + nu1,nu2))/64. + (45*self.Imatrix(-1 + nu1,1 + nu2))/32. + (45*self.Imatrix(-1 + nu1,2 + nu2))/64. - (35*self.Imatrix(nu1,-1 + nu2))/32. - (15*self.Imatrix(nu1,nu2))/32. - (9*self.Imatrix(nu1,1 + nu2))/32. - (5*self.Imatrix(nu1,2 + nu2))/32. + (35*self.Imatrix(1 + nu1,-2 + nu2))/128. - (5*self.Imatrix(1 + nu1,-1 + nu2))/32. - (3*self.Imatrix(1 + nu1,nu2))/64. - self.Imatrix(1 + nu1,1 + nu2)/32. - (5*self.Imatrix(1 + nu1,2 + nu2))/128.)
+        
+        def MB2_22(nu1, nu2):
+            return self.Imatrix(nu1, nu2)*(-9*(-3 + 2*nu1 + 2*nu2)*(-1 + 2*nu1 + 2*nu2)*(3 + 4*nu1**2 + nu1*(2 - 12*nu2) + 2*nu2 + 4*nu2**2))/(64.*nu1*(1 + nu1)*nu2*(1 + nu2)*(-4 + nu1 + nu2)*(-3 + nu1 + nu2))
+        
+        def MB3_22(nu1, nu2):
+            return self.Imatrix(nu1, nu2)*(3*(-3 + 2*nu1 + 2*nu2)*(-1 + 2*nu1 + 2*nu2)*(1 + 2*nu1 + 2*nu2)*(3 + 4*nu1**2 + nu1*(2 - 12*nu2) + 2*nu2 + 4*nu2**2))/(64.*nu1*(1 + nu1)*nu2*(1 + nu2)*(-4 + nu1 + nu2)*(-3 + nu1 + nu2))
+
+        def MB4_22(nu1, nu2):
+            return self.Imatrix(nu1, nu2)*((-3 + 2*nu1)*(-3 + 2*nu2)*(-3 + 2*nu1 + 2*nu2)*(-1 + 2*nu1 + 2*nu2)*(1 + 2*nu1 + 2*nu2)*(3 + 2*nu1 + 2*nu2))/(64.*nu1*(1 + nu1)*nu2*(1 + nu2)*(-4 + nu1 + nu2)*(-3 + nu1 + nu2))
+        
         #D function
         def MB1_11(nu1, nu2):
             return self.Imatrix(nu1,nu2)*(3-2*(nu1+nu2))/(4*nu1*nu2)
         
         def MC1_11(nu1, nu2):
-            return self.Imatrix(nu1,nu2)*((-3+2*nu1)*(-3+2*(nu1+nu2)))/(4*nu2*(1+nu2)*(-1+2*nu2))
+            if remove_DeltaP_status:
+                return 0 * self.Imatrix(nu1,nu2)
+            else:
+                return self.Imatrix(nu1,nu2)*((-3+2*nu1)*(-3+2*(nu1+nu2)))/(4*nu2*(1+nu2)*(-1+2*nu2))
         
         def MB2_11(nu1, nu2):
             return self.Imatrix(nu1,nu2)*((-3+2*(nu1+nu2))*(-1+2*(nu1+nu2)))/(4*nu1*nu2)
         
         def MC2_11(nu1, nu2):
-            return self.Imatrix(nu1,nu2)*((-3+2*(nu1+nu2))*(-1+2*(nu1+nu2)))/(4*nu2*(1+nu2))
+            if remove_DeltaP_status:
+                return 0 * self.Imatrix(nu1,nu2)
+            else:
+                return self.Imatrix(nu1,nu2)*((-3+2*(nu1+nu2))*(-1+2*(nu1+nu2)))/(4*nu2*(1+nu2))
         
         def MD2_21(nu1, nu2):
-            return self.Imatrix(nu1,nu2)*((-1+2*nu1-4*nu2)*(-3+2*(nu1+nu2))*(-1+2*(nu1+nu2)))/(4*nu1*nu2*(-1+nu2+2*nu2**2))
+            if remove_DeltaP_status:
+                return MB2_21(nu1, nu2)
+            else:
+                return self.Imatrix(nu1,nu2)*((-1+2*nu1-4*nu2)*(-3+2*(nu1+nu2))*(-1+2*(nu1+nu2)))/(4*nu1*nu2*(-1+nu2+2*nu2**2))
         
         def MD3_21(nu1, nu2):
-            return self.Imatrix(nu1,nu2)*((3-2*(nu1+nu2))*(1-4*(nu1+nu2)**2))/(4*nu1*nu2*(1+nu2))
+            if remove_DeltaP_status:
+                return MB3_21(nu1, nu2)
+            else:
+                return self.Imatrix(nu1,nu2)*((3-2*(nu1+nu2))*(1-4*(nu1+nu2)**2))/(4*nu1*nu2*(1+nu2))
         
         def MD2_22(nu1, nu2):
-            return self.Imatrix(nu1,nu2)*(3*(3-2*(nu1+nu2))*(1-2*(nu1+nu2)))/(32*nu1*(1+nu1)*nu2*(1+nu2))
+            if remove_DeltaP_status:
+                return MB2_22(nu1, nu2)
+            else:
+                return self.Imatrix(nu1,nu2)*(3*(3-2*(nu1+nu2))*(1-2*(nu1+nu2)))/(32*nu1*(1+nu1)*nu2*(1+nu2))
         
         def MD3_22(nu1, nu2):
-            return self.Imatrix(nu1,nu2)*((3-2*(nu1+nu2))*(1-4*(nu1+nu2)**2)*(1+2*(nu1**2-4*nu1*nu2+nu2**2)))/(16*nu1*(1+nu1)*(-1+2*nu1)*nu2*(1+nu2)*(-1+2*nu2))
+            if remove_DeltaP_status:
+                return MB3_22(nu1, nu2)
+            else:
+                return self.Imatrix(nu1,nu2)*((3-2*(nu1+nu2))*(1-4*(nu1+nu2)**2)*(1+2*(nu1**2-4*nu1*nu2+nu2**2)))/(16*nu1*(1+nu1)*(-1+2*nu1)*nu2*(1+nu2)*(-1+2*nu2))
         
         def MD4_22(nu1, nu2):
-            return self.Imatrix(nu1,nu2)*((9-4*(nu1+nu2)**2)*(1-4*(nu1+nu2)**2))/(32*nu1*(1+nu1)*nu2*(1+nu2))
+            if remove_DeltaP_status:
+                return MB4_22(nu1, nu2)
+            else:
+                return self.Imatrix(nu1,nu2)*((9-4*(nu1+nu2)**2)*(1-4*(nu1+nu2)**2))/(32*nu1*(1+nu1)*nu2*(1+nu2))
         
         #A function: contributions due to b2 & bs2
         def MtAfkmpfp_22_b2(nu1, nu2):
@@ -406,6 +454,18 @@ class MatrixCalculator:
         def MPbs2t(nu1, nu2):
             return  self.Imatrix(nu1,nu2)*((-3+2*(nu1+nu2))*(-19-10*nu2+nu1*(39-30*nu2+14*nu1*(-1+2*nu2))))/(84*nu1*(1+nu1)*nu2*(1+nu2))
         
+        def MB1_21(nu1, nu2):
+            if remove_DeltaP_status:
+                return self.Imatrix(nu1, nu2)*(3*(-3 + 2*nu1)*(-3 + 2*nu1 + 2*nu2))/ (8.*nu1*nu2*(1 + nu2)*(-3 + nu1 + nu2))
+            else:
+                return 0.0 * self.Imatrix(nu1, nu2)
+            
+        def MB1_22(nu1, nu2):
+            if remove_DeltaP_status:
+                return self.Imatrix(nu1, nu2)*(-15*(-3 + 2*nu1)*(-3 + 2*nu2)*(-3 + 2*nu1 + 2*nu2)) / (64.*nu1*(1 + nu1)*nu2*(1 + nu2)*(-4 + nu1 + nu2)*(-3 + nu1 + nu2))
+            else:
+                return 0.0 * self.Imatrix(nu1, nu2)
+        
         #A function: contributions due to b2 & bs2
         def MtAfp_11_b2(nu1, nu2):
             return self.Imatrix(nu1,nu2) * ( 4*(nu1+nu2) - 6)/nu1
@@ -421,7 +481,8 @@ class MatrixCalculator:
         
         common_return_values = (
                                 MPb1b2(nu1, nu2), MPb1bs2(nu1, nu2), MPb22(nu1, nu2), MPb2bs2(nu1, nu2), 
-                                MPb2s2(nu1, nu2), MPb2t(nu1, nu2), MPbs2t(nu1, nu2)
+                                MPb2s2(nu1, nu2), MPb2t(nu1, nu2), MPbs2t(nu1, nu2),
+                                MB1_21(nu1, nu2), MB1_22(nu1, nu2)
         )
         
         if A_full_status:
@@ -707,6 +768,7 @@ class NonLinearPowerSpectrumCalculator:
              MB1_11, MC1_11, MB2_11, MC2_11, MD2_21, MD3_21, MD2_22, MD3_22, MD4_22, 
              MtAfkmpfp_22_b2, MtAfkmpfp_22_bs2,
              MPb1b2, MPb1bs2, MPb22, MPb2bs2, MPb2s2, MPb2t, MPbs2t,
+             MB1_21, MB1_22,
              MtAfp_11_b2, MtAfp_11_bs2, 
              MtAfkmpfp_12_b2, MtAfkmpfp_12_bs2) = self.M22matrices
         else: 
@@ -714,7 +776,8 @@ class NonLinearPowerSpectrumCalculator:
              MtAfp_11, MtAfkmpfp_12, MtAfkmpfp_22,
              MtAfpfp_22, MtAfkmpfpfp_23, MtAfkmpfpfp_33, 
              MB1_11, MC1_11, MB2_11, MC2_11, MD2_21, MD3_21, MD2_22, MD3_22, MD4_22, 
-             MPb1b2, MPb1bs2, MPb22, MPb2bs2, MPb2s2, MPb2t, MPbs2t) = self.M22matrices
+             MPb1b2, MPb1bs2, MPb22, MPb2bs2, MPb2s2, MPb2t, MPbs2t, 
+             MB1_21, MB1_22) = self.M22matrices
         
         vec = cmT * self.precvec
         vecf = cmTf * self.precvec
@@ -753,11 +816,16 @@ class NonLinearPowerSpectrumCalculator:
         I4uuuu_3D = self.K**3 * np.sum(vecff @ MD3_22 * vecff, axis=-1).real
         I4uuuu_4D = self.K**3 * np.sum(vecff @ MD4_22 * vecff, axis=-1).real
         
+        #new
+        I3uuud_1_B = self.K**3 * np.sum(vecf_b @ MB1_21 * vec_b, axis=1).real
+        I4uuuu_1_B = self.K**3 * np.sum(vecf_b @ MB1_22 * vec_b, axis=1).real
+        
         common_values = (
                         P22dd, P22dt, P22tt, Pb1b2, Pb1bs2, Pb22, Pb2bs2, Pb2s2, 
                         Pb2t, Pbs2t, I1udd_1b, I2uud_1b, I3uuu_3b, I2uud_2b, 
                         I3uuu_2b, I2uudd_1D, I2uudd_2D, I3uuud_2D, I3uuud_3D,
-                        I4uuuu_2D, I4uuuu_3D, I4uuuu_4D
+                        I4uuuu_2D, I4uuuu_3D, I4uuuu_4D,
+                        I3uuud_1_B, I4uuuu_1_B
         )
         
         if A_full_status:
@@ -889,12 +957,19 @@ class NonLinearPowerSpectrumCalculator:
             I2uudd_1D = P22[15]; I2uudd_2D = P22[16]; I3uuud_2D = P22[17]
             I3uuud_3D = P22[18]; I4uuuu_2D = P22[19]; I4uuuu_3D = P22[20]
             I4uuuu_4D = P22[21]
+            #print('I4uuu_4d', I4uuuu_4D.shape)
+            
+            #terms below become =0 if when remove_delta=False, i.e. when deltaP is kept.
+            I3uuud_1_B = P22[22]  # term f^3*mu^2  I3uuud1D = I3uuud1B + I3uuud1C = 0   
+            I4uuuu_1_B = P22[23]  # term f^4*mu^3  I4uuud1D = I4uuud1B + I4uuud1C = 0
             
             common_values = [self.kTout, pk_l, self.Fkoverf0, Ploop_dd, Ploop_dt, Ploop_tt,
                              Pb1b2, Pb1bs2, Pb22, Pb2bs2, Pb2s2, sigma23pkl, Pb2t, Pbs2t,
                              I1udd_1, I2uud_1, I2uud_2, I3uuu_2, I3uuu_3, I2uudd_1D, 
                              I2uudd_2D, I3uuud_2D, I3uuud_3D, I4uuuu_2D, I4uuuu_3D,
-                             I4uuuu_4D#, sigma2w #, self.f0
+                             I4uuuu_4D,
+                             I3uuud_1_B, I4uuuu_1_B, 
+                             #, sigma2w #, self.f0
                             ]
             
             if A_full_status:
@@ -943,21 +1018,21 @@ class RSDMultipolesPowerSpectrumCalculator:
         """Sets the nuisance parameters based on the selected bias scheme."""
         if bias_scheme in ["folps", "pat", "mcdonald"]:
             if pars is None:
-                pars = [1.0, 0.5, 0.3, 0.1, 0.01, 0.02, 0.03, 0.04, 0.001, 0.002, 0.003]
-            (b1, b2, bs2, b3nl, alpha0, alpha2, alpha4, ctilde, alphashot0, alphashot2, PshotP) = pars
+                pars = [1.0, 0.5, 0.3, 0.1, 0.01, 0.02, 0.03, 0.04, 0.001, 0.002, 0.003, 0.0]
+            (b1, b2, bs2, b3nl, alpha0, alpha2, alpha4, ctilde, alphashot0, alphashot2, PshotP, X_FoG_p) = pars
         
         elif bias_scheme in ["Assassi", "classpt"]:
             if pars is None:
                 raise ValueError("Nuisance parameters must be provided for Assassi/classpt bias scheme.")
             (b1_classPT, b2_classPT, bG2_classPT, bGamma3_classPT, alpha0, alpha2, alpha4, 
-             ctilde, alphashot0, alphashot2, PshotP) = pars
+             ctilde, alphashot0, alphashot2, PshotP, X_FoG_p) = pars
             b1 = b1_classPT
             b2 = b2_classPT - 4/3 * bG2_classPT
             bs2 = 2 * bG2_classPT
             b3nl = -32/21 * (bG2_classPT + 2/5 * bGamma3_classPT)
             
             pars = [b1, b2, bs2, b3nl, alpha0, alpha2, alpha4, 
-                    ctilde, alphashot0, alphashot2, PshotP]
+                    ctilde, alphashot0, alphashot2, PshotP, X_FoG_p]
         
         else:
             raise ValueError("Invalid bias scheme. Choose from 'folps', 'pat', 'mcdonald', 'Assassi', or 'classpt'.")
@@ -971,7 +1046,7 @@ class RSDMultipolesPowerSpectrumCalculator:
             return CubicSpline(x, y)(k)
     
         extra = 6 if A_full_status else 0
-        return tuple(np.moveaxis(interp(k, table[0], np.column_stack(table[1:26+extra])), -1, 0)) + table[26+extra:]
+        return tuple(np.moveaxis(interp(k, table[0], np.column_stack(table[1:28+extra])), -1, 0)) + table[28+extra:]
 
     def k_ap(self, kobs, muobs, qper, qpar):
         """Return the true wave-number ‘k_AP’."""
@@ -983,20 +1058,32 @@ class RSDMultipolesPowerSpectrumCalculator:
         F = qpar / qper
         return (muobs / F) * (1 + muobs**2 * (1 / F**2 - 1))**-0.5
 
-    def get_eft_pkmu(self, kev, mu, pars, table):
+    def get_eft_pkmu(self, kev, mu, pars, table, damping='lor'):
         """Calculate the EFT galaxy power spectrum in redshift space."""
-        (b1, b2, bs2, b3nl, alpha0, alpha2, alpha4, ctilde, alphashot0, alphashot2, PshotP) = pars
+        (b1, b2, bs2, b3nl, alpha0, alpha2, alpha4, ctilde, alphashot0, alphashot2, PshotP, X_FoG_p) = pars
+        
+        #modificar esta cosa, esta mal puesta
+        Winfty_all=True       #change to False for VDG and no analytical marginalization
+        
         
         if A_full_status:
             (pkl, Fkoverf0, Ploop_dd, Ploop_dt, Ploop_tt, Pb1b2, Pb1bs2, Pb22, Pb2bs2,
              Pb2s2, sigma23pkl, Pb2t, Pbs2t, I1udd_1, I2uud_1, I2uud_2, I3uuu_2, I3uuu_3,
              I2uudd_1D, I2uudd_2D, I3uuud_2D, I3uuud_3D, I4uuuu_2D, I4uuuu_3D, I4uuuu_4D,
+             I3uuud_1B, I4uuuu_1B,
              I1udd_1_b2, I2uud_1_b2, I2uud_2_b2, I1udd_1_bs2, I2uud_1_bs2, I2uud_2_bs2,
              sigma2w, *_, f0) = table
         else:
             (pkl, Fkoverf0, Ploop_dd, Ploop_dt, Ploop_tt, Pb1b2, Pb1bs2, Pb22, Pb2bs2,
              Pb2s2, sigma23pkl, Pb2t, Pbs2t, I1udd_1, I2uud_1, I2uud_2, I3uuu_2, I3uuu_3,
-             I2uudd_1D, I2uudd_2D, I3uuud_2D, I3uuud_3D, I4uuuu_2D, I4uuuu_3D, I4uuuu_4D, sigma2w, *_, f0) = table
+             I2uudd_1D, I2uudd_2D, I3uuud_2D, I3uuud_3D, I4uuuu_2D, I4uuuu_3D, I4uuuu_4D, 
+             I3uuud_1B, I4uuuu_1B, 
+             sigma2w, *_, f0) = table
+            
+        #print(I3uuud_1B.shape)
+        #print(I3uuud_1B)
+        #print("==")
+        #print(I3uuud_2D.shape)
         
         fk = Fkoverf0 * f0
         Pdt_L = pkl * Fkoverf0
@@ -1024,8 +1111,8 @@ class RSDMultipolesPowerSpectrumCalculator:
 
         def Df(mu, f0):
             return (f0**2 * (mu**2 * I2uudd_1D + mu**4 * I2uudd_2D)
-                    + f0**3 * (mu**4 * I3uuud_2D + mu**6 * I3uuud_3D)
-                    + f0**4 * (mu**4 * I4uuuu_2D + mu**6 * I4uuuu_3D + mu**8 * I4uuuu_4D))
+                    + f0**3 * (mu**2 * I3uuud_1B + mu**4 * I3uuud_2D + mu**6 * I3uuud_3D)
+                    + f0**4 * (mu**2 * I4uuuu_1B + mu**4 * I4uuuu_2D + mu**6 * I4uuuu_3D + mu**8 * I4uuuu_4D))
 
         def ATNS(mu, b1):
             return b1**3 * Af(mu, f0 / b1)
@@ -1037,7 +1124,10 @@ class RSDMultipolesPowerSpectrumCalculator:
             return b1**4 * Df(mu, f0 / b1)
 
         def GTNS(mu, b1):
-            return -((kev * mu * f0)**2 * sigma2w * (b1**2 * pkl + 2 * b1 * f0 * mu**2 * Pdt_L + f0**2 * mu**4 * Ptt_L))
+            if remove_DeltaP_status:
+                return 0
+            else:
+                return -((kev * mu * f0)**2 * sigma2w * (b1**2 * pkl + 2 * b1 * f0 * mu**2 * Pdt_L + f0**2 * mu**4 * Ptt_L))
 
         def PloopSPTs(mu, b1, b2, bs2, b3nl):
         
@@ -1066,11 +1156,42 @@ class RSDMultipolesPowerSpectrumCalculator:
 
         def Pshot(mu, alphashot0, alphashot2, PshotP):
             return PshotP * (alphashot0 + alphashot2 * (kev * mu)**2)
+        
+        def Winfty(mu, X_FoG_p):
+            lambda2= (f0*kev*mu*X_FoG_p)**2
+            exp = - lambda2 * sigma2w /(1+lambda2)
+            W   =np.exp(exp) / np.sqrt(1+lambda2)
+            return W 
 
-        return (PloopSPTs(mu, b1, b2, bs2, b3nl) + Pcts(mu, alpha0, alpha2, alpha4)
-                + PctNLOs(mu, b1, ctilde) + Pshot(mu, alphashot0, alphashot2, PshotP))
+        def Wexp(mu, X_FoG_p):
+            lambda2= (f0*kev*mu*X_FoG_p)**2
+            exp = - lambda2 * sigma2w
+            W   =np.exp(exp)
+            return W  
 
-    def get_rsd_pkmu(self, k, mu, pars, table, table_now, IR_resummation):
+        def Wlorentz(mu, X_FoG_p):
+            lambda2= (f0*kev*mu*X_FoG_p)**2
+            x2 = lambda2 * sigma2w
+            W   = 1.0/(1.0+x2)
+            return W 
+        
+        if damping==None: 
+            W=1  # EFT if keeps DeltaP
+        elif damping=='exp':
+            W=Wexp(mu, X_FoG_p)
+        elif damping=='lor':
+            W=Wlorentz(mu, X_FoG_p)
+        elif damping=='vdg':
+            W=Winfty(mu, X_FoG_p)
+        
+        PK = W*PloopSPTs(mu, b1, b2, bs2, b3nl)  + Pshot(mu, alphashot0, alphashot2, PshotP)
+
+        if Winfty_all==False:
+            W = 1.0
+                
+        return PK + W * ( Pcts(mu, alpha0, alpha2, alpha4) + PctNLOs(mu, b1, ctilde) )
+
+    def get_rsd_pkmu(self, k, mu, pars, table, table_now, IR_resummation, damping='lor'):
         """Return redshift space P(k, mu) given input tables."""
         table = self.interp_table(k, table, A_full_status)
         table_now = self.interp_table(k, table_now, A_full_status)
@@ -1085,12 +1206,12 @@ class RSDMultipolesPowerSpectrumCalculator:
         else:
             sigma2t =0
         pkmu = ((b1 + fk * mu**2)**2 * (pkl_now + np.exp(-k**2 * sigma2t)*(pkl - pkl_now)*(1 + k**2 * sigma2t))
-                 + np.exp(-k**2 * sigma2t) * self.get_eft_pkmu(k, mu, pars, table)
-                 + (1 - np.exp(-k**2 * sigma2t)) * self.get_eft_pkmu(k, mu, pars, table_now))
+                 + np.exp(-k**2 * sigma2t) * self.get_eft_pkmu(k, mu, pars, table, damping)
+                 + (1 - np.exp(-k**2 * sigma2t)) * self.get_eft_pkmu(k, mu, pars, table_now, damping))
         return pkmu
 
     def get_rsd_pkell(self, kobs, qpar, qper, pars, table, table_now,
-                      bias_scheme="folps", nmu=6, ells=(0, 2, 4), IR_resummation=True):
+                      bias_scheme="folps", damping='lor', nmu=6, ells=(0, 2, 4), IR_resummation=True):
         """
         Computes the redshift-space power spectrum multipoles P_ell(k).
 
@@ -1123,218 +1244,232 @@ class RSDMultipolesPowerSpectrumCalculator:
         wmu = np.array([wmu * (2 * ell + 1) * legendre(ell)(muobs) for ell in ells])
         jac, kap, muap = (qpar * qper**2)**(-3), self.k_ap(kobs[:, None], muobs, qpar, qper), self.mu_ap(muobs, qpar, qper)[None, :]
         #print(muap[0])
-        pkmu = jac * self.get_rsd_pkmu(kap, muap, pars, table, table_now, IR_resummation)
+        pkmu = jac * self.get_rsd_pkmu(kap, muap, pars, table, table_now, IR_resummation, damping)
         return np.sum(pkmu * wmu[:, None, :], axis=-1)     
 
 
 # In[9]:
 
 
-
-
-# In[19]:
-
-
-######################################3 Bispectrum old ############################################3
-##################################### Bispectrum ################################################
-def pklIR_f(k,pklIRT):
-    return np.interp(k, pklIRT[0], pklIRT[1])
-
-
-def Qij(ki, kj, xij, mui, muj, f, bisp_nuis_params):
-
-    b1, b2, bs, c1, Bshot, Pshot = bisp_nuis_params
-
-    fi=f; fj=f; fij=f;
-    Z1i = b1 + fi * mui**2;
-    Z1j = b1 + fj * muj**2;
-    Z1efti = Z1i - c1*(ki*mui)**2;
-    Z1eftj = Z1j - c1*(kj*muj)**2 ;
-    
-    kmu = ki*mui + kj*muj;
-    mu2 = kmu**2 / (ki**2 + kj**2 + 2*ki*kj*xij);
-    crossterm = 1.0/2.0*kmu * ( fj * muj / kj* Z1i  +  fi * mui / ki * Z1j  ) 
-
-    advection = xij/2.0 *(ki/kj + kj/ki)
-    F2 = 5.0/7.0 + 2.0/7.0 * xij**2 + advection
-    G2 = 3.0/7.0 + 4.0/7.0 * xij**2 + advection
-    
-    Z2 = b1*F2 + fij*mu2*G2 + crossterm + b2/2.0 + bs*(xij**2 - 1.0/3.0);
-    
-    Qij = 2*Z1efti*Z1eftj * Z2;
-    
-    return  Qij
-
-
-
-
-
-def bispectrum(k1, k2, x12, mu1, phi, f, bisp_nuis_params, qpar, qperp):
-
-    b1, b2, bs, c1, Bshot, Pshot = bisp_nuis_params
-    
-    k3 = np.sqrt(k1**2 + k2**2 + 2.0*k1 * k2 * x12);
-    mu2 = np.sqrt(1.0 - mu1**2) * np.sqrt(1.0 - x12**2) * np.cos(phi) + mu1 * x12;
-    mu3 = -(k1/k3) * mu1 - k2/k3 * mu2;
-    
-    x13 = -(k1 + k2 * x12)/k3;
-    x23 = -(k2 + k1 * x12)/k3;
-
-
-
-    ## AP functions can be called here, but dont see the difference
-    FAP = qpar/qperp;
-    k1AP = (k1/qperp)*(1 + mu1**2*(1./FAP**2 - 1))**0.5;
-    mu1AP = (mu1/FAP)*(1 + mu1**2*(1./FAP**2 - 1))**(-0.5);
-    k2AP = (k2/qperp)*(1 + mu2**2*(1./FAP**2 - 1))**0.5;
-    mu2AP = (mu2/FAP)*(1 + mu2**2*(1./FAP**2 - 1))**(-0.5);
-    k3AP = (k3/qperp)*(1 + mu3**2*(1./FAP**2 - 1))**0.5;
-    mu3AP = (mu3/FAP)*(1 + mu3**2*(1./FAP**2 - 1))**(-0.5);
-    
-    Q12 = Qij(k1AP, k2AP, x12, mu1AP, mu2AP, f, bisp_nuis_params);
-    Q13 = Qij(k1AP, k3AP, x13, mu1AP, mu3AP, f, bisp_nuis_params);
-    Q23 = Qij(k2AP, k2AP, x23, mu2AP, mu3AP, f, bisp_nuis_params);
-    
-    #pk1 = k1AP**(0.7);  ###substitute by the IR-resummed pkl
-    #pk2 = k2AP**(0.7);
-    #pk3 = k3AP**(0.7);
-
-    pk1 = pklIR_f(k1AP,pk_in);
-    pk2 = pklIR_f(k2AP,pk_in);
-    pk3 = pklIR_f(k3AP,pk_in);
-
-    B12 = Q12*pk1*pk2;
-    B13 = Q13*pk1*pk3;
-    B23 = Q23*pk2*pk3;
-
-
-    ### Shot Noise 
-    
-    f1=f; f2=f; f3=f;
-    Z1_1 = b1 + f1 * mu1AP**2;
-    Z1_2 = b1 + f2 * mu2AP**2;
-    Z1_3 = b1 + f3 * mu3AP**2;
-    Z1eft1 = Z1_1 - c1*(k1*mu1AP)**2;
-    Z1eft2 = Z1_2 - c1*(k2*mu2AP)**2;
-    Z1eft3 = Z1_3 - c1*(k3*mu3AP)**2;
-    
-    # To match eq.3.14 of 2110.10161, one makes (1+Pshot) -> (1+Pshot)/bar-n; Bshot -> Bshot/bar-n
-
-    shot =(b1*Bshot + 2.0*(1+Pshot)*f1*mu1AP**2)*Z1eft1*pk1 
-    + (b1*Bshot + 2.0*(1+Pshot)*f2*mu2AP**2)*Z1eft2*pk2 
-    + (b1*Bshot + 2.0*(1+Pshot)*f3*mu3AP**2)*Z1eft3*pk3  
-    + (1+Pshot)**2
-    
-    bispectrum = B12 + B13 + B23 + shot;
-    
-    return bispectrum
-
-
-    
-def Sugiyama_B000_B202(k1, k2, f, bisp_nuis_params, qpar, qperp, tablesGL):
-    phiGL = tablesGL[0]
-    xGL = tablesGL[1]
-    muGL = tablesGL[2]
-
-    b1,b2,bs,c1, Bshot, Pshot = bisp_nuis_params
-
-
-
-    #piover4 = 0.785398
-    #normB000 = 0.5*piover4; 
-    #normB202 = 5.0/2.0*piover4; 
-    fourpi = 12.53667061
-    normB000 = 0.5/fourpi; 
-    normB202 = 5.0/2.0/fourpi;
-    
-    int_all_B000 = 0
-    int_all_B202 = 0
-    for xii in range(len(xGL)):
-        int_mu_B000 = 0
-        int_mu_B202 = 0
-        for muii in range(len(muGL)):
-            mu=muGL[muii][0]
-            int_phi = 0
-            for phiii in range(len(phiGL)):
-                bisp= bispectrum(
-                        k1, k2, 
-                        xGL[xii][0], 
-                        mu, 
-                        phiGL[phiii][0], 
-                        f, bisp_nuis_params, qpar, qperp
-                    )
-                int_phi += bisp * phiGL[phiii][1]
-                
-            int_phi *= 2  #The 2 accounts for the whole integral, from 0 to 2pi, instead of 0 to pi
-            int_mu_B000 += int_phi * muGL[muii][1]
-            leg2 = 0.5 * (-1.0 + 3.0*mu**2) 
-            int_mu_B202 += int_phi * leg2 * muGL[muii][1]
+class BispectrumCalculator:
+    def __init__(self, basis='sugiyama'):
+        """
+        basis : str
+            'sugiyama' or 'scoccimarro' (currently only 'sugiyama' is implemented)
+        """
+        self.basis = basis.lower()
+        if self.basis not in ['sugiyama', 'scoccimarro']:
+            raise ValueError("basis must be 'sugiyama' or 'scoccimarro'.")
             
-        int_all_B000 += int_mu_B000 * xGL[xii][1]
-        int_all_B202 += int_mu_B202 * xGL[xii][1]
-    
-    B000 = int_all_B000 * normB000
-    B202 = int_all_B202 * normB202
-    
-    return(B000,B202)
+            
+    def pklIR_f(self, k,pklIRT):
+        return np.interp(k, pklIRT[0], pklIRT[1])
 
+            
+    #GL pairs [[x1,w1],[x2,w2],....
+    def tablesGL_f(self, precision=[4, 5, 5]):
+        Nphi, Nx, Nmu = precision
+        Pi = np.pi
 
+        phi_roots, phi_weights = scipy.special.roots_legendre(Nphi)
+        phi_roots = Pi / 2 * phi_roots + Pi / 2
+        phi_weights = Pi / 2 * phi_weights
+        phiGL = np.array([phi_roots, phi_weights]).T
 
-def Bisp_Sugiyama(bisp_cosmo_params, bisp_nuis_params, pk_input, z_pk, k1k2pairs, Omfid=-1,qpar=1,qperp=1,precision=[4,5,5]):
+        x_roots, x_weights = scipy.special.roots_legendre(Nx)
+        xGL = np.array([x_roots, x_weights]).T
 
-    OmM, h, f = bisp_cosmo_params
+        mu_roots, mu_weights = scipy.special.roots_legendre(Nmu)
+        muGL = np.array([mu_roots, mu_weights]).T
 
-    global pk_in
-    pk_in=pk_input
+        return [phiGL, xGL, muGL]
 
-    if Omfid > 0:
-        qperp = DA(OmM, z_pk)/DA(Omfid, z_pk) 
-        qpar = Hubble(Omfid, z_pk)/Hubble(OmM, z_pk) 
-        #Om computed for any cosmology
-        #OmM = CosmoParam(h, omega_b, omega_cdm, omega_ncdm)[1]
+    def kAP(self, k, mu, qpar, qperp):
+        return k / qperp * np.sqrt(1 + mu**2 * (-1 + (qperp**2) / (qpar**2)))
+
+    def muAP(self, mu, qpar, qperp):
+        return (mu * qperp / qpar) / np.sqrt(1 + mu**2 * (-1 + (qperp**2) / (qpar**2)))
+
+    def APtransforms(self, k1, k2, x12, mu1, cosphi, qpar, qperp):
+        k3 = np.sqrt(k1**2 + k2**2 + 2 * k1 * k2 * x12)
+        mu2 = np.sqrt(1 - mu1**2) * np.sqrt(1 - x12**2) * cosphi + mu1 * x12
+        mu3 = -k1 / k3 * mu1 - k2 / k3 * mu2
+
+        k1AP = self.kAP(k1, mu1, qpar, qperp)
+        k2AP = self.kAP(k2, mu2, qpar, qperp)
+        k3AP = self.kAP(k3, mu3, qpar, qperp)
+
+        mu1AP = self.muAP(mu1, qpar, qperp)
+        mu2AP = self.muAP(mu2, qpar, qperp)
+        mu3AP = self.muAP(mu3, qpar, qperp)
+
+        x12AP = (k3AP**2 - k1AP**2 - k2AP**2) / (2 * k1AP * k2AP)
+        x31AP = -(k1AP + k2AP * x12AP) / k3AP
+        x23AP = -(k2AP + k1AP * x12AP) / k3AP
+
+        return np.array([k1AP, k2AP, k3AP, x12AP, x23AP, x31AP, mu1AP, mu2AP, mu3AP, cosphi])
+            
+
+    def Qij(self, ki, kj, xij, mui, muj, f, bpars):
+        b1, b2, bs, c1, c2, Bshot, Pshot, X_FoG_b = bpars
+
+        fi = f
+        fj = f
+        fij = f
+
+        Z1i = b1 + fi * mui**2
+        Z1j = b1 + fj * muj**2
+        # Z1efti = Z1i - c1*(ki*mui)**2
+        # Z1eftj = Z1j - c1*(kj*muj)**2 
         
-    print(qpar,qperp)
+        kmu = ki * mui + kj * muj
+        mu2 = kmu**2 / (ki**2 + kj**2 + 2 * ki * kj * xij)
+        crossterm = 0.5 * kmu * (fj * muj / kj * Z1i + fi * mui / ki * Z1j)
 
-    #f = f0(z_pk,OmM);
+        advection = xij / 2.0 * (ki / kj + kj / ki)
+        F2 = 5.0 / 7.0 + 2.0 / 7.0 * xij**2 + advection
+        G2 = 3.0 / 7.0 + 4.0 / 7.0 * xij**2 + advection
 
-    print(f)
-    
-    #pk_input=Extrapolate_inputpkl(pk_input)
-    pklIRT=get_linear_ir(pk_input[0], pk_input[1], h)
+        Z2 = b1 * F2 + fij * mu2 * G2 + crossterm + b2 / 2.0 + bs * (xij**2 - 1.0 / 3.0)
+        Qij = 2 * Z2
+        return Qij
 
-    #def pklIR_f(k):
-    #    return np.interp(k, pklIRT[0], pklIRT[1])
+    def bispectrum(self, k1, k2, x12, mu1, phi, f, f0, sigma2v, bpars, qpar, qperp, pk_in, damping = 'lor'):
+        b1, b2, bs, c1, c2, Bshot, Pshot, X_FoG_b = bpars
 
-    #These are GL pairs [[x1,w1],[x2,w2],....]. We should compute them here
+        cosphi = np.cos(phi)
+        APtransf = self.APtransforms(k1, k2, x12, mu1, cosphi, qpar, qperp)
+        k1AP, k2AP, k3AP, x12AP, x23AP, x31AP, mu1AP, mu2AP, mu3AP, cosphi = APtransf
 
-    Nphi,Nx,Nmu = precision
-                                
-    Pi= np.pi
-    
-    phi_roots, phi_weights = scipy.special.roots_legendre(Nphi) 
-    phi_roots = Pi/2 * phi_roots + Pi/2;  phi_weights = Pi/2 * phi_weights
-    phiGL=np.array([phi_roots,phi_weights]).T
-    
-    x_roots, x_weights = scipy.special.roots_legendre(Nx) 
-    xGL=np.array([x_roots,x_weights]).T
-    
-    mu_roots, mu_weights = scipy.special.roots_legendre(Nmu) 
-    
-    muGL=np.array([mu_roots,mu_weights]).T
-    
-    tablesGL = [phiGL,xGL,muGL]
+        Q12 = self.Qij(k1AP, k2AP, x12AP, mu1AP, mu2AP, f, bpars)
+        Q13 = self.Qij(k1AP, k3AP, x31AP, mu1AP, mu3AP, f, bpars)
+        Q23 = self.Qij(k2AP, k2AP, x23AP, mu2AP, mu3AP, f, bpars)
 
-    size=len(k1k2pairs)
+        pk1 = self.pklIR_f(k1AP, pk_in)
+        pk2 = self.pklIR_f(k2AP, pk_in)
+        pk3 = self.pklIR_f(k3AP, pk_in)
 
-    B000=np.zeros(size)
-    B202=np.zeros(size)
-    
-    for ii in range(size):
-        k1,k2 = k1k2pairs[ii]
-        #print(k1,k2)
-        B000[ii], B202[ii] = Sugiyama_B000_B202(k1, k2, f, bisp_nuis_params, qpar, qperp, tablesGL)
-    
-    return(B000,B202)
+        f1 = f2 = f3 = f
+        Z1_1 = b1 + f1 * mu1AP**2
+        Z1_2 = b1 + f2 * mu2AP**2
+        Z1_3 = b1 + f3 * mu3AP**2
+
+        Z1eft1 = Z1_1 - (c1 * mu1AP**2 + c2 * mu1AP**4) * k1AP**2
+        Z1eft2 = Z1_2 - (c1 * mu2AP**2 + c2 * mu2AP**4) * k2AP**2
+        Z1eft3 = Z1_3 - (c1 * mu3AP**2 + c2 * mu3AP**4) * k3AP**2
+
+        B12 = Q12 * Z1eft1 * pk1 * Z1eft2 * pk2
+        B13 = Q13 * Z1eft1 * pk1 * Z1eft3 * pk3
+        B23 = Q23 * Z1eft3 * pk2 * Z1eft3 * pk3
+
+        l2 = (k1AP * mu1AP)**2 + (k2AP * mu2AP)**2 + (k3AP * mu3AP)**2
+        l2 = 0.5 * l2 * (f0 * X_FoG_b)**2
+
+        Winfty = np.exp(- l2 * sigma2v / (1 + l2)) / np.sqrt((1 + l2)**3)
+        Wlor = 1.0 / (1.0 + l2 * sigma2v)
+
+        #damping = 'lor'
+        if damping is None:
+            W = 1
+        elif damping == 'lor':
+            W = Wlor
+        elif damping == 'vdg':
+            W = Winfty
+        
+        ## Noise 
+        # To match eq.3.14 of 2110.10161, one makes (1+Pshot) -> (1+Pshot)/bar-n; Bshot -> Bshot/bar-n
+        shot = (b1 * Bshot + 2.0 * (1 + Pshot) * f1 * mu1AP**2) * Z1eft1 * pk1 \
+             + (b1 * Bshot + 2.0 * (1 + Pshot) * f2 * mu2AP**2) * Z1eft2 * pk2 \
+             + (b1 * Bshot + 2.0 * (1 + Pshot) * f3 * mu3AP**2) * Z1eft3 * pk3 \
+             + (1 + Pshot)**2
+
+        bispectrum = W * (B12 + B13 + B23) + shot
+        alpha = qpar * qperp**2
+        bispectrum = bispectrum / alpha**2
+
+        return bispectrum
+
+    def Bisp_Sugiyama(self, f, f0, bpars, pk_input, z_pk,
+                      k1k2pairs, qpar, qperp, precision=[4, 5, 5], damping = 'lor'):
+
+        #OmM, h = bisp_cosmo_params
+        #qperp, qpar = 1, 1
+
+        #if Omfid > 0:
+        #    qperp = DA(OmM, z_pk) / DA(Omfid, z_pk)
+        #    qpar = Hubble(Omfid, z_pk) / Hubble(OmM, z_pk)
+
+        #f = f0_function(z_pk, OmM)
+
+        sigma2v_ = integrate.simps(pk_input[1], pk_input[0]) / (6 * np.pi**2)
+        sigma2v_ *= 1.05 #correction due to k cut
+        
+        # tables for GL pairs [phi,mu,x] [[x1,w1],[x2,w2],....]
+        tablesGL = self.tablesGL_f(precision)
+        size = len(k1k2pairs)
+
+        B000 = np.zeros(size)
+        B202 = np.zeros(size)
+
+        for ii in range(size):
+            k1, k2 = k1k2pairs[ii]
+            B000[ii], B202[ii] = self.Sugiyama_B000_B202(
+                k1, k2, f, f0, sigma2v_, bpars, qpar, qperp, tablesGL, pk_input, damping)
+
+        return B000, B202
+
+    def Sugiyama_B000_B202(self, k1, k2, f, f0, sigma2v, bpars, qpar, qperp, tablesGL, pk_in, damping = 'lor'):
+        phiGL, xGL, muGL = tablesGL
+
+        phi_values, phi_weights = phiGL[:, 0], phiGL[:, 1]
+        mu_values, mu_weights = muGL[:, 0], muGL[:, 1]
+        x_values, x_weights = xGL[:, 0], xGL[:, 1]
+
+        fourpi = 4 * np.pi
+        normB000 = 0.5 / fourpi
+        normB202 = 5.0 / 2.0 / fourpi
+
+        x_mesh, mu_mesh, phi_mesh = np.meshgrid(x_values, mu_values, phi_values, indexing='ij')
+
+        bisp = self.bispectrum(k1, k2, x_mesh, mu_mesh, phi_mesh,
+                               f, f0, sigma2v, bpars, qpar, qperp, pk_in, damping)
+
+        int_phi = 2 * np.sum(bisp * phi_weights, axis=2)
+        int_mu_B000 = np.sum(int_phi * mu_weights, axis=1)
+        int_all_B000 = np.sum(int_mu_B000 * x_weights)
+
+        leg2 = 0.5 * (-1.0 + 3.0 * mu_values**2)
+        int_mu_B202 = np.sum(int_phi * leg2 * mu_weights, axis=1)
+        int_all_B202 = np.sum(int_mu_B202 * x_weights)
+
+        B000 = int_all_B000 * normB000
+        B202 = int_all_B202 * normB202
+
+        return B000, B202
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
 
 
 # In[ ]:
