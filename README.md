@@ -3,7 +3,7 @@ This repository contains the latest version of the FOLPS code.
 
 ## To-Do List
 
-- Test the code again for `Afull=False, True`
+- [DONE] Test the code again for `Afull=False, True`
 
 - [DONE] Include `bG2` and `bGamma3` rotation
 
@@ -11,7 +11,7 @@ This repository contains the latest version of the FOLPS code.
 
 - Update the `jax_tools.py` file      (done! but got some erros when running folps)
 
-- dividir los inputs para las clases nonlinear y RSDmultipolos en dos formas.
+- [DONE] dividir los inputs para las clases nonlinear y RSDmultipolos en dos formas.
   Que reciban de input parametros que NO dependan de la cosmologia,
   minetras que para las funciones que se ejecutan, alli si vayan los parametros que se varian
 
@@ -25,9 +25,10 @@ class MatrixCalculator:
         """Inicializa la clase con el backend elegido (NumPy/JAX) y sus funciones asociadas."""
         self.backend = backend_functions
 ```
-------------------------
-- Check Bispectrum and optimize it        
+- [DONE] Check Bispectrum and optimize it        
         
-- Include VDG models (standard and keeping deltaP)        
+- [DONE] Include VDG models (standard and keeping deltaP)      
+
+------------------------  
         
 - Introduce the MG modifications for f(R)
