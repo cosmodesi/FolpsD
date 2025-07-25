@@ -11,13 +11,11 @@ This repository contains the latest version of the FOLPS code.
 
 - Update the `jax_tools.py` file      (done! but got some erros when running folps)
 
-- [DONE] dividir los inputs para las clases nonlinear y RSDmultipolos en dos formas.
-  Que reciban de input parametros que NO dependan de la cosmologia,
-  minetras que para las funciones que se ejecutan, alli si vayan los parametros que se varian
+- [DONE] Split the inputs for the `NonLinear` and `RSDMultipoles` classes into two types:
+  - Inputs that do **not** depend on cosmology should be passed to the class constructor.
+  - Cosmology-dependent parameters should be passed directly to the functions that are executed.
 
-- [DONE] Ver la mejor forma de conectar el BackendManager con las funciones del folps.py, quizas:
-
-algo asi: 
+- [DONE] Explore the best way to connect the `BackendManager` with the functions in `folps.py`, perhaps something like:
 
 ```python
 class MatrixCalculator:
