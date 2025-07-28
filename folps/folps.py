@@ -684,7 +684,7 @@ class NonLinearPowerSpectrumCalculator:
             self.Fkoverf0 = interp(self.kTout, self.inputfkT[0], self.inputfkT[1])
             
             
-    def _initialize_nonwiggle_power_spectrum(self, inputpkT, pknow=None, cosmo=None):
+    def _initialize_nonwiggle_power_spectrum(self, inputpkT, pknow=None, cosmo=None,k=None):
         """
         Initializes non-wiggle linear power spectrum.
         """
@@ -695,6 +695,7 @@ class NonLinearPowerSpectrumCalculator:
                 self.inputpkT_NW = get_pknow(inputpkT[0], inputpkT[1], kwargs['h'])
         else:
             self.inputpkT_NW = extrapolate_pklin(k, pknow)
+            
             
             
     def _initialize_liner_power_spectra(self, inputpkT):
@@ -902,7 +903,7 @@ class NonLinearPowerSpectrumCalculator:
         self.kwargs = kwargs
         
         self._initialize_factors(cosmo=cosmo, k=self.inputpkT[0])
-        self._initialize_nonwiggle_power_spectrum(inputpkT=self.inputpkT, pknow=pknow, cosmo=cosmo)
+        self._initialize_nonwiggle_power_spectrum(inputpkT=self.inputpkT, pknow=pknow, cosmo=cosmo,k=k)
         self._initialize_liner_power_spectra(inputpkT=self.inputpkT)
         self._initialize_fftlog_terms()
         
