@@ -640,7 +640,8 @@ class NonLinearPowerSpectrumCalculator:
         """
         if 'f0' in self.kwargs:
             return self.kwargs['f0']
-        elif cosmo is not None and 'z' in self.kwargs:
+
+        if cosmo is not None and 'z' in self.kwargs:
             return cosmo.scale_independent_growth_factor_f(self.kwargs['z'])
         elif all(p in self.kwargs for p in ['z', 'Omega_m', 'h', 'fnu']):
             if k is None:
@@ -655,6 +656,7 @@ class NonLinearPowerSpectrumCalculator:
                 Nnu=self.kwargs.get('Nnu', 3)
             )
             return f0
+        
     
         else:
             raise ValueError("Insufficient parameters: either provide 'f0' in kwargs, or 'cosmo' and 'z', or 'z', 'Omega_m', 'h', and 'fnu' in kwargs.")
@@ -665,7 +667,7 @@ class NonLinearPowerSpectrumCalculator:
         """
         if self.kernels == 'eds':
             self.inputfkT = None
-            self.f0 = self._get_f0(cosmo=cosmo, k=k)
+            self.f0 = self._get_f0(cosmo=cosmo, k=self.inputpkT[0])
             self.Fkoverf0 = np.ones(len(self.kTout), dtype='f8')
         
         else:
@@ -673,11 +675,18 @@ class NonLinearPowerSpectrumCalculator:
                 self.h = cosmo.h()
                 self.fnu = cosmo.Omega_nu/cosmo.Omega0_m()
                 self.Omega_m = cosmo.Omega0_m()
-                self.inputfkT = f_over_f0_EH(zev=self.kwargs['z'], k=k, OmM0=self.Omega_m, h=self.h, fnu=self.fnu, Neff=self.kwargs.get('Neff', 3.044), Nnu=self.kwargs.get('Nnu', 3))
+                self.inputfkT = f_over_f0_EH(zev=self.kwargs['z'], k=self.inputpkT[0], OmM0=self.Omega_m, h=self.h, fnu=self.fnu, Neff=self.kwargs.get('Neff', 3.044), Nnu=self.kwargs.get('Nnu', 3))
                 self.f0 = cosmo.scale_independent_growth_factor_f(self.kwargs['z'])
-            elif all(param in kwargs for param in ['z', 'Omega_m', 'h', 'fnu']):
-                self.inputfkT = f_over_f0_EH(zev=self.kwargs['z'], k=k, OmM0=self.kwargs['Omega_m'], h=self.kwargs['h'], fnu=self.kwargs['fnu'], Neff=self.kwargs.get('Neff', 3.044), Nnu=kwargs.get('Nnu', 3))
+            elif all(param in self.kwargs for param in ['z', 'Omega_m', 'h', 'fnu']):
+                self.inputfkT = f_over_f0_EH(zev=self.kwargs['z'], k=self.inputpkT[0], OmM0=self.kwargs['Omega_m'], h=self.kwargs['h'], fnu=self.kwargs['fnu'], Neff=self.kwargs.get('Neff', 3.044), Nnu=self.kwargs.get('Nnu', 3))
                 self.f0 = self.kwargs.get('f0', self.inputfkT[2])
+            elif all(param in self.kwargs for param in ['pkttlin', 'f0']):
+                inputfkT = list(extrapolate_pklin(k, self.kwargs['pkttlin']))
+                inputpkT = list(self.inputpkT)
+                fk = (inputfkT[1] / inputpkT[1])**0.5
+                self.f0 = self.kwargs.get('f0',fk[0])
+                self.inputfkT = (inputfkT[0], fk/self.f0,self.f0)
+                
             else:
                 raise ValueError("No 'z', 'Omega_m', 'h', 'fnu' provided in kwargs and cosmo is not enabled")
             
@@ -691,8 +700,8 @@ class NonLinearPowerSpectrumCalculator:
         if pknow is None:
             if cosmo is not None:
                 self.inputpkT_NW = get_pknow(inputpkT[0], inputpkT[1], cosmo.h())
-            elif 'h' in kwargs:
-                self.inputpkT_NW = get_pknow(inputpkT[0], inputpkT[1], kwargs['h'])
+            elif 'h' in self.kwargs:
+                self.inputpkT_NW = get_pknow(inputpkT[0], inputpkT[1], self.kwargs['h'])
         else:
             self.inputpkT_NW = extrapolate_pklin(k, pknow)
             
@@ -902,7 +911,7 @@ class NonLinearPowerSpectrumCalculator:
         self.inputpkT = extrapolate_pklin(k, pklin)
         self.kwargs = kwargs
         
-        self._initialize_factors(cosmo=cosmo, k=self.inputpkT[0])
+        self._initialize_factors(cosmo=cosmo, k=k)
         self._initialize_nonwiggle_power_spectrum(inputpkT=self.inputpkT, pknow=pknow, cosmo=cosmo,k=k)
         self._initialize_liner_power_spectra(inputpkT=self.inputpkT)
         self._initialize_fftlog_terms()
@@ -1192,7 +1201,7 @@ class RSDMultipolesPowerSpectrumCalculator:
                 
         return PK + W * ( Pcts(mu, alpha0, alpha2, alpha4) + PctNLOs(mu, b1, ctilde) )
 
-    def get_rsd_pkmu(self, k, mu, pars, table, table_now, IR_resummation, damping='lor'):
+    def get_rsd_pkmu(self, k, mu, pars, table, table_now, IR_resummation=True, damping='lor'):
         """Return redshift space P(k, mu) given input tables."""
         table = self.interp_table(k, table, A_full_status)
         table_now = self.interp_table(k, table_now, A_full_status)
@@ -1344,7 +1353,7 @@ class BispectrumCalculator:
 
         Q12 = self.Qij(k1AP, k2AP, x12AP, mu1AP, mu2AP, f, bpars)
         Q13 = self.Qij(k1AP, k3AP, x31AP, mu1AP, mu3AP, f, bpars)
-        Q23 = self.Qij(k2AP, k2AP, x23AP, mu2AP, mu3AP, f, bpars)
+        Q23 = self.Qij(k2AP, k3AP, x23AP, mu2AP, mu3AP, f, bpars)
 
         pk1 = self.pklIR_f(k1AP, pk_in)
         pk2 = self.pklIR_f(k2AP, pk_in)
