@@ -1,15 +1,22 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
+# In[ ]:
 
 
-# ========================================================================================== #
-#                                          FOLPS                                             #
-# ========================================================================================== #
-#          Efficient computation of the redshift-space power spectrum & bispectrum in        #
-#            models with massive neutrinos and certain modified gravity frameworks           #
-# ========================================================================================== #
+# ============================================================================================ #
+#                                             FOLPS                                            #
+# ============================================================================================ #
+#     Fast and Efficient Computation of the Redshift-Space Power Spectrum and Bispectrum       #
+#         in Cosmological Models with Massive Neutrinos and Modified Gravity Theories          #
+# -------------------------------------------------------------------------------------------- #
+#     Designed for high-precision, high-performance modeling in state-of-the-art LSS           #
+#     analyses. FOLPS delivers robust predictions across a wide range of theoretical models.   #
+#                                                                                              #
+#     “Simple things should be simple. Complex things should be possible.”                     #
+#                                — Alan Kay                                                    #
+#     FOLPS makes them both effortless.                                                        #
+# ============================================================================================ #
 
 
 # In[2]:
@@ -18,17 +25,21 @@
 import os
 import scipy
 from scipy import special
+from scipy import integrate
+
+# Global variable to store the preferred backend (default: 'numpy')
+PREFERRED_BACKEND = os.environ.get("FOLPS_BACKEND", "numpy")  #options:"numpy" & "jax" 
 
 class BackendManager:
     def __init__(self, preferred_backend='numpy'):
         """Initializes the backend according to the user's preference."""
-        self.using_jax = False
+        #self.using_jax = False
         self.backend = None
         self.modules = {}  # Stores modules for dynamic usage
         self.setup_backend(preferred_backend)
 
     def setup_backend(self, preferred_backend='numpy'):
-        """Configures the backend dynamically between NumPy and JAX."""
+        """Dynamically configures the backend between NumPy and JAX."""
         if preferred_backend == 'jax':
             try:
                 import jax
@@ -38,7 +49,7 @@ class BackendManager:
                     print("⚠️ No GPU found. Using JAX with CPU.")
 
                 from jax import numpy as np
-                from tools_jax import interp, simpson, legendre, extrapolate, extrapolate_pklin, get_pknow
+                from tools_jax import interp, simpson, legendre, extrapolate, extrapolate_pklin, get_pknow, get_linear_ir, get_linear_ir_ini, qpar_qperp
                 self.modules = {
                     "np": np,
                     "interp": interp,
@@ -47,8 +58,11 @@ class BackendManager:
                     "extrapolate": extrapolate,
                     "extrapolate_pklin": extrapolate_pklin,
                     "get_pknow": get_pknow,
+                    "get_linear_ir":get_linear_ir,
+                    "get_linear_ir_ini":get_linear_ir_ini,
+                    "qpar_qperp": qpar_qperp,
                 }
-                self.using_jax = True
+                #self.using_jax = True
                 self.backend = 'jax'
             except (RuntimeError, ImportError) as e:
                 print(f"❌ Error initializing JAX: {e}")
@@ -57,7 +71,7 @@ class BackendManager:
         elif preferred_backend == 'numpy':
             print("✅ Using NumPy with CPU.")
             import numpy as np
-            from tools import interp, simpson, legendre, extrapolate, extrapolate_pklin, get_pknow, get_linear_ir
+            from tools import interp, simpson, legendre, extrapolate, extrapolate_pklin, get_pknow, get_linear_ir, get_linear_ir_ini, qpar_qperp
             self.modules = {
                 "np": np,
                 "interp": interp,
@@ -67,8 +81,10 @@ class BackendManager:
                 "extrapolate_pklin": extrapolate_pklin,
                 "get_pknow": get_pknow,
                 "get_linear_ir":get_linear_ir,
+                "get_linear_ir_ini":get_linear_ir_ini,
+                "qpar_qperp": qpar_qperp,
             }
-            self.using_jax = False
+            #self.using_jax = False
             self.backend = 'numpy'
         else:
             raise ValueError("⚠️ Invalid backend specified. Choose 'jax' or 'numpy'.")
@@ -79,7 +95,7 @@ class BackendManager:
 
 
 # Initialize with JAX if available
-backend_manager = BackendManager(preferred_backend='numpy')
+backend_manager = BackendManager(PREFERRED_BACKEND)
 
 # Access functions and modules
 np = backend_manager.get_module("np")
@@ -90,7 +106,10 @@ extrapolate = backend_manager.get_module("extrapolate")
 extrapolate_pklin = backend_manager.get_module("extrapolate_pklin")
 get_pknow = backend_manager.get_module("get_pknow")
 get_linear_ir = backend_manager.get_module("get_linear_ir")
-using_jax = backend_manager.using_jax
+get_linear_ir_ini = backend_manager.get_module("get_linear_ir_ini")
+qpar_qperp = backend_manager.get_module("qpar_qperp")
+backend = backend_manager.backend
+#using_jax = backend_manager.using_jax
 
 
 # In[3]:
@@ -182,7 +201,8 @@ def f_over_f0_EH(zev, k, OmM0, h, fnu, Nnu=3, Neff=3.046):
     etafin = etaofz(zfin)
     
     from scipy.integrate import odeint
-    if using_jax:
+    #if using_jax:
+    if backend == 'jax':
         from jax.experimental.ode import odeint
 
     # differential eq.
@@ -252,30 +272,41 @@ def get_cm(kmin, kmax, N, b_nu, inputpkT):
 
 class MatrixCalculator:
     """
-    A class to compute M matrices that are independent of cosmological parameters, calculated only once per instance.
+    A class to compute M matrices that are independent of cosmological parameters, 
+    and thus only need to be calculated once per instance.
 
-    Args:
-        nfftlog (int, optional): Number of sample points for FFTLog integration. Defaults to 128 if not specified.
-                                 It is recommended to use this default setting; see Figure 8 in arXiv:2208.02791 for details.
-        kmin (float, optional): Minimum value of the k-range for the calculations. Defaults to 1e-7.
-        kmax (float, optional): Maximum value of the k-range for the calculations. Defaults to 100.0.
-        b_nu (float): Bias parameter for FFTLog. It is recommended to use the default value for accurate results.
-        A_full (bool, optional): Determines whether to compute the full A_TNS function. If set to True (default), the 
-                                 function considers contributions from b1, b2, and bs2. If False, it uses an approximation 
-                                 based on only the linear bias (b1).
+    Parameters:
+        nfftlog (int, optional): Number of sample points for FFTLog integration. Defaults to 128.
+                                 It is recommended to use this default value for numerical accuracy; 
+                                 see Figure 8 in arXiv:2208.02791.
+        A_full (bool, optional): Whether to compute the full A_TNS function. If True (default), the 
+                                 function includes contributions from b1, b2, and bs2. If False, it 
+                                 uses an approximation based only on the linear bias b1.
+
+    Notes:
+        - The wavenumber range (k) is fixed internally to kmin = 1e-7 and kmax = 100.
+        - The bias parameter b_nu is fixed to -0.1. Other values have not been tested.
 
     Returns:
         list: A list containing all computed M matrices.
     """
-    def __init__(self, nfftlog=128, kmin=10**(-7), kmax=100., b_nu=-0.1, A_full=True):
-        global A_full_status
+    def __init__(self, nfftlog=128, A_full=True, remove_DeltaP=False):
+        global A_full_status, remove_DeltaP_status
         self.nfftlog = nfftlog
-        self.kmin = kmin
-        self.kmax = kmax
-        self.b_nu = b_nu  # not yet tested for other values
+        self.kmin = 10**(-7)
+        self.kmax = kmax=100.
+        self.b_nu = -0.1  # not yet tested for other values
         self.A_full = A_full
         A_full_status = A_full
-        self.filename = f'matrices_nfftlog{self.nfftlog}_Afull{A_full_status}.npy'
+        
+        self.remove_DeltaP = remove_DeltaP
+        remove_DeltaP_status = remove_DeltaP
+        
+        self.filename = f'matrices_nfftlog{self.nfftlog}_Afull_{A_full_status}_remove-DeltaP_{remove_DeltaP_status}.npy'
+    
+        
+        if remove_DeltaP:
+            print("removing $\Delta P(k,\mu)$") #... WARNING: This violates momentum conservation!!!
         
     def Imatrix(self, nu1, nu2):
         return 1 / (8 * np.pi**(3 / 2.)) * (special.gamma(3 / 2. - nu1) * special.gamma(3 / 2. - nu2) * special.gamma(nu1 + nu2 - 3 / 2.))\
@@ -316,33 +347,70 @@ class MatrixCalculator:
         def MtAfkmpfpfp_33(nu1, nu2):
             return self.Imatrix(nu1,nu2)*((-3+2*(nu1+nu2))*(-1+2*(nu1+nu2))*(-13*(1+nu1)+2*(-11+nu1*(-1+14*nu1))*nu2 + 4*(3+7*nu1)*nu2**2))/(28*nu1*(1+nu1)*nu2*(1+nu2)*(-1+2*nu2))
         
+        #Some B functions, not called by default
+        def MB2_21(nu1, nu2):
+            return -2*((-15*self.Imatrix(-3 + nu1,2 + nu2))/64. + (15*self.Imatrix(-2 + nu1,1 + nu2))/16. + (3*self.Imatrix(-2 + nu1,2 + nu2))/4. - (45*self.Imatrix(-1 + nu1,nu2))/32. - (9*self.Imatrix(-1 + nu1,1 + nu2))/8. - (27*self.Imatrix(-1 + nu1,2 + nu2))/32. + (15*self.Imatrix(nu1,-1 + nu2))/16. + (3*self.Imatrix(nu1,1 + nu2))/16. + (3*self.Imatrix(nu1,2 + nu2))/8. - (15*self.Imatrix(1 + nu1,-2 + nu2))/64. + (3*self.Imatrix(1 + nu1,-1 + nu2))/8. - (3*self.Imatrix(1 + nu1,nu2))/32. - (3*self.Imatrix(1 + nu1,2 + nu2))/64.)
+       
+        def MB3_21(nu1, nu2):
+            return -2*((35*self.Imatrix(-3 + nu1,2 + nu2))/128. - (35*self.Imatrix(-2 + nu1,1 + nu2))/32. - (25*self.Imatrix(-2 + nu1,2 + nu2))/32. + (105*self.Imatrix(-1 + nu1,nu2))/64. + (45*self.Imatrix(-1 + nu1,1 + nu2))/32. + (45*self.Imatrix(-1 + nu1,2 + nu2))/64. - (35*self.Imatrix(nu1,-1 + nu2))/32. - (15*self.Imatrix(nu1,nu2))/32. - (9*self.Imatrix(nu1,1 + nu2))/32. - (5*self.Imatrix(nu1,2 + nu2))/32. + (35*self.Imatrix(1 + nu1,-2 + nu2))/128. - (5*self.Imatrix(1 + nu1,-1 + nu2))/32. - (3*self.Imatrix(1 + nu1,nu2))/64. - self.Imatrix(1 + nu1,1 + nu2)/32. - (5*self.Imatrix(1 + nu1,2 + nu2))/128.)
+        
+        def MB2_22(nu1, nu2):
+            return self.Imatrix(nu1, nu2)*(-9*(-3 + 2*nu1 + 2*nu2)*(-1 + 2*nu1 + 2*nu2)*(3 + 4*nu1**2 + nu1*(2 - 12*nu2) + 2*nu2 + 4*nu2**2))/(64.*nu1*(1 + nu1)*nu2*(1 + nu2)*(-4 + nu1 + nu2)*(-3 + nu1 + nu2))
+        
+        def MB3_22(nu1, nu2):
+            return self.Imatrix(nu1, nu2)*(3*(-3 + 2*nu1 + 2*nu2)*(-1 + 2*nu1 + 2*nu2)*(1 + 2*nu1 + 2*nu2)*(3 + 4*nu1**2 + nu1*(2 - 12*nu2) + 2*nu2 + 4*nu2**2))/(64.*nu1*(1 + nu1)*nu2*(1 + nu2)*(-4 + nu1 + nu2)*(-3 + nu1 + nu2))
+
+        def MB4_22(nu1, nu2):
+            return self.Imatrix(nu1, nu2)*((-3 + 2*nu1)*(-3 + 2*nu2)*(-3 + 2*nu1 + 2*nu2)*(-1 + 2*nu1 + 2*nu2)*(1 + 2*nu1 + 2*nu2)*(3 + 2*nu1 + 2*nu2))/(64.*nu1*(1 + nu1)*nu2*(1 + nu2)*(-4 + nu1 + nu2)*(-3 + nu1 + nu2))
+        
         #D function
         def MB1_11(nu1, nu2):
             return self.Imatrix(nu1,nu2)*(3-2*(nu1+nu2))/(4*nu1*nu2)
         
         def MC1_11(nu1, nu2):
-            return self.Imatrix(nu1,nu2)*((-3+2*nu1)*(-3+2*(nu1+nu2)))/(4*nu2*(1+nu2)*(-1+2*nu2))
+            if remove_DeltaP_status:
+                return 0 * self.Imatrix(nu1,nu2)
+            else:
+                return self.Imatrix(nu1,nu2)*((-3+2*nu1)*(-3+2*(nu1+nu2)))/(4*nu2*(1+nu2)*(-1+2*nu2))
         
         def MB2_11(nu1, nu2):
             return self.Imatrix(nu1,nu2)*((-3+2*(nu1+nu2))*(-1+2*(nu1+nu2)))/(4*nu1*nu2)
         
         def MC2_11(nu1, nu2):
-            return self.Imatrix(nu1,nu2)*((-3+2*(nu1+nu2))*(-1+2*(nu1+nu2)))/(4*nu2*(1+nu2))
+            if remove_DeltaP_status:
+                return 0 * self.Imatrix(nu1,nu2)
+            else:
+                return self.Imatrix(nu1,nu2)*((-3+2*(nu1+nu2))*(-1+2*(nu1+nu2)))/(4*nu2*(1+nu2))
         
         def MD2_21(nu1, nu2):
-            return self.Imatrix(nu1,nu2)*((-1+2*nu1-4*nu2)*(-3+2*(nu1+nu2))*(-1+2*(nu1+nu2)))/(4*nu1*nu2*(-1+nu2+2*nu2**2))
+            if remove_DeltaP_status:
+                return MB2_21(nu1, nu2)
+            else:
+                return self.Imatrix(nu1,nu2)*((-1+2*nu1-4*nu2)*(-3+2*(nu1+nu2))*(-1+2*(nu1+nu2)))/(4*nu1*nu2*(-1+nu2+2*nu2**2))
         
         def MD3_21(nu1, nu2):
-            return self.Imatrix(nu1,nu2)*((3-2*(nu1+nu2))*(1-4*(nu1+nu2)**2))/(4*nu1*nu2*(1+nu2))
+            if remove_DeltaP_status:
+                return MB3_21(nu1, nu2)
+            else:
+                return self.Imatrix(nu1,nu2)*((3-2*(nu1+nu2))*(1-4*(nu1+nu2)**2))/(4*nu1*nu2*(1+nu2))
         
         def MD2_22(nu1, nu2):
-            return self.Imatrix(nu1,nu2)*(3*(3-2*(nu1+nu2))*(1-2*(nu1+nu2)))/(32*nu1*(1+nu1)*nu2*(1+nu2))
+            if remove_DeltaP_status:
+                return MB2_22(nu1, nu2)
+            else:
+                return self.Imatrix(nu1,nu2)*(3*(3-2*(nu1+nu2))*(1-2*(nu1+nu2)))/(32*nu1*(1+nu1)*nu2*(1+nu2))
         
         def MD3_22(nu1, nu2):
-            return self.Imatrix(nu1,nu2)*((3-2*(nu1+nu2))*(1-4*(nu1+nu2)**2)*(1+2*(nu1**2-4*nu1*nu2+nu2**2)))/(16*nu1*(1+nu1)*(-1+2*nu1)*nu2*(1+nu2)*(-1+2*nu2))
+            if remove_DeltaP_status:
+                return MB3_22(nu1, nu2)
+            else:
+                return self.Imatrix(nu1,nu2)*((3-2*(nu1+nu2))*(1-4*(nu1+nu2)**2)*(1+2*(nu1**2-4*nu1*nu2+nu2**2)))/(16*nu1*(1+nu1)*(-1+2*nu1)*nu2*(1+nu2)*(-1+2*nu2))
         
         def MD4_22(nu1, nu2):
-            return self.Imatrix(nu1,nu2)*((9-4*(nu1+nu2)**2)*(1-4*(nu1+nu2)**2))/(32*nu1*(1+nu1)*nu2*(1+nu2))
+            if remove_DeltaP_status:
+                return MB4_22(nu1, nu2)
+            else:
+                return self.Imatrix(nu1,nu2)*((9-4*(nu1+nu2)**2)*(1-4*(nu1+nu2)**2))/(32*nu1*(1+nu1)*nu2*(1+nu2))
         
         #A function: contributions due to b2 & bs2
         def MtAfkmpfp_22_b2(nu1, nu2):
@@ -389,6 +457,18 @@ class MatrixCalculator:
         def MPbs2t(nu1, nu2):
             return  self.Imatrix(nu1,nu2)*((-3+2*(nu1+nu2))*(-19-10*nu2+nu1*(39-30*nu2+14*nu1*(-1+2*nu2))))/(84*nu1*(1+nu1)*nu2*(1+nu2))
         
+        def MB1_21(nu1, nu2):
+            if remove_DeltaP_status:
+                return self.Imatrix(nu1, nu2)*(3*(-3 + 2*nu1)*(-3 + 2*nu1 + 2*nu2))/ (8.*nu1*nu2*(1 + nu2)*(-3 + nu1 + nu2))
+            else:
+                return 0.0 * self.Imatrix(nu1, nu2)
+            
+        def MB1_22(nu1, nu2):
+            if remove_DeltaP_status:
+                return self.Imatrix(nu1, nu2)*(-15*(-3 + 2*nu1)*(-3 + 2*nu2)*(-3 + 2*nu1 + 2*nu2)) / (64.*nu1*(1 + nu1)*nu2*(1 + nu2)*(-4 + nu1 + nu2)*(-3 + nu1 + nu2))
+            else:
+                return 0.0 * self.Imatrix(nu1, nu2)
+        
         #A function: contributions due to b2 & bs2
         def MtAfp_11_b2(nu1, nu2):
             return self.Imatrix(nu1,nu2) * ( 4*(nu1+nu2) - 6)/nu1
@@ -404,7 +484,8 @@ class MatrixCalculator:
         
         common_return_values = (
                                 MPb1b2(nu1, nu2), MPb1bs2(nu1, nu2), MPb22(nu1, nu2), MPb2bs2(nu1, nu2), 
-                                MPb2s2(nu1, nu2), MPb2t(nu1, nu2), MPbs2t(nu1, nu2)
+                                MPb2s2(nu1, nu2), MPb2t(nu1, nu2), MPbs2t(nu1, nu2),
+                                MB1_21(nu1, nu2), MB1_22(nu1, nu2)
         )
         
         if A_full_status:
@@ -524,113 +605,115 @@ class NonLinearPowerSpectrumCalculator:
     A class to calculate 1-loop corrections to the linear power spectrum.
 
     Attributes:
-        k (array): Array of k-coordinates.
-        pklin (array): Linear power spectrum corresponding to k.
         mmatrices (tuple): Set of matrices required for 1-loop computations.
-        pknow (array, optional): Non-wiggle linear power spectrum. Default is None.
-        kminout (float): Minimum k value for the output.
-        kmaxout (float): Maximum k value for the output.
-        nk (int): Number of k points for the output.
         kernels (str): Choice of kernels ('eds' or 'fk').
         rbao (float): BAO scale in Mpc/h.
-        cosmo (object, optional): Instance of the Boltzmann solver object. Default is None.
-        
+        kwargs (dict): Additional optional keyword arguments.
+
+    Notes:
+        kminout (float): Minimum k value for the output. This is a fixed value.
+        kmaxout (float): Maximum k value for the output. This is a fixed value.
+        nk (int): Number of k points for the output. This is a fixed value.
     """
-    def __init__(self, k, pklin, mmatrices, pknow=None, kminout=0.001, kmaxout=0.5, nk=120, kernels='fk', rbao=104., cosmo=None, **kwargs):
-        self.k = k
-        self.pklin = pklin
+    def __init__(self, mmatrices, kernels='fk', rbao=104., **kwargs):
         self.mmatrices = mmatrices
-        self.pknow = pknow
-        self.kminout = kminout
-        self.kmaxout = kmaxout
-        self.nk = nk
         self.kernels = kernels
         self.rbao = rbao
-        self.cosmo = cosmo
         self.kwargs = kwargs
         
+        self.kminout = 0.001
+        self.kmaxout = 0.5
+        self.nk = 120
+        self.kTout = np.geomspace(self.kminout, self.kmaxout, num=self.nk)
+        
+        #FFTLog
         self.kmin = 10**(-7)
         self.kmax = 100.
         self.b_nu = -0.1   # Not yet tested for other values
-        self.kTout = np.geomspace(kminout, kmaxout, num=nk)
-        
-        self.inputpkT = extrapolate_pklin(k, pklin)
-        
+                
         self.M22matrices = self.mmatrices.get('M22matrices')
         self.M13vectors = self.mmatrices.get('M13vectors')
         self.nfftlog = self.M13vectors.shape[-1] - 1    
         
-        self._initialize_factors()
-        self._initialize_nonwiggle_power_spectrum()
-        self._initialize_liner_power_spectra()
-        self._initialize_fftlog_terms()
         
-        
-    def _get_f0(self):
+    def _get_f0(self, cosmo=None, k=None):
         """
         Returns f0 from cosmo, kwargs, or computes it if necessary. 
         Raises ValueError if insufficient parameters are provided.
         """
         if 'f0' in self.kwargs:
             return self.kwargs['f0']
-        elif self.cosmo:
-            return self.cosmo.scale_independent_growth_factor_f(self.kwargs['z'])
-        elif all(param in self.kwargs for param in ['z', 'Omega_m', 'h', 'fnu']):
-            self.inputfkT = f_over_f0_EH(zev=self.kwargs['z'],
-                                         k=self.inputpkT[0],
-                                         OmM0=self.kwargs['Omega_m'],
-                                         h=self.kwargs['h'],
-                                         fnu=self.kwargs['fnu'],
-                                         Neff=self.kwargs.get('Neff', 3.044),
-                                         Nnu=self.kwargs.get('Nnu', 3)
-                            )
-            self.f0 = self.inputfkT[2]
-            return self.f0
-        else:
-            raise ValueError("Insufficient parameters: 'f0' not in kwargs, cosmo is None, and missing required parameters (z, Omega_m, h, fnu).")
+
+        if cosmo is not None and 'z' in self.kwargs:
+            return cosmo.scale_independent_growth_factor_f(self.kwargs['z'])
+        elif all(p in self.kwargs for p in ['z', 'Omega_m', 'h', 'fnu']):
+            if k is None:
+                raise ValueError("`k` must be provided to compute f0 from EH fitting function.")
+            _, _, f0 = f_over_f0_EH(
+                zev=self.kwargs['z'],
+                k=k,
+                OmM0=self.kwargs['Omega_m'],
+                h=self.kwargs['h'],
+                fnu=self.kwargs['fnu'],
+                Neff=self.kwargs.get('Neff', 3.044),
+                Nnu=self.kwargs.get('Nnu', 3)
+            )
+            return f0
         
-    def _initialize_factors(self):
+    
+        else:
+            raise ValueError("Insufficient parameters: either provide 'f0' in kwargs, or 'cosmo' and 'z', or 'z', 'Omega_m', 'h', and 'fnu' in kwargs.")
+        
+    def _initialize_factors(self, cosmo=None, k=None):
         """
         Initializes f(k)/f0 and f0 factors for EdS or fk kernels.
         """
         if self.kernels == 'eds':
             self.inputfkT = None
-            self.f0 = self._get_f0()
+            self.f0 = self._get_f0(cosmo=cosmo, k=self.inputpkT[0])
             self.Fkoverf0 = np.ones(len(self.kTout), dtype='f8')
         
         else:
-            if self.cosmo is not None:
-                self.h = self.cosmo.h()
-                self.fnu = self.cosmo.Omega_nu/self.cosmo.Omega0_m()
-                self.Omega_m = self.cosmo.Omega0_m()
-                self.inputfkT = f_over_f0_EH(zev=kwargs['z'], k=self.inputpkT[0], OmM0=self.Omega_m, h=self.h, fnu=self.fnu, Neff=kwargs.get('Neff', 3.044), Nnu=kwargs.get('Nnu', 3))
-                self.f0 = self.cosmo.scale_independent_growth_factor_f(kwargs['z'])
-            elif all(param in kwargs for param in ['z', 'Omega_m', 'h', 'fnu']):
-                self.inputfkT = f_over_f0_EH(zev=kwargs['z'], k=self.inputpkT[0], OmM0=kwargs['Omega_m'], h=kwargs['h'], fnu=kwargs['fnu'], Neff=kwargs.get('Neff', 3.044), Nnu=kwargs.get('Nnu', 3))
-                self.f0 = kwargs.get('f0', self.inputfkT[2])
+            if cosmo is not None and 'z' in self.kwargs:
+                self.h = cosmo.h()
+                self.fnu = cosmo.Omega_nu/cosmo.Omega0_m()
+                self.Omega_m = cosmo.Omega0_m()
+                self.inputfkT = f_over_f0_EH(zev=self.kwargs['z'], k=self.inputpkT[0], OmM0=self.Omega_m, h=self.h, fnu=self.fnu, Neff=self.kwargs.get('Neff', 3.044), Nnu=self.kwargs.get('Nnu', 3))
+                self.f0 = cosmo.scale_independent_growth_factor_f(self.kwargs['z'])
+            elif all(param in self.kwargs for param in ['z', 'Omega_m', 'h', 'fnu']):
+                self.inputfkT = f_over_f0_EH(zev=self.kwargs['z'], k=self.inputpkT[0], OmM0=self.kwargs['Omega_m'], h=self.kwargs['h'], fnu=self.kwargs['fnu'], Neff=self.kwargs.get('Neff', 3.044), Nnu=self.kwargs.get('Nnu', 3))
+                self.f0 = self.kwargs.get('f0', self.inputfkT[2])
+            elif all(param in self.kwargs for param in ['pkttlin', 'f0']):
+                inputfkT = list(extrapolate_pklin(k, self.kwargs['pkttlin']))
+                inputpkT = list(self.inputpkT)
+                fk = (inputfkT[1] / inputpkT[1])**0.5
+                self.f0 = self.kwargs.get('f0',fk[0])
+                self.inputfkT = (inputfkT[0], fk/self.f0,self.f0)
+                
             else:
                 raise ValueError("No 'z', 'Omega_m', 'h', 'fnu' provided in kwargs and cosmo is not enabled")
             
             self.Fkoverf0 = interp(self.kTout, self.inputfkT[0], self.inputfkT[1])
             
             
-    def _initialize_nonwiggle_power_spectrum(self):
+    def _initialize_nonwiggle_power_spectrum(self, inputpkT, pknow=None, cosmo=None,k=None):
         """
         Initializes non-wiggle linear power spectrum.
         """
-        if self.pknow is None:
-            if self.cosmo is not None:
-                self.inputpkT_NW = get_pknow(self.inputpkT[0], self.inputpkT[1], self.cosmo.h())
-            elif 'h' in kwargs:
-                self.inputpkT_NW = get_pknow(self.inputpkT[0], self.inputpkT[1], kwargs['h'])
+        if pknow is None:
+            if cosmo is not None:
+                self.inputpkT_NW = get_pknow(inputpkT[0], inputpkT[1], cosmo.h())
+            elif 'h' in self.kwargs:
+                self.inputpkT_NW = get_pknow(inputpkT[0], inputpkT[1], self.kwargs['h'])
         else:
             self.inputpkT_NW = extrapolate_pklin(k, pknow)
             
             
-    def _initialize_liner_power_spectra(self):
+            
+    def _initialize_liner_power_spectra(self, inputpkT):
         """
         Initializes linear power spectra for density, density-velocity and velocity fields.
-        """
+        """        
         if self.kernels == 'eds':
             self.inputpkTf = self.inputpkT
             self.inputpkTff = self.inputpkT
@@ -685,7 +768,7 @@ class NonLinearPowerSpectrumCalculator:
         self.precvec = self.K[:, None]**(etamT)
         self.precvec_b = self.K[:, None]**(etamT_b)
         
-    
+        
     def P22type(self, inputpkT, inputpkTf, inputpkTff, cmT, cmTf, cmTff, cmT_b, cmTf_b):
         
         if self.M22matrices is None:
@@ -698,6 +781,7 @@ class NonLinearPowerSpectrumCalculator:
              MB1_11, MC1_11, MB2_11, MC2_11, MD2_21, MD3_21, MD2_22, MD3_22, MD4_22, 
              MtAfkmpfp_22_b2, MtAfkmpfp_22_bs2,
              MPb1b2, MPb1bs2, MPb22, MPb2bs2, MPb2s2, MPb2t, MPbs2t,
+             MB1_21, MB1_22,
              MtAfp_11_b2, MtAfp_11_bs2, 
              MtAfkmpfp_12_b2, MtAfkmpfp_12_bs2) = self.M22matrices
         else: 
@@ -705,7 +789,8 @@ class NonLinearPowerSpectrumCalculator:
              MtAfp_11, MtAfkmpfp_12, MtAfkmpfp_22,
              MtAfpfp_22, MtAfkmpfpfp_23, MtAfkmpfpfp_33, 
              MB1_11, MC1_11, MB2_11, MC2_11, MD2_21, MD3_21, MD2_22, MD3_22, MD4_22, 
-             MPb1b2, MPb1bs2, MPb22, MPb2bs2, MPb2s2, MPb2t, MPbs2t) = self.M22matrices
+             MPb1b2, MPb1bs2, MPb22, MPb2bs2, MPb2s2, MPb2t, MPbs2t, 
+             MB1_21, MB1_22) = self.M22matrices
         
         vec = cmT * self.precvec
         vecf = cmTf * self.precvec
@@ -736,19 +821,31 @@ class NonLinearPowerSpectrumCalculator:
         I3uuu_2b = self.K**3 * np.sum(vecff @ MtAfkmpfpfp_23 * vecf, axis=-1).real
 
         # D-RSD
-        I2uudd_1D = self.K**3 * (np.sum(vecf @ MB1_11 * vecf, axis=-1) + np.sum(vec @ MC1_11 * vecff, axis=-1)).real
-        I2uudd_2D = self.K**3 * (np.sum(vecf @ MB2_11 * vecf, axis=-1) + np.sum(vec @ MC2_11 * vecff, axis=-1)).real
+        if remove_DeltaP_status:
+            I2uudd_1D = self.K**3 * (np.sum(vecf @ MB1_11 * vecf, axis=-1)).real
+            I2uudd_2D = self.K**3 * (np.sum(vecf @ MB2_11 * vecf, axis=-1)).real
+        else:
+            I2uudd_1D = self.K**3 * (np.sum(vecf @ MB1_11 * vecf, axis=-1) + np.sum(vec @ MC1_11 * vecff, axis=-1)).real
+            I2uudd_2D = self.K**3 * (np.sum(vecf @ MB2_11 * vecf, axis=-1) + np.sum(vec @ MC2_11 * vecff, axis=-1)).real
+        
+        ##I2uudd_1D = self.K**3 * (np.sum(vecf @ MB1_11 * vecf, axis=-1) + np.sum(vec @ MC1_11 * vecff, axis=-1)).real
+        ##I2uudd_2D = self.K**3 * (np.sum(vecf @ MB2_11 * vecf, axis=-1) + np.sum(vec @ MC2_11 * vecff, axis=-1)).real
         I3uuud_2D = self.K**3 * np.sum(vecf @ MD2_21 * vecff, axis=-1).real
         I3uuud_3D = self.K**3 * np.sum(vecf @ MD3_21 * vecff, axis=-1).real
         I4uuuu_2D = self.K**3 * np.sum(vecff @ MD2_22 * vecff, axis=-1).real
         I4uuuu_3D = self.K**3 * np.sum(vecff @ MD3_22 * vecff, axis=-1).real
         I4uuuu_4D = self.K**3 * np.sum(vecff @ MD4_22 * vecff, axis=-1).real
         
+        #new
+        I3uuud_1_B = self.K**3 * np.sum(vecf_b @ MB1_21 * vec_b, axis=1).real
+        I4uuuu_1_B = self.K**3 * np.sum(vecf_b @ MB1_22 * vecf_b, axis=1).real
+        
         common_values = (
                         P22dd, P22dt, P22tt, Pb1b2, Pb1bs2, Pb22, Pb2bs2, Pb2s2, 
                         Pb2t, Pbs2t, I1udd_1b, I2uud_1b, I3uuu_3b, I2uud_2b, 
                         I3uuu_2b, I2uudd_1D, I2uudd_2D, I3uuud_2D, I3uuud_3D,
-                        I4uuuu_2D, I4uuuu_3D, I4uuuu_4D
+                        I4uuuu_2D, I4uuuu_3D, I4uuuu_4D,
+                        I3uuud_1_B, I4uuuu_1_B
         )
         
         if A_full_status:
@@ -776,13 +873,13 @@ class NonLinearPowerSpectrumCalculator:
         
         if self.M13vectors is None:
             raise ValueError("M13vectors not provided in mmatrices.")
-            
+                        
         (M13_dd, M13_dt_fk, M13_tt_fk, Mafk_11, Mafp_11, Mafkfp_12, Mafpfp_12,
          Mafkfkfp_33, Mafkfpfp_33, Msigma23) = self.M13vectors
         
-        sigma2psi = 1/(6 * np.pi**2) * simpson(self.inputpkT[1], x=self.inputpkT[0])
-        sigma2v = 1/(6 * np.pi**2) * simpson(self.inputpkTf[1], x=self.inputpkTf[0])
-        sigma2w = 1/(6 * np.pi**2) * simpson(self.inputpkTff[1], x=self.inputpkTff[0])
+        sigma2psi = 1/(6 * np.pi**2) * simpson(inputpkT[1], x=inputpkT[0])
+        sigma2v = 1/(6 * np.pi**2) * simpson(inputpkTf[1], x=inputpkTf[0])
+        sigma2w = 1/(6 * np.pi**2) * simpson(inputpkTff[1], x=inputpkTff[0])
         
         vec = cmT * self.precvec
         vecf = cmTf * self.precvec
@@ -794,6 +891,7 @@ class NonLinearPowerSpectrumCalculator:
                 
         # Ploop
         P13dd = self.K**3 * (vec @ M13_dd).real - 61/105 * self.K**2 * sigma2psi
+        #print('P13dd=', P13dd)
         P13dt = 0.5 * self.K**3 * (self.Fkoverf0[:, None] * vec @ M13_dt_fk + vecfM13dt_fk).real - (23/21*sigma2psi * self.Fkoverf0 + 2/21*sigma2v) * self.K**2
         P13tt = self.K**3 * (self.Fkoverf0 * (self.Fkoverf0[:, None] * vec @ M13_tt_fk + vecfM13dt_fk)).real - (169/105*sigma2psi * self.Fkoverf0 + 4/21 * sigma2v) * self.Fkoverf0 * self.K**2
         
@@ -819,7 +917,14 @@ class NonLinearPowerSpectrumCalculator:
         return P13overpkl, P13overpkl_NW 
     
     
-    def calculate_loop_table(self):
+    def calculate_loop_table(self, k, pklin, pknow=None, cosmo=None, **kwargs):
+        self.inputpkT = extrapolate_pklin(k, pklin)
+        self.kwargs = kwargs
+        
+        self._initialize_factors(cosmo=cosmo, k=k)
+        self._initialize_nonwiggle_power_spectrum(inputpkT=self.inputpkT, pknow=pknow, cosmo=cosmo,k=k)
+        self._initialize_liner_power_spectra(inputpkT=self.inputpkT)
+        self._initialize_fftlog_terms()
         
         #Computations for Table
         self.pk_l = np.interp(self.kTout, self.inputpkT[0], self.inputpkT[1])
@@ -838,15 +943,19 @@ class NonLinearPowerSpectrumCalculator:
         P22, P22_NW = self.calculate_P22()
         P13overpkl, P13overpkl_NW = self.calculate_P13()
         
+        #print(P13overpkl_NW[0])
         #print(self.kTout)
-        
+        #print(P22_NW[0] + P13overpkl_NW[0]*self.pk_l_NW)
+        #print(P13overpkl_NW[0])
+        #print('=============================================')
         def remove_zerolag(self, k, pk):
             # Originally: interp(10**(-10), kTout, P22_NW[5])
             return pk - extrapolate(k[:2], pk[:2], self.kmin)[1]
         #Below, we use interp() instead of remove_zerolag(), as it gives better results for small values of k
         
-        def combine_loop_terms(self, P22, P13, pk_l, sigma2w, extra_NW=False):
+        def combine_loop_terms(self, P22, P13overpkl, pk_l, sigma2w, extra_NW=False):
             Ploop_dd = P22[0] + P13overpkl[0]*pk_l
+            #print(P13overpkl[0])
             Ploop_dt = P22[1] + P13overpkl[1]*pk_l
             Ploop_tt = P22[2] + P13overpkl[2]*pk_l
             
@@ -868,19 +977,26 @@ class NonLinearPowerSpectrumCalculator:
             I2uudd_1D = P22[15]; I2uudd_2D = P22[16]; I3uuud_2D = P22[17]
             I3uuud_3D = P22[18]; I4uuuu_2D = P22[19]; I4uuuu_3D = P22[20]
             I4uuuu_4D = P22[21]
+            #print('I4uuu_4d', I4uuuu_4D.shape)
+            
+            #terms below become =0 if when remove_delta=False, i.e. when deltaP is kept.
+            I3uuud_1_B = P22[22]  # term f^3*mu^2  I3uuud1D = I3uuud1B + I3uuud1C = 0   
+            I4uuuu_1_B = P22[23]  # term f^4*mu^3  I4uuud1D = I4uuud1B + I4uuud1C = 0
             
             common_values = [self.kTout, pk_l, self.Fkoverf0, Ploop_dd, Ploop_dt, Ploop_tt,
                              Pb1b2, Pb1bs2, Pb22, Pb2bs2, Pb2s2, sigma23pkl, Pb2t, Pbs2t,
                              I1udd_1, I2uud_1, I2uud_2, I3uuu_2, I3uuu_3, I2uudd_1D, 
                              I2uudd_2D, I3uuud_2D, I3uuud_3D, I4uuuu_2D, I4uuuu_3D,
-                             I4uuuu_4D#, sigma2w #, self.f0
+                             I4uuuu_4D,
+                             I3uuud_1_B, I4uuuu_1_B, 
+                             #, sigma2w #, self.f0
                             ]
             
             if A_full_status:
                 #A function: b2 and bs2 contributions
-                I1udd_1_b2 = P22[22];    I1udd_1_bs2 = P22[25];       
-                I2uud_1_b2 = P22[23];    I2uud_1_bs2 = P22[26];    
-                I2uud_2_b2 = P22[24];    I2uud_2_bs2 = P22[27];    
+                I1udd_1_b2 = P22[24];    I1udd_1_bs2 = P22[27];       
+                I2uud_1_b2 = P22[25];    I2uud_1_bs2 = P22[28];    
+                I2uud_2_b2 = P22[26];    I2uud_2_bs2 = P22[29];    
                 
                 common_values.extend([I1udd_1_b2, I2uud_1_b2, I2uud_2_b2,
                                       I1udd_1_bs2, I2uud_1_bs2, I2uud_2_bs2
@@ -906,28 +1022,44 @@ class NonLinearPowerSpectrumCalculator:
 
 class RSDMultipolesPowerSpectrumCalculator:
     """
-    A class to calculate the redshift space power spectrum multipoles.
+    A class to calculate the redshift space power spectrum multipoles with flexible bias schemes.
     
-    Attributes:
-        kobs (array): Observed wave-number.
-        qpar (float): AP parameter for the parallel direction.
-        qper (float): AP parameter for the perpendicular direction.
-        pars (list): Set of nuisance parameters [b1, b2, bs2, b3nl, alpha0, alpha2, alpha4, ctilde, alphashot0, alphashot2, PshotP].
-        table (list): List of non-linear terms for the wiggle power spectrum.
-        table_now (list): List of non-linear terms for the non-wiggle power spectrum.
-        nmu (int): Number of cosine angles (default is 6).
-        ells (tuple): Multipole orders to compute (default is (0, 2, 4)).
     """
-    
-    def __init__(self, kobs, qpar, qper, pars, table, table_now, nmu=6, ells=(0, 2, 4)):
-        self.kobs = kobs
-        self.qpar = qpar
-        self.qper = qper
-        self.pars = pars
-        self.table = table
-        self.table_now = table_now
-        self.nmu = nmu
-        self.ells = ells
+    def __init__(self, model="EFT"):
+        """
+        Initializes the calculator with fixed configuration.
+
+        Args:
+            model (str): Model name ('EFT', 'TNS', 'FOLPSD').
+        """
+        self.model = model
+        self._printed_model_damping_pk = False
+        #self._printed_model_damping_bk = False
+
+    def set_bias_scheme(self, pars, bias_scheme="folps"):
+        """Sets the nuisance parameters based on the selected bias scheme."""
+        if bias_scheme in ["folps", "pat", "mcdonald"]:
+            if pars is None:
+                pars = [1.0, 0.5, 0.3, 0.1, 0.01, 0.02, 0.03, 0.04, 0.001, 0.002, 0.003, 0.0]
+            (b1, b2, bs2, b3nl, alpha0, alpha2, alpha4, ctilde, alphashot0, alphashot2, PshotP, X_FoG_p) = pars
+        
+        elif bias_scheme in ["Assassi", "classpt"]:
+            if pars is None:
+                raise ValueError("Nuisance parameters must be provided for Assassi/classpt bias scheme.")
+            (b1_classPT, b2_classPT, bG2_classPT, bGamma3_classPT, alpha0, alpha2, alpha4, 
+             ctilde, alphashot0, alphashot2, PshotP, X_FoG_p) = pars
+            b1 = b1_classPT
+            b2 = b2_classPT - 4/3 * bG2_classPT
+            bs2 = 2 * bG2_classPT
+            b3nl = -32/21 * (bG2_classPT + 2/5 * bGamma3_classPT)
+            
+            pars = [b1, b2, bs2, b3nl, alpha0, alpha2, alpha4, 
+                    ctilde, alphashot0, alphashot2, PshotP, X_FoG_p]
+        
+        else:
+            raise ValueError("Invalid bias scheme. Choose from 'folps', 'pat', 'mcdonald', 'Assassi', or 'classpt'.")
+        
+        return pars
      
     def interp_table(self, k, table, A_full_status):
         """Interpolation of non-linear terms given by the power spectra."""
@@ -936,7 +1068,7 @@ class RSDMultipolesPowerSpectrumCalculator:
             return CubicSpline(x, y)(k)
     
         extra = 6 if A_full_status else 0
-        return tuple(np.moveaxis(interp(k, table[0], np.column_stack(table[1:26+extra])), -1, 0)) + table[26+extra:]
+        return tuple(np.moveaxis(interp(k, table[0], np.column_stack(table[1:28+extra])), -1, 0)) + table[28+extra:]
 
     def k_ap(self, kobs, muobs, qper, qpar):
         """Return the true wave-number ‘k_AP’."""
@@ -948,21 +1080,26 @@ class RSDMultipolesPowerSpectrumCalculator:
         F = qpar / qper
         return (muobs / F) * (1 + muobs**2 * (1 / F**2 - 1))**-0.5
 
-    def get_eft_pkmu(self, kev, mu, pars, table):
+    def get_eft_pkmu(self, kev, mu, pars, table, damping='lor'):
         """Calculate the EFT galaxy power spectrum in redshift space."""
-        (b1, b2, bs2, b3nl, alpha0, alpha2, alpha4, ctilde, alphashot0, alphashot2, PshotP) = pars
-        
+        (b1, b2, bs2, b3nl, alpha0, alpha2, alpha4, ctilde, alphashot0, alphashot2, PshotP, X_FoG_p) = pars
+
+        Winfty_all = False  # change to False for VDG and no analytical marginalization
+
         if A_full_status:
             (pkl, Fkoverf0, Ploop_dd, Ploop_dt, Ploop_tt, Pb1b2, Pb1bs2, Pb22, Pb2bs2,
              Pb2s2, sigma23pkl, Pb2t, Pbs2t, I1udd_1, I2uud_1, I2uud_2, I3uuu_2, I3uuu_3,
              I2uudd_1D, I2uudd_2D, I3uuud_2D, I3uuud_3D, I4uuuu_2D, I4uuuu_3D, I4uuuu_4D,
+             I3uuud_1B, I4uuuu_1B,
              I1udd_1_b2, I2uud_1_b2, I2uud_2_b2, I1udd_1_bs2, I2uud_1_bs2, I2uud_2_bs2,
              sigma2w, *_, f0) = table
         else:
             (pkl, Fkoverf0, Ploop_dd, Ploop_dt, Ploop_tt, Pb1b2, Pb1bs2, Pb22, Pb2bs2,
              Pb2s2, sigma23pkl, Pb2t, Pbs2t, I1udd_1, I2uud_1, I2uud_2, I3uuu_2, I3uuu_3,
-             I2uudd_1D, I2uudd_2D, I3uuud_2D, I3uuud_3D, I4uuuu_2D, I4uuuu_3D, I4uuuu_4D, sigma2w, *_, f0) = table
-        
+             I2uudd_1D, I2uudd_2D, I3uuud_2D, I3uuud_3D, I4uuuu_2D, I4uuuu_3D, I4uuuu_4D, 
+             I3uuud_1B, I4uuuu_1B, 
+             sigma2w, *_, f0) = table
+
         fk = Fkoverf0 * f0
         Pdt_L = pkl * Fkoverf0
         Ptt_L = pkl * Fkoverf0**2
@@ -980,21 +1117,21 @@ class RSDMultipolesPowerSpectrumCalculator:
         def Af(mu, f0):
             return (f0 * mu**2 * I1udd_1 + f0**2 * (mu**2 * I2uud_1 + mu**4 * I2uud_2)
                     + f0**3 * (mu**4 * I3uuu_2 + mu**6 * I3uuu_3))
-        
+
         def Af_b2(mu, f0):
             return (f0*mu**2 * I1udd_1_b2 +  f0**2 * (mu**2 * I2uud_1_b2 +  mu**4 * I2uud_2_b2) )
-    
+
         def Af_bs2(mu, f0):
             return (f0*mu**2 * I1udd_1_bs2 +  f0**2 * (mu**2 * I2uud_1_bs2 +  mu**4 * I2uud_2_bs2) )
 
         def Df(mu, f0):
             return (f0**2 * (mu**2 * I2uudd_1D + mu**4 * I2uudd_2D)
-                    + f0**3 * (mu**4 * I3uuud_2D + mu**6 * I3uuud_3D)
-                    + f0**4 * (mu**4 * I4uuuu_2D + mu**6 * I4uuuu_3D + mu**8 * I4uuuu_4D))
+                    + f0**3 * (mu**2 * I3uuud_1B + mu**4 * I3uuud_2D + mu**6 * I3uuud_3D)
+                    + f0**4 * (mu**2 * I4uuuu_1B + mu**4 * I4uuuu_2D + mu**6 * I4uuuu_3D + mu**8 * I4uuuu_4D))
 
         def ATNS(mu, b1):
             return b1**3 * Af(mu, f0 / b1)
-        
+
         def ATNS_b2_bs2(mu, b1, b2, bs2):
             return b1**3 * Af_b2(mu, f0/b1) * b2/(2*b1) +  b1**3 * Af_bs2(mu, f0/b1) * bs2/(2*b1)
 
@@ -1002,18 +1139,19 @@ class RSDMultipolesPowerSpectrumCalculator:
             return b1**4 * Df(mu, f0 / b1)
 
         def GTNS(mu, b1):
-            return -((kev * mu * f0)**2 * sigma2w * (b1**2 * pkl + 2 * b1 * f0 * mu**2 * Pdt_L + f0**2 * mu**4 * Ptt_L))
+            if remove_DeltaP_status:
+                return 0
+            else:
+                return -((kev * mu * f0)**2 * sigma2w * (b1**2 * pkl + 2 * b1 * f0 * mu**2 * Pdt_L + f0**2 * mu**4 * Ptt_L))
 
         def PloopSPTs(mu, b1, b2, bs2, b3nl):
-        
             if A_full_status:
                 return (
                         PddXloop(b1, b2, bs2, b3nl) + 2*f0*mu**2 * PdtXloop(b1, b2, bs2, b3nl)
                         + mu**4 * f0**2 * PttXloop(b1, b2, bs2, b3nl) + ATNS(mu, b1) + DRSD(mu, b1)
                         + GTNS(mu, b1) + ATNS_b2_bs2(mu, b1, b2, bs2)
                 )
-        
-            else: 
+            else:
                 return (
                     PddXloop(b1, b2, bs2, b3nl) + 2*f0*mu**2 * PdtXloop(b1, b2, bs2, b3nl)
                     + mu**4 * f0**2 * PttXloop(b1, b2, bs2, b3nl) + ATNS(mu, b1) + DRSD(mu, b1)
@@ -1032,10 +1170,77 @@ class RSDMultipolesPowerSpectrumCalculator:
         def Pshot(mu, alphashot0, alphashot2, PshotP):
             return PshotP * (alphashot0 + alphashot2 * (kev * mu)**2)
 
-        return (PloopSPTs(mu, b1, b2, bs2, b3nl) + Pcts(mu, alpha0, alpha2, alpha4)
-                + PctNLOs(mu, b1, ctilde) + Pshot(mu, alphashot0, alphashot2, PshotP))
+        def Winfty(mu, X_FoG_p):
+            lambda2= (f0*kev*mu*X_FoG_p)**2
+            exp = - lambda2 * sigma2w /(1+lambda2)
+            W   =np.exp(exp) / np.sqrt(1+lambda2)
+            return W 
 
-    def get_rsd_pkmu(self, k, mu, pars, table, table_now):
+        def Wexp(mu, X_FoG_p):
+            lambda2= (f0*kev*mu*X_FoG_p)**2
+            exp = - lambda2 * sigma2w
+            W   =np.exp(exp)
+            return W  
+
+        def Wlorentz(mu, X_FoG_p):
+            lambda2= (f0*kev*mu*X_FoG_p)**2
+            x2 = lambda2 * sigma2w
+            W   = 1.0/(1.0+x2)
+            return W 
+
+        # --- Model self.model ---
+        if not getattr(self, '_printed_model_damping_pk', False):
+            # print(f"[FOLPS] Model Pk: {self.model}, Damping: {damping}")
+            self._printed_model_damping_pk = True
+        if self.model == "EFT":
+            W = 1
+        elif self.model == "TNS":
+            if not remove_DeltaP_status:
+                raise RuntimeError("[FOLPS] To use the TNS model, you must set remove_DeltaP_status=True in MatrixCalculator.")
+            # TNS allows damping
+            if damping is None:
+                W = 1
+            elif damping == 'exp':
+                W = Wexp(mu, X_FoG_p)
+            elif damping == 'lor':
+                W = Wlorentz(mu, X_FoG_p)
+            elif damping == 'vdg':
+                W = Winfty(mu, X_FoG_p)
+            else:
+                W = 1
+        elif self.model == "FOLPSD":
+            if damping is None:
+                print("[FOLPS] For FOLPSD you must specify a damping ('exp', 'lor', 'vdg'). Default: 'lor'.")
+                damping = 'lor'
+            if damping == 'exp':
+                W = Wexp(mu, X_FoG_p)
+            elif damping == 'lor':
+                W = Wlorentz(mu, X_FoG_p)
+            elif damping == 'vdg':
+                W = Winfty(mu, X_FoG_p)
+            else:
+                W = 1
+        else:
+            # Default: keep previous logic for unknown models
+            if damping is None:
+                W = 1
+            elif damping == 'exp':
+                W = Wexp(mu, X_FoG_p)
+            elif damping == 'lor':
+                W = Wlorentz(mu, X_FoG_p)
+            elif damping == 'vdg':
+                W = Winfty(mu, X_FoG_p)
+            else:
+                W = 1
+
+        PK = W * PloopSPTs(mu, b1, b2, bs2, b3nl) + Pshot(mu, alphashot0, alphashot2, PshotP)
+
+        if Winfty_all == False:
+            W = 1.0
+
+        return PK + W * (Pcts(mu, alpha0, alpha2, alpha4) + PctNLOs(mu, b1, ctilde))
+
+    def get_rsd_pkmu(self, k, mu, pars, table, table_now, IR_resummation=True, damping='lor'):
         """Return redshift space P(k, mu) given input tables."""
         table = self.interp_table(k, table, A_full_status)
         table_now = self.interp_table(k, table_now, A_full_status)
@@ -1045,15 +1250,36 @@ class RSDMultipolesPowerSpectrumCalculator:
         pkl, pkl_now = table[0], table_now[0]
         sigma2, delta_sigma2 = table_now[-3:-1]
         # Sigma² tot for IR-resummations, see eq.~ 3.59 at arXiv:2208.02791
-        sigma2t = (1 + f0*mu**2 * (2 + f0))*sigma2 + (f0*mu)**2 * (mu**2 - 1) * delta_sigma2
+        if IR_resummation:
+            sigma2t = (1 + f0*mu**2 * (2 + f0))*sigma2 + (f0*mu)**2 * (mu**2 - 1) * delta_sigma2
+        else:
+            sigma2t =0
         pkmu = ((b1 + fk * mu**2)**2 * (pkl_now + np.exp(-k**2 * sigma2t)*(pkl - pkl_now)*(1 + k**2 * sigma2t))
-                 + np.exp(-k**2 * sigma2t) * self.get_eft_pkmu(k, mu, pars, table)
-                 + (1 - np.exp(-k**2 * sigma2t)) * self.get_eft_pkmu(k, mu, pars, table_now))
+                 + np.exp(-k**2 * sigma2t) * self.get_eft_pkmu(k, mu, pars, table, damping)
+                 + (1 - np.exp(-k**2 * sigma2t)) * self.get_eft_pkmu(k, mu, pars, table_now, damping))
         return pkmu
 
-    def get_rsd_pkell(self, kobs, qpar, qper, pars, table, table_now, nmu=6, ells=(0, 2, 4)):
-        
-        """Return redshift space :math:`P_{\ell}` given input tables, applying AP transform."""
+    def get_rsd_pkell(self, kobs, qpar, qper, pars, table, table_now,
+                      bias_scheme="folps", damping='lor', nmu=6, ells=(0, 2, 4), IR_resummation=True):
+        """
+        Computes the redshift-space power spectrum multipoles P_ell(k).
+
+        Args:
+            kobs (array): Observed k.
+            qpar (float): Parallel AP parameter.
+            qper (float): Perpendicular AP parameter.
+            pars (list): Nuisance parameters.
+            table (list): table.
+            table_now (list): No-wiggle table.
+            bias_scheme (str): Bias scheme to use.
+            nmu (int): Number of points for GL integration
+            ells (tuple): Multipoles
+            IR_resummation (bool): Whether to apply IR resummation.
+
+        Returns:
+            array: Power spectrum multipoles for each ell.
+        """
+        pars = self.set_bias_scheme(pars, bias_scheme=bias_scheme)
         
         def weights_leggauss(nx, sym=False):
             """Return weights for Gauss-Legendre integration."""
@@ -1063,215 +1289,575 @@ class RSDMultipolesPowerSpectrumCalculator:
                 x, wx = x[nx:], (wx[nx:] + wx[nx - 1::-1]) / 2.
             return x, wx
 
-        muobs, wmu = weights_leggauss(self.nmu, sym=True)
-        wmu = np.array([wmu * (2 * ell + 1) * legendre(ell)(muobs) for ell in self.ells])
-        jac, kap, muap = (qpar * qper**2)**(-3), self.k_ap(kobs[:, None], muobs, self.qpar, self.qper), self.mu_ap(muobs, qpar, qper)[None, :]
+        muobs, wmu = weights_leggauss(nmu, sym=True)
+        wmu = np.array([wmu * (2 * ell + 1) * legendre(ell)(muobs) for ell in ells])
+        jac, kap, muap = (qpar * qper**2)**(-3), self.k_ap(kobs[:, None], muobs, qpar, qper), self.mu_ap(muobs, qpar, qper)[None, :]
         #print(muap[0])
-        pkmu = jac * self.get_rsd_pkmu(kap, muap, pars, table, table_now)
-        return np.sum(pkmu * wmu[:, None, :], axis=-1)
-            
+        pkmu = jac * self.get_rsd_pkmu(kap, muap, pars, table, table_now, IR_resummation, damping)
+        return np.sum(pkmu * wmu[:, None, :], axis=-1)     
 
 
 # In[9]:
 
 
-##################################### Bispectrum ################################################
-def pklIR_f(k,pklIRT):
-    return np.interp(k, pklIRT[0], pklIRT[1])
-
-
-def Qij(ki, kj, xij, mui, muj, f, bisp_nuis_params):
-
-    b1, b2, bs, c1, Bshot, Pshot = bisp_nuis_params
-
-    fi=f; fj=f; fij=f;
-    Z1i = b1 + fi * mui**2;
-    Z1j = b1 + fj * muj**2;
-    Z1efti = Z1i - c1*(ki*mui)**2;
-    Z1eftj = Z1j - c1*(kj*muj)**2 ;
-    
-    kmu = ki*mui + kj*muj;
-    mu2 = kmu**2 / (ki**2 + kj**2 + 2*ki*kj*xij);
-    crossterm = 1.0/2.0*kmu * ( fj * muj / kj* Z1i  +  fi * mui / ki * Z1j  ) 
-
-    advection = xij/2.0 *(ki/kj + kj/ki)
-    F2 = 5.0/7.0 + 2.0/7.0 * xij**2 + advection
-    G2 = 3.0/7.0 + 4.0/7.0 * xij**2 + advection
-    
-    Z2 = b1*F2 + fij*mu2*G2 + crossterm + b2/2.0 + bs*(xij**2 - 1.0/3.0);
-    
-    Qij = 2*Z1efti*Z1eftj * Z2;
-    
-    return  Qij
-
-
-
-
-
-def bispectrum(k1, k2, x12, mu1, phi, f, bisp_nuis_params, qpar, qperp):
-
-    b1, b2, bs, c1, Bshot, Pshot = bisp_nuis_params
-    
-    k3 = np.sqrt(k1**2 + k2**2 + 2.0*k1 * k2 * x12);
-    mu2 = np.sqrt(1.0 - mu1**2) * np.sqrt(1.0 - x12**2) * np.cos(phi) + mu1 * x12;
-    mu3 = -(k1/k3) * mu1 - k2/k3 * mu2;
-    
-    x13 = -(k1 + k2 * x12)/k3;
-    x23 = -(k2 + k1 * x12)/k3;
-
-
-
-    ## AP functions can be called here, but dont see the difference
-    FAP = qpar/qperp;
-    k1AP = (k1/qperp)*(1 + mu1**2*(1./FAP**2 - 1))**0.5;
-    mu1AP = (mu1/FAP)*(1 + mu1**2*(1./FAP**2 - 1))**(-0.5);
-    k2AP = (k2/qperp)*(1 + mu2**2*(1./FAP**2 - 1))**0.5;
-    mu2AP = (mu2/FAP)*(1 + mu2**2*(1./FAP**2 - 1))**(-0.5);
-    k3AP = (k3/qperp)*(1 + mu3**2*(1./FAP**2 - 1))**0.5;
-    mu3AP = (mu3/FAP)*(1 + mu3**2*(1./FAP**2 - 1))**(-0.5);
-    
-    Q12 = Qij(k1AP, k2AP, x12, mu1AP, mu2AP, f, bisp_nuis_params);
-    Q13 = Qij(k1AP, k3AP, x13, mu1AP, mu3AP, f, bisp_nuis_params);
-    Q23 = Qij(k2AP, k2AP, x23, mu2AP, mu3AP, f, bisp_nuis_params);
-    
-    #pk1 = k1AP**(0.7);  ###substitute by the IR-resummed pkl
-    #pk2 = k2AP**(0.7);
-    #pk3 = k3AP**(0.7);
-
-    pk1 = pklIR_f(k1AP,pk_in);
-    pk2 = pklIR_f(k2AP,pk_in);
-    pk3 = pklIR_f(k3AP,pk_in);
-
-    B12 = Q12*pk1*pk2;
-    B13 = Q13*pk1*pk3;
-    B23 = Q23*pk2*pk3;
-
-
-    ### Shot Noise 
-    
-    f1=f; f2=f; f3=f;
-    Z1_1 = b1 + f1 * mu1AP**2;
-    Z1_2 = b1 + f2 * mu2AP**2;
-    Z1_3 = b1 + f3 * mu3AP**2;
-    Z1eft1 = Z1_1 - c1*(k1*mu1AP)**2;
-    Z1eft2 = Z1_2 - c1*(k2*mu2AP)**2;
-    Z1eft3 = Z1_3 - c1*(k3*mu3AP)**2;
-    
-    # To match eq.3.14 of 2110.10161, one makes (1+Pshot) -> (1+Pshot)/bar-n; Bshot -> Bshot/bar-n
-
-    shot =(b1*Bshot + 2.0*(1+Pshot)*f1*mu1AP**2)*Z1eft1*pk1 
-    + (b1*Bshot + 2.0*(1+Pshot)*f2*mu2AP**2)*Z1eft2*pk2 
-    + (b1*Bshot + 2.0*(1+Pshot)*f3*mu3AP**2)*Z1eft3*pk3  
-    + (1+Pshot)**2
-    
-    bispectrum = B12 + B13 + B23 + shot;
-    
-    return bispectrum
-
-
-    
-def Sugiyama_B000_B202(k1, k2, f, bisp_nuis_params, qpar, qperp, tablesGL):
-    phiGL = tablesGL[0]
-    xGL = tablesGL[1]
-    muGL = tablesGL[2]
-
-    b1,b2,bs,c1, Bshot, Pshot = bisp_nuis_params
-
-
-
-    #piover4 = 0.785398
-    #normB000 = 0.5*piover4; 
-    #normB202 = 5.0/2.0*piover4; 
-    fourpi = 12.53667061
-    normB000 = 0.5/fourpi; 
-    normB202 = 5.0/2.0/fourpi;
-    
-    int_all_B000 = 0
-    int_all_B202 = 0
-    for xii in range(len(xGL)):
-        int_mu_B000 = 0
-        int_mu_B202 = 0
-        for muii in range(len(muGL)):
-            mu=muGL[muii][0]
-            int_phi = 0
-            for phiii in range(len(phiGL)):
-                bisp= bispectrum(
-                        k1, k2, 
-                        xGL[xii][0], 
-                        mu, 
-                        phiGL[phiii][0], 
-                        f, bisp_nuis_params, qpar, qperp
-                    )
-                int_phi += bisp * phiGL[phiii][1]
-                
-            int_phi *= 2  #The 2 accounts for the whole integral, from 0 to 2pi, instead of 0 to pi
-            int_mu_B000 += int_phi * muGL[muii][1]
-            leg2 = 0.5 * (-1.0 + 3.0*mu**2) 
-            int_mu_B202 += int_phi * leg2 * muGL[muii][1]
-            
-        int_all_B000 += int_mu_B000 * xGL[xii][1]
-        int_all_B202 += int_mu_B202 * xGL[xii][1]
-    
-    B000 = int_all_B000 * normB000
-    B202 = int_all_B202 * normB202
-    
-    return(B000,B202)
-
-
-
-def Bisp_Sugiyama(bisp_cosmo_params, bisp_nuis_params, pk_input, z_pk, k1k2pairs, Omfid=-1,qpar=1,qperp=1,precision=[4,5,5]):
-
-    OmM, h, f = bisp_cosmo_params
-
-    global pk_in
-    pk_in=pk_input
-
-    if Omfid > 0:
-        qperp = DA(OmM, z_pk)/DA(Omfid, z_pk) 
-        qpar = Hubble(Omfid, z_pk)/Hubble(OmM, z_pk) 
-        #Om computed for any cosmology
-        #OmM = CosmoParam(h, omega_b, omega_cdm, omega_ncdm)[1]
-        
-    print(qpar,qperp)
-
-    #f = f0(z_pk,OmM);
-
-    print(f)
-    
-    #pk_input=Extrapolate_inputpkl(pk_input)
-    pklIRT=get_linear_ir(pk_input[0], pk_input[1], h)
-
-    #def pklIR_f(k):
+class BispectrumCalculator:
+    def __init__(self, basis='sugiyama', model='EFT'):
+        """
+        basis : str
+            'sugiyama' or 'scoccimarro' (currently only 'sugiyama' is implemented)
+        model : str
+            'EFT', 'TNS', or 'FOLPSD'.
+        """
+        self.basis = basis.lower()
+        if self.basis not in ['sugiyama', 'scoccimarro']:
+            raise ValueError("basis must be 'sugiyama' or 'scoccimarro'.")
+        self.model = model
+        self._printed_model_damping_bk = False        
+    #def pklIR_f(self, k,pklIRT):
     #    return np.interp(k, pklIRT[0], pklIRT[1])
 
-    #These are GL pairs [[x1,w1],[x2,w2],....]. We should compute them here
+            
+    #GL pairs [[x1,w1],[x2,w2],....
+    def tablesGL_f(self, precision=[4, 5, 5]):
+        Nphi, Nx, Nmu = precision
+        Pi = np.pi
 
-    Nphi,Nx,Nmu = precision
-                                
-    Pi= np.pi
-    
-    phi_roots, phi_weights = scipy.special.roots_legendre(Nphi) 
-    phi_roots = Pi/2 * phi_roots + Pi/2;  phi_weights = Pi/2 * phi_weights
-    phiGL=np.array([phi_roots,phi_weights]).T
-    
-    x_roots, x_weights = scipy.special.roots_legendre(Nx) 
-    xGL=np.array([x_roots,x_weights]).T
-    
-    mu_roots, mu_weights = scipy.special.roots_legendre(Nmu) 
-    
-    muGL=np.array([mu_roots,mu_weights]).T
-    
-    tablesGL = [phiGL,xGL,muGL]
+        phi_roots, phi_weights = scipy.special.roots_legendre(Nphi)
+        phi_roots = Pi / 2 * phi_roots + Pi / 2
+        phi_weights = Pi / 2 * phi_weights
+        phiGL = np.array([phi_roots, phi_weights]).T
 
-    size=len(k1k2pairs)
+        x_roots, x_weights = scipy.special.roots_legendre(Nx)
+        xGL = np.array([x_roots, x_weights]).T
 
-    B000=np.zeros(size)
-    B202=np.zeros(size)
-    
-    for ii in range(size):
-        k1,k2 = k1k2pairs[ii]
-        #print(k1,k2)
-        B000[ii], B202[ii] = Sugiyama_B000_B202(k1, k2, f, bisp_nuis_params, qpar, qperp, tablesGL)
-    
-    return(B000,B202)
+        mu_roots, mu_weights = scipy.special.roots_legendre(Nmu)
+        muGL = np.array([mu_roots, mu_weights]).T
 
+        return [phiGL, xGL, muGL]
+
+    def kAP(self, k, mu, qpar, qperp):
+        return k / qperp * np.sqrt(1 + mu**2 * (-1 + (qperp**2) / (qpar**2)))
+
+    def muAP(self, mu, qpar, qperp):
+        return (mu * qperp / qpar) / np.sqrt(1 + mu**2 * (-1 + (qperp**2) / (qpar**2)))
+
+    def APtransforms(self, k1, k2, x12, mu1, cosphi, qpar, qperp):
+        k3 = np.sqrt(k1**2 + k2**2 + 2 * k1 * k2 * x12)
+        mu2 = np.sqrt(1 - mu1**2) * np.sqrt(1 - x12**2) * cosphi + mu1 * x12
+        mu3 = -k1 / k3 * mu1 - k2 / k3 * mu2
+
+        k1AP = self.kAP(k1, mu1, qpar, qperp)
+        k2AP = self.kAP(k2, mu2, qpar, qperp)
+        k3AP = self.kAP(k3, mu3, qpar, qperp)
+
+        mu1AP = self.muAP(mu1, qpar, qperp)
+        mu2AP = self.muAP(mu2, qpar, qperp)
+        mu3AP = self.muAP(mu3, qpar, qperp)
+
+        x12AP = (k3AP**2 - k1AP**2 - k2AP**2) / (2 * k1AP * k2AP)
+        x31AP = -(k1AP + k2AP * x12AP) / k3AP
+        x23AP = -(k2AP + k1AP * x12AP) / k3AP
+
+        return np.array([k1AP, k2AP, k3AP, x12AP, x23AP, x31AP, mu1AP, mu2AP, mu3AP, cosphi])
+            
+
+    def Qij(self, ki, kj, xij, mui, muj, f, bpars):
+        b1, b2, bs, c1, c2, Bshot, Pshot, X_FoG_b = bpars
+
+        fi = f
+        fj = f
+        fij = f
+
+        Z1i = b1 + fi * mui**2
+        Z1j = b1 + fj * muj**2
+        # Z1efti = Z1i - c1*(ki*mui)**2
+        # Z1eftj = Z1j - c1*(kj*muj)**2 
+        
+        kmu = ki * mui + kj * muj
+        mu2 = kmu**2 / (ki**2 + kj**2 + 2 * ki * kj * xij)
+        crossterm = 0.5 * kmu * (fj * muj / kj * Z1i + fi * mui / ki * Z1j)
+
+        advection = xij / 2.0 * (ki / kj + kj / ki)
+        F2 = 5.0 / 7.0 + 2.0 / 7.0 * xij**2 + advection
+        G2 = 3.0 / 7.0 + 4.0 / 7.0 * xij**2 + advection
+
+        Z2 = b1 * F2 + fij * mu2 * G2 + crossterm + b2 / 2.0 + bs * (xij**2 - 1.0 / 3.0)
+        Qij = 2 * Z2
+        return Qij
+
+    def bispectrum(self, k1, k2, x12, mu1, phi, f, sigma2v, Sigma2, deltaSigma2,
+                   bpars, qpar, qperp, k_pkl_pklnw, damping = 'lor'):
+        b1, b2, bs, c1, c2, Bshot, Pshot, X_FoG_b = bpars
+
+        cosphi = np.cos(phi)
+        APtransf = self.APtransforms(k1, k2, x12, mu1, cosphi, qpar, qperp)
+        k1AP, k2AP, k3AP, x12AP, x23AP, x31AP, mu1AP, mu2AP, mu3AP, cosphi = APtransf
+
+        Q12 = self.Qij(k1AP, k2AP, x12AP, mu1AP, mu2AP, f, bpars)
+        Q13 = self.Qij(k1AP, k3AP, x31AP, mu1AP, mu3AP, f, bpars)
+        Q23 = self.Qij(k2AP, k3AP, x23AP, mu2AP, mu3AP, f, bpars)
+
+        
+        pk1   = np.interp(k1AP, k_pkl_pklnw[0], k_pkl_pklnw[1])
+        pk1nw = np.interp(k1AP, k_pkl_pklnw[0], k_pkl_pklnw[2])
+        pk2   = np.interp(k2AP, k_pkl_pklnw[0], k_pkl_pklnw[1])
+        pk2nw = np.interp(k2AP, k_pkl_pklnw[0], k_pkl_pklnw[2])
+        pk3   = np.interp(k3AP, k_pkl_pklnw[0], k_pkl_pklnw[1])
+        pk3nw = np.interp(k3AP, k_pkl_pklnw[0], k_pkl_pklnw[2])
+
+
+        e1IR = (1 + f*mu1AP**2 *(2 + f))*Sigma2 + (f*mu1AP)**2 * (mu1AP**2 - 1)* deltaSigma2
+        e2IR = (1 + f*mu2AP**2 *(2 + f))*Sigma2 + (f*mu2AP)**2 * (mu2AP**2 - 1)* deltaSigma2
+        e3IR = (1 + f*mu3AP**2 *(2 + f))*Sigma2 + (f*mu3AP)**2 * (mu3AP**2 - 1)* deltaSigma2
+
+        pkIR1= pk1nw + (pk1-pk1nw)*np.exp(-e1IR*k1AP**2)
+        pkIR2= pk2nw + (pk2-pk2nw)*np.exp(-e2IR*k2AP**2)
+        pkIR3= pk3nw + (pk3-pk3nw)*np.exp(-e3IR*k3AP**2)
+
+
+
+
+        #pk1 = self.pklIR_f(k1AP, pk_in)
+        #pk2 = self.pklIR_f(k2AP, pk_in)
+        #pk3 = self.pklIR_f(k3AP, pk_in)
+
+        f1 = f2 = f3 = f
+        Z1_1 = b1 + f1 * mu1AP**2
+        Z1_2 = b1 + f2 * mu2AP**2
+        Z1_3 = b1 + f3 * mu3AP**2
+
+        Z1eft1 = Z1_1 - (c1 * mu1AP**2 + c2 * mu1AP**4) * k1AP**2
+        Z1eft2 = Z1_2 - (c1 * mu2AP**2 + c2 * mu2AP**4) * k2AP**2
+        Z1eft3 = Z1_3 - (c1 * mu3AP**2 + c2 * mu3AP**4) * k3AP**2
+
+        B12 = Q12 * Z1eft1*pkIR1 * Z1eft2*pkIR2;
+        B13 = Q13 * Z1eft1*pkIR1 * Z1eft3*pkIR3;
+        B23 = Q23 * Z1eft3*pkIR2 * Z1eft3*pkIR3;
+
+        l2 = (k1AP * mu1AP)**2 + (k2AP * mu2AP)**2 + (k3AP * mu3AP)**2
+        l2 = 0.5 * l2 * (f * X_FoG_b)**2
+
+        Winfty = np.exp(- l2 * sigma2v / (1 + l2)) / np.sqrt((1 + l2)**3)
+        Wlor = 1.0 / (1.0 + l2 * sigma2v)
+
+
+        if not getattr(self, '_printed_model_damping_bk', False):
+            print(f"[FOLPS] Model Bk: {self.model}, Damping: {damping}")
+            self._printed_model_damping_bk = True
+        # Model logic for W
+        if self.model == "EFT":
+            W = 1
+        elif self.model == "TNS":
+            global remove_DeltaP_status
+            if remove_DeltaP_status is not True:
+                raise RuntimeError("[FOLPS] To use the TNS model, you must set remove_DeltaP_status=True in MatrixCalculator.")
+            # TNS allows damping
+            elif damping == 'lor':
+                W = Wlor
+            elif damping == 'vdg':
+                W = Winfty
+            else:
+                W = Wlor
+        elif self.model == "FOLPSD":
+            if damping not in ['lor', 'vdg']:
+                print("[FOLPS] For FOLPSD you must specify a valid damping ('lor', 'vdg'). Default: 'lor'.")
+                damping = 'lor'
+            elif damping == 'lor':
+                W = Wlor
+            elif damping == 'vdg':
+                W = Winfty
+            else:
+                W = Wlor
+        else:
+            # Default: keep previous logic for unknown models
+            if damping == 'lor':
+                W = Wlor
+            elif damping == 'vdg':
+                W = Winfty
+            else:
+                W = Wlor
+
+        
+        ## Noise 
+        # To match eq.3.14 of 2110.10161, one makes (1+Pshot) -> (1+Pshot)/bar-n; Bshot -> Bshot/bar-n
+        shot = (b1 * Bshot + 2.0 * (1 + Pshot) * f1 * mu1AP**2) * Z1eft1 * pkIR1 \
+             + (b1 * Bshot + 2.0 * (1 + Pshot) * f2 * mu2AP**2) * Z1eft2 * pkIR2 \
+             + (b1 * Bshot + 2.0 * (1 + Pshot) * f3 * mu3AP**2) * Z1eft3 * pkIR3 \
+             + (1 + Pshot)**2
+
+        bispectrum = W * (B12 + B13 + B23) + shot
+        alpha = qpar * qperp**2
+        bispectrum = bispectrum / alpha**2
+
+        return bispectrum
+
+    
+    def sigmas(self, kT,pklT):
+
+        k_BAO = 1/104
+        kS =0.4
+
+        sigma2v_  = simpson(pklT, x=kT) / (6 * np.pi**2)
+        sigma2v_ *= 1.05  #correction due to k cut
+
+        pklT_=pklT[kT<=0.4].copy()
+        kT_=kT[kT<=0.4].copy()
+    
+        Sigma2_ = 1/(6 * np.pi**2)*simpson(pklT_*(1 - special.spherical_jn(0, kT_/k_BAO) 
+                                                + 2*special.spherical_jn(2, kT_/k_BAO)), x=kT_)
+        deltaSigma2_ = 1/(2 * np.pi**2)*simpson(pklT*special.spherical_jn(2, kT/k_BAO), x=kT)
+
+        return sigma2v_, Sigma2_, deltaSigma2_
+
+        
+    def Bisp_Sugiyama(self, f, bpars, k_pkl_pklnw, z_pk,
+                      k1k2pairs, qpar, qperp, precision=[4, 5, 5], damping = 'lor'):
+
+        #OmM, h = bisp_cosmo_params
+        #qperp, qpar = 1, 1
+
+        #if Omfid > 0:
+        #    qperp = DA(OmM, z_pk) / DA(Omfid, z_pk)
+        #    qpar = Hubble(Omfid, z_pk) / Hubble(OmM, z_pk)
+
+        #f = f0_function(z_pk, OmM)
+        kT=k_pkl_pklnw[0]
+        pklT=k_pkl_pklnw[1]
+        sigma2v_, Sigma2_, deltaSigma2_ = self.sigmas(kT, pklT)
+        
+        
+        # tables for GL pairs [phi,mu,x] [[x1,w1],[x2,w2],....]
+        tablesGL = self.tablesGL_f(precision)
+        size = len(k1k2pairs)
+
+        B000 = np.zeros(size)
+        B202 = np.zeros(size)
+
+        for ii in range(size):
+            k1, k2 = k1k2pairs[ii]
+            B000[ii], B202[ii] = self.Sugiyama_B000_B202(k1, k2, f, sigma2v_, Sigma2_, deltaSigma2_, bpars, qpar, qperp, tablesGL, k_pkl_pklnw, damping = damping)
+
+        return B000, B202
+
+    def Sugiyama_B000_B202(self, k1, k2, f, sigma2v, Sigma2, deltaSigma2, bpars, qpar, qperp, tablesGL, k_pkl_pklnw, damping = 'lor'):
+        phiGL, xGL, muGL = tablesGL
+
+        phi_values, phi_weights = phiGL[:, 0], phiGL[:, 1]
+        mu_values, mu_weights = muGL[:, 0], muGL[:, 1]
+        x_values, x_weights = xGL[:, 0], xGL[:, 1]
+
+        fourpi = 4 * np.pi
+        normB000 = 0.5 / fourpi
+        normB202 = 5.0 / 2.0 / fourpi
+
+        x_mesh, mu_mesh, phi_mesh = np.meshgrid(x_values, mu_values, phi_values, indexing='ij')
+
+        bisp = self.bispectrum(k1, k2, x_mesh, mu_mesh, phi_mesh,
+                               f, sigma2v, Sigma2, deltaSigma2, bpars, qpar, qperp, k_pkl_pklnw, damping)
+
+        int_phi = 2 * np.sum(bisp * phi_weights, axis=2)
+        int_mu_B000 = np.sum(int_phi * mu_weights, axis=1)
+        int_all_B000 = np.sum(int_mu_B000 * x_weights)
+
+        leg2 = 0.5 * (-1.0 + 3.0 * mu_values**2)
+        int_mu_B202 = np.sum(int_phi * leg2 * mu_weights, axis=1)
+        int_all_B202 = np.sum(int_mu_B202 * x_weights)
+
+        B000 = int_all_B000 * normB000
+        B202 = int_all_B202 * normB202
+
+        return B000, B202
+
+
+#Analytical marginalization....
+
+def get_rsd_pkell_marg_const(
+    kobs, qpar, qper, pars, table, table_now,
+    bias_scheme="folps", damping='lor', nmu=6, ells=(0, 2, 4), IR_resummation=True,
+    model='EFT'
+    ):
+    """
+    Computes the multipoles of the RSD power spectrum marginalizing over EFT and stochastic parameters.
+    """
+    
+    multipoles = RSDMultipolesPowerSpectrumCalculator(model=model)
+
+    def get_rsd_pkmu_const(k, mu, pars, table, table_now, IR_resummation, damping):
+        # Apply bias scheme
+        pars = multipoles.set_bias_scheme(pars, bias_scheme=bias_scheme)
+        (b1, b2, bs2, b3nl, alpha0, alpha2, alpha4,
+         ctilde, alphashot0, alphashot2, PshotP, X_FoG_p) = pars
+
+        # Interpolate tables
+        table_interp = multipoles.interp_table(k, table, A_full_status)
+        table_now_interp = multipoles.interp_table(k, table_now, A_full_status)
+
+        # Set EFT and stochastic parameters to zero (marginalization)
+        alpha0 = alpha2 = alpha4 = alphashot0 = alphashot2 = 0.0
+
+        pars_const = (b1, b2, bs2, b3nl, alpha0, alpha2, alpha4,
+                      ctilde, alphashot0, alphashot2, PshotP, X_FoG_p)
+
+        f0 = table_interp[-1]
+        fk = table_interp[1] * f0
+        pkl, pkl_now = table_interp[0], table_now_interp[0]
+        sigma2, delta_sigma2 = table_now_interp[-3], table_now_interp[-2]
+
+        # Total Sigma^2 for IR-resummation, see eq. 3.59 in arXiv:2208.02791
+        if IR_resummation:
+            sigma2t = (1 + f0 * mu**2 * (2 + f0)) * sigma2 + (f0 * mu)**2 * (mu**2 - 1) * delta_sigma2
+        else:
+            sigma2t = 0.0
+
+        # Compute pkmu
+        pkmu = (
+            (b1 + fk * mu**2)**2 * (pkl_now + np.exp(-k**2 * sigma2t) * (pkl - pkl_now) * (1 + k**2 * sigma2t))
+            + np.exp(-k**2 * sigma2t) * multipoles.get_eft_pkmu(k, mu, pars_const, table_interp, damping)
+            + (1 - np.exp(-k**2 * sigma2t)) * multipoles.get_eft_pkmu(k, mu, pars_const, table_now_interp, damping)
+        )
+        return pkmu
+
+    def get_rsd_pkell(
+        kobs, qpar, qper, pars, table, table_now,
+        bias_scheme="folps", damping='lor', nmu=6, ells=(0, 2, 4), IR_resummation=True,
+        model='EFT'
+    ):
+        """
+        Computes the multipoles of the power spectrum.
+        """
+        pars = multipoles.set_bias_scheme(pars, bias_scheme=bias_scheme)
+
+        def weights_leggauss(nx, sym=False):
+            """Return weights for Gauss-Legendre integration."""
+            x, wx = np.polynomial.legendre.leggauss((1 + sym) * nx)
+            if sym:
+                x, wx = x[nx:], (wx[nx:] + wx[nx - 1::-1]) / 2.
+            return x, wx
+
+        muobs, wmu = weights_leggauss(nmu, sym=True)
+        wmu_arr = np.array([wmu * (2 * ell + 1) * legendre(ell)(muobs) for ell in ells])
+        jac = (qpar * qper**2)**(-3)
+        kap = multipoles.k_ap(kobs[:, None], muobs, qpar, qper)
+        muap = multipoles.mu_ap(muobs, qpar, qper)[None, :]
+
+        pkmu = jac * get_rsd_pkmu_const(kap, muap, pars, table, table_now, IR_resummation, damping)
+        pkell = np.sum(pkmu * wmu_arr[:, None, :], axis=-1)
+        return pkell
+
+    return get_rsd_pkell(
+        kobs, qpar, qper, pars, table, table_now,
+        bias_scheme=bias_scheme, damping=damping,
+        nmu=nmu, ells=ells, IR_resummation=IR_resummation,
+        model=model
+    )
+
+
+
+def PEFTs_derivatives(k, mu, pkl, PshotP):
+    """
+    Derivatives of PEFTs with respect to the EFT and stochastic parameters.
+    
+    Args:
+        k: wave-number coordinates of evaluation.
+        mu: cosine angle between the wave-vector ‘\vec{k}’ and the line-of-sight direction ‘\hat{n}’.
+        pkl: linear power spectrum.
+        PshotP: stochastic nuisance parameter.
+    Returns:
+        ∂P_EFTs/∂α_i with: α_i = {alpha0, alpha2, alpha4, alphashot0, alphashot2}
+    """
+    
+    k2 = k**2
+    k2mu2 = k2 * mu**2
+    k2mu4 = k2mu2 * mu**2
+
+    PEFTs_alpha0 = k2 * pkl
+    PEFTs_alpha2 = k2mu2 * pkl 
+    PEFTs_alpha4 = k2mu4 * pkl 
+    PEFTs_alphashot0 = PshotP
+    PEFTs_alphashot2 = k2mu2 * PshotP
+    
+    return (PEFTs_alpha0, PEFTs_alpha2, PEFTs_alpha4, PEFTs_alphashot0, PEFTs_alphashot2)
+
+
+
+def get_rsd_pkell_marg_derivatives(
+    kobs, qpar, qper, pars, table, table_now,
+    bias_scheme="folps", damping='lor', nmu=6, ells=(0, 2, 4), IR_resummation=True,
+    model='EFT'
+    ):
+    """
+    Redshift space power spectrum multipoles 'derivatives': Pℓ,i=∂Pℓ/∂α_i 
+    (derivatives with respect to the EFT and stochastic parameters).
+    """
+    multipoles = RSDMultipolesPowerSpectrumCalculator(model=model)
+
+    def get_rsd_pkmu_derivatives(k, mu, pars, table, table_now, IR_resummation, damping):
+        pars = multipoles.set_bias_scheme(pars, bias_scheme=bias_scheme)
+        (b1, b2, bs2, b3nl, alpha0, alpha2, alpha4,
+         ctilde, alphashot0, alphashot2, PshotP, X_FoG_p) = pars
+
+        kap = multipoles.k_ap(k, mu, qpar, qper)
+        muap = multipoles.mu_ap(mu, qpar, qper)
+
+        table_interp = multipoles.interp_table(kap, table, A_full_status)
+        table_now_interp = multipoles.interp_table(kap, table_now, A_full_status)
+
+        f0 = table_interp[-1]
+        fk = table_interp[1] * f0
+        pkl, pkl_now = table_interp[0], table_now_interp[0]
+        sigma2, delta_sigma2 = table_now_interp[-3:-1]
+     
+        PEFTs_alpha0, PEFTs_alpha2, PEFTs_alpha4, PEFTs_alphashot0, PEFTs_alphashot2 = PEFTs_derivatives(kap, muap, pkl, PshotP)
+        PEFTs_alpha0_NW, PEFTs_alpha2_NW, PEFTs_alpha4_NW, PEFTs_alphashot0_NW, PEFTs_alphashot2_NW = PEFTs_derivatives(kap, muap, pkl_now, PshotP)
+        
+        if IR_resummation:
+            sigma2t = (1 + f0 * mu**2 * (2 + f0)) * sigma2 + (f0 * mu)**2 * (mu**2 - 1) * delta_sigma2
+        else:
+            sigma2t = 0.0    
+            
+        exp_term = np.exp(-kap**2 * sigma2t)
+        exp_term_inv = 1 - exp_term
+            
+        #computing PIRs_derivatives for EFT and stochastic parameters
+        PIRs_alpha0 = exp_term * PEFTs_alpha0 + exp_term_inv * PEFTs_alpha0_NW
+        PIRs_alpha2 = exp_term * PEFTs_alpha2 + exp_term_inv * PEFTs_alpha2_NW
+        PIRs_alpha4 = exp_term * PEFTs_alpha4 + exp_term_inv * PEFTs_alpha4_NW
+        PIRs_alphashot0 = exp_term * PEFTs_alphashot0 + exp_term_inv * PEFTs_alphashot0_NW
+        PIRs_alphashot2 = exp_term * PEFTs_alphashot2 + exp_term_inv * PEFTs_alphashot2_NW
+
+        #print("======= mu =======")
+        #print(muap)
+        #print("======= end: mu =======")
+            
+        #print("========= results ==========")
+        #print(PIRs_alpha0, PIRs_alpha2, PIRs_alpha4, PIRs_alphashot0, PIRs_alphashot2)
+        #print("======= end: mu =======")
+            
+        return (PIRs_alpha0, PIRs_alpha2, PIRs_alpha4, PIRs_alphashot0, PIRs_alphashot2)
+
+    Nx = nmu   
+    xGL, wGL = scipy.special.roots_legendre(Nx)
+
+    def ModelPkl_derivatives(table, table_now, ell):
+        factor = (2*ell+1)/2
+        result = 1/(qper**2 * qpar) * sum(
+            factor * wGL[ii] * np.array(get_rsd_pkmu_derivatives(kobs, xGL[ii], pars, table, table_now, IR_resummation, damping)) * scipy.special.eval_legendre(ell, xGL[ii])
+            for ii in range(Nx)
+        )
+        return result
+
+    return tuple(ModelPkl_derivatives(table, table_now, ell) for ell in ells)
+
+
+
+#Marginalization matrices
+def startProduct(A, B, invCov):
+    '''Computes: A @ InvCov @ B^{T}, where 'T' means transpose.
+    
+    Args:
+         A: first vector, array of the form 1 x n
+         B: second vector, array of the form 1 x n
+         invCov: inverse of covariance matrix, array of the form n x n
+    
+    Returns:
+         The result of: A @ InvCov @ B^{T}
+    '''
+    
+    return A @ invCov @ B.T
+
+
+def compute_L0(Pl_const, Pl_data, invCov, mu_prior = 0, sigma_prior = np.inf):
+    '''Computes the term L0 of the marginalized Likelihood.
+    
+    Args:
+         Pl_const: model multipoles for the constant part (Pℓ,const = Pℓ(α->0)), array of the form 1 x n
+         Pl_data: data multipoles, array of the form 1 x n 
+         invCov: inverse of covariance matrix, array of the form n x n
+         
+    Return:
+         Loglikelihood for the constant part of the model multipoles 
+    '''
+    
+    D_const = Pl_const - Pl_data
+    
+    L0 = -0.5 * startProduct(D_const, D_const, invCov)   
+    
+    # Adding prior to L0
+    if isinstance(sigma_prior, (int, float)):
+        mu_prior2 = np.dot(np.array(mu_prior), np.array(mu_prior))
+        L0 += -0.5 * (mu_prior2 / (sigma_prior ** 2) )
+    else:
+        mu_prior2 = np.dot(np.array(mu_prior), np.array(mu_prior))
+        sigma_prior2 = np.dot(np.array(sigma_prior), np.array(sigma_prior))
+        L0 += -0.5 * (mu_prior2 / sigma_prior2)
+    
+    return L0
+
+    
+def compute_L1i(Pl_i, Pl_const, Pl_data, invCov, mu_prior = 0, sigma_prior = np.inf):
+    '''Computes the term L1i of the marginalized Likelihood.
+    
+    Args:
+         Pl_i: array with the derivatives of the power spectrum multipoles with respect to 
+               the EFT and stochastic parameters, i.e., Pℓ,i=∂Pℓ/∂α_i , i = 1,..., ndim
+               array of the form ndim x n
+         Pl_const: model multipoles for the constant part (Pℓ,const = Pℓ(α->0)), array of the form 1 x n
+         Pl_data: data multipoles, array of the form 1 x n
+         invCov: inverse of covariance matrix, array of the form n x n
+    Return:
+         array for L1i
+    '''
+    
+    D_const = Pl_const - Pl_data  
+    
+    #ndim = len(Pl_i)
+    
+    #computing L1i
+    #L1i = np.zeros(ndim)
+    
+    #for ii in range(ndim):
+    #    term1 = startProduct(Pl_i[ii], D_const, invCov)
+    #    term2 = startProduct(D_const, Pl_i[ii], invCov)
+    #    L1i[ii] = -0.5 * (term1 + term2)
+    
+    L1i = - startProduct(Pl_i, D_const, invCov)
+    
+    # Adding prior to L1i
+    if isinstance(sigma_prior, (int, float)):
+        L1i += np.array(mu_prior) / (sigma_prior ** 2)
+    else:
+        L1i += np.array(mu_prior) / np.array(sigma_prior) ** 2
+    
+    return L1i
+
+
+def compute_L2ij(Pl_i, invCov, sigma_prior = np.inf):
+    '''Computes the term L2ij of the marginalized Likelihood.
+    
+    Args:
+         Pl_i: array with the derivatives of the power spectrum multipoles with respect to 
+               the EFT and stochastic parameters, i.e., Pℓ,i=∂Pℓ/∂α_i , i = 1,..., ndim
+               array of the form ndim x n
+         invCov: inverse of covariance matrix, array of the form n x n
+    Return:
+         array for L2ij
+    '''
+    
+    #ndim = len(Pl_i)
+    
+    #Computing L2ij
+    #L2ij = np.zeros((ndim, ndim))
+    
+    #for ii in range (ndim):
+        #for jj in range (ndim):
+            #L2ij[ii, jj] = startProduct(Pl_i[ii], Pl_i[jj], invCov)
+    
+    L2ij = startProduct(Pl_i, Pl_i, invCov)
+            
+    # Adding prior variances to L2ij
+    if isinstance(sigma_prior, (int, float)):
+        L2ij += 1 / (sigma_prior ** 2)
+    else:
+        L2ij += np.diag(1 / np.array(sigma_prior) ** 2)
+            
+    return L2ij 

@@ -2,6 +2,7 @@ import warnings
 import numpy as np
 from scipy import interpolate
 from scipy import special
+from scipy.integrate import quad
 
 
 def legendre(ell):
@@ -674,6 +675,37 @@ def get_linear_ir_ini(k, pkl, pklnw, h=0.6711, k_BAO=1.0 / 104.):
     return k, pkl_IR
 
 
+
+#AP factors
+
+def Hubble(Om, z_ev):
+    return ((Om) * (1 + z_ev)**3. + (1 - Om))**0.5
+
+def DA(Om, z_ev):
+    r = quad(lambda x: 1. / Hubble(Om, x), 0, z_ev)[0]
+    return r / (1 + z_ev)
+
+def qpar_qperp(Omega_fid, Omega_m, z_pk, cosmo=None):
+    """
+    Compute qpar and qperp using analytical formulas or a cosmo object from CLASS.
+    """
+
+    #check this eqs for CLASS  (see script in external disk)
+    if cosmo is not None:
+        DA_fid = DA(Omega_fid, z_pk)
+        H_fid = Hubble(Omega_fid, z_pk)
+        DA_m = cosmo.angular_distance(z_pk)
+        H_m = cosmo.Hubble(z_pk)
+    else:
+        DA_fid = DA(Omega_fid, z_pk)
+        DA_m = DA(Omega_m, z_pk)
+        H_fid = Hubble(Omega_fid, z_pk)
+        H_m = Hubble(Omega_m, z_pk)
+    qperp = DA_m / DA_fid
+    qpar = H_fid / H_m
+    return qpar, qperp
+
+
 ### new debugging ###
 
 # Finally I ended using:
@@ -819,4 +851,3 @@ def pknwJ(k, PSLk, h):
     PNWkTot = np.concatenate((PNWk1, PNWk2, PNWk3))
         
     return(k, PNWkTot)
-

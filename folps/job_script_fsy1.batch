@@ -1,0 +1,20 @@
+#!/bin/bash
+#SBATCH -A desi
+#SBATCH -N 1
+#SBATCH -C cpu
+#SBATCH -c 4
+#SBATCH -q debug
+#SBATCH -J folpsv2_pb
+#SBATCH --mail-user=prakharb@umich.edu
+#SBATCH --mail-type=ALL
+#SBATCH -t 15
+
+
+module load python
+module load openmpi
+
+source /global/common/software/desi/users/adematti/cosmodesi_environment.sh main
+
+export HDF5_USE_FILE_LOCKING=FALSE
+
+srun -n 24 python Fit_fs_schoneberg2024-bbn_planck2018-ns10_physprior_LCDM_kmax020_new-Copy1.py

@@ -2,6 +2,7 @@ import warnings
 import numpy as np
 from scipy import interpolate
 from scipy import special
+from scipy.integrate import quad
 
 
 def legendre(ell):
@@ -630,6 +631,81 @@ def get_linear_ir(k, pk, h, pknow=None, fullrange=False, kmin=0.01, kmax=0.5, rb
 
     return output
 
+
+
+def get_linear_ir_ini(k, pkl, pklnw, h=0.6711, k_BAO=1.0 / 104.):
+    """
+    Computes the initial infrared-resummed linear power spectrum using a fixed BAO scale.
+
+    Parameters
+    ----------
+    k : array_like
+        Wavenumbers [h/Mpc].
+    pkl : array_like
+        Linear power spectrum with wiggles.
+    pklnw : array_like
+        Linear no-wiggle (smooth) power spectrum.
+    h : float, optional
+        Hubble parameter, H0/100. Default is 0.6711.
+    k_BAO : float, optional
+        Inverse of the BAO scale in [1/Mpc]. Default is 1.0 / 104.
+
+    Returns
+    -------
+    tuple of ndarray
+        Tuple containing:
+            - k : Wavenumbers [h/Mpc].
+            - pkl_IR : Infrared-resummed power spectrum.
+    """
+    # Integration range (geometric spacing)
+    p = np.geomspace(1e-6, 0.4, num=100)
+
+    # Interpolate no-wiggle spectrum on integration grid
+    pk_nw_interp = interp(p, k, pklnw)
+
+    # Compute damping factor Sigma^2
+    j0 = special.spherical_jn(0, p / k_BAO)
+    j2 = special.spherical_jn(2, p / k_BAO)
+    integrand = pk_nw_interp * (1 - j0 + 2 * j2)
+    sigma2 = 1 / (6 * np.pi**2) * simpson(integrand, x=p)
+
+    # Apply IR resummation damping
+    pkl_IR = pklnw + np.exp(-k**2 * sigma2) * (pkl - pklnw)
+
+    return k, pkl_IR
+
+
+
+#AP factors
+
+def Hubble(Om, z_ev):
+    return ((Om) * (1 + z_ev)**3. + (1 - Om))**0.5
+
+def DA(Om, z_ev):
+    r = quad(lambda x: 1. / Hubble(Om, x), 0, z_ev)[0]
+    return r / (1 + z_ev)
+
+def qpar_qperp(Omega_fid, Omega_m, z_pk, cosmo=None):
+    """
+    Compute qpar and qperp using analytical formulas or a cosmo object from CLASS.
+    """
+
+    #check this eqs for CLASS  (see script in external disk)
+    if cosmo is not None:
+        DA_fid = DA(Omega_fid, z_pk)
+        H_fid = Hubble(Omega_fid, z_pk)
+        DA_m = cosmo.angular_distance(z_pk)
+        H_m = cosmo.Hubble(z_pk)
+    else:
+        DA_fid = DA(Omega_fid, z_pk)
+        DA_m = DA(Omega_m, z_pk)
+        H_fid = Hubble(Omega_fid, z_pk)
+        H_m = Hubble(Omega_m, z_pk)
+    qperp = DA_m / DA_fid
+    qpar = H_fid / H_m
+    return qpar, qperp
+
+
 ### new debugging ###
 
 # Finally I ended using:
@@ -696,7 +772,7 @@ def get_linear_ir(k, pk, h, pknow=None, fullrange=False, kmin=0.01, kmax=0.5, rb
 
 
 
-#### debugging ##
+#### debugging (old routine) ###
 from scipy.fft import dst, idst
 
 def pknwJ(k, PSLk, h):
@@ -775,4 +851,3 @@ def pknwJ(k, PSLk, h):
     PNWkTot = np.concatenate((PNWk1, PNWk2, PNWk3))
         
     return(k, PNWkTot)
-

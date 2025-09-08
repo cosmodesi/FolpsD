@@ -287,8 +287,8 @@ params:
     shape: []
     drop: false
   alpha4:
-    value: null
-    fixed: false
+    value: 0.0
+    fixed: true
     derived: false
     prior:
       dist: uniform
