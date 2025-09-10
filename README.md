@@ -1,34 +1,66 @@
-# FOLPSpipe
-This repository contains the latest version of the FOLPS code.
+<p align="center">
+    <img src="https://github.com/henoriega/FOLPSpipe/tree/main/folps_logo.png" width="700" height="200">
+</p>
 
-## To-Do List
+# FOLPS (aka Flops)
+FOLPS is a Python code that computes the galaxy redshift space power spectrum for cosmologies containing massive neutrinos. The code combines analytical modeling and numerical methods based on the FFTLog formalism. 
 
-- [DONE] Test the code again for `Afull=False, True`
+For version with JAX (x10 times faster!): [Folpsax](https://github.com/cosmodesi/folpsax)
 
-- [DONE] Include `bG2` and `bGamma3` rotation
-
-- Update the `jax_tools.py` file      (done! but got some erros when running folps)
-
+[![arXiv](https://img.shields.io/badge/arXiv-2208.02791-red)](https://arxiv.org/abs/2208.02791)
 
 
-------------------------  
-        
-- Introduce the MG modifications for f(R)
+## Developers (code and (e)BOSS and DESI pipelines): 
+- [Hernán E. Noriega](mailto:henoriega@estudiantes.fisica.unam.mx)
+- [Alejandro Aviles](mailto:avilescervantes@gmail.com)
 
-## Building the Documentation
 
-To build the documentation locally (in English):
+*Special thanks to Arnaud de Mattia for helping with the [Jax](https://github.com/cosmodesi/folpsax) version of this code.* 
 
-1. Install the requirements:
-  ```bash
-  pip install -r requirements.txt
-  pip install sphinx sphinx_rtd_theme
-  ```
-2. Build the HTML documentation:
-  ```bash
-  cd docs
-  make html
-  ```
-3. Open `docs/_build/html/index.html` in your browser.
 
-The documentation is automatically built in English using [Read the Docs](https://readthedocs.org/).
+
+
+
+
+
+
+
+## Run
+
+**Dependences**
+
+The code employs the standard libraries:
+- NumPy 
+- SciPy
+
+We recommend to use NumPy versions ≥ 1.20.0. For older versions, one needs to rescale by a factor 1/N the [FFT computation](https://github.com/henoriega/FOLPS-nu/blob/main/FOLPSnu.py#L626). 
+
+To run the code, first use git clone:
+
+```
+git clone https://github.com/henoriega/FOLPS-nu.git
+```
+or install via pip by:
+
+```
+pip install git+https://github.com/henoriega/FOLPS-nu
+```
+
+Once everything is ready, please check the [Jupyter Notebook](https://github.com/henoriega/FOLPS-nu/blob/main/notebooks/Example.ipynb) which contains some helpful examples. 
+
+
+
+Attribution
+-----------
+
+Please cite <https://arxiv.org/abs/2208.02791> if you find this code useful in your research. 
+
+    @article{Noriega:2022nhf,
+    author = "Noriega, Hern\'an E. and Aviles, Alejandro and Fromenteau, Sebastien and Vargas-Maga\~na, Mariana",
+    title = "{Fast computation of non-linear power spectrum in cosmologies with massive neutrinos}",
+    eprint = "2208.02791",
+    archivePrefix = "arXiv",
+    primaryClass = "astro-ph.CO",
+    month = "8",
+    year = "2022"
+    }
