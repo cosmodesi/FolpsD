@@ -30,6 +30,15 @@ import sys
 from scipy.interpolate import interp1d
 from scipy.fftpack import dst, idst
 
+if hasattr(integrate, "simpson"):   # New versions
+    def simpson(y, x=None, **kwargs):
+        return integrate.simpson(y, x=x, **kwargs)
+else:                               # Old versions
+    def simps_compat(y, x=None, **kwargs):
+        return integrate.simpson(y, x, **kwargs)
+
+
+
 def interp(k, x, y):
     '''Cubic spline interpolation.
     
@@ -72,10 +81,7 @@ def Matrices(Nfftlog = None):
 
 
     if remove_DeltaP:
-        print("removing $\Delta P(k,\mu)$")#... WARNING: This violates momentum conservation!!!")
-    # else:
-    #     print("keeping $\Delta P(k,\mu)$")
-    
+        print("removing Delta P")
     #Eq.~ 4.19 at arXiv:2208.02791
     def Imatrix(nu1, nu2):
         return 1/(8 * np.pi**(3/2)) * ( gamma(3/2-nu1)*gamma(3/2-nu2)*gamma(nu1+nu2-3/2) )/( gamma(nu1)*gamma(nu2)*gamma(3-nu1-nu2) )
@@ -750,9 +756,9 @@ def NonLinear(inputpkl, CosmoParams, EdSkernels=False):
         results = [np.zeros_like(kTout) for _ in range(7)]
 
         # Compute sigma values
-        sigma2psi = scipy.integrate.simpson(inputpkT[1], inputpkT[0]) / (6 * np.pi**2)
-        sigma2v   = scipy.integrate.simpson(inputpkTf[1], inputpkTf[0]) / (6 * np.pi**2)
-        sigma2w   = scipy.integrate.simpson(inputpkTff[1], inputpkTff[0]) / (6 * np.pi**2)
+        sigma2psi = simpson(inputpkT[1], inputpkT[0]) / (6 * np.pi**2)
+        sigma2v   = simpson(inputpkTf[1], inputpkTf[0]) / (6 * np.pi**2)
+        sigma2w   = simpson(inputpkTff[1], inputpkTff[0]) / (6 * np.pi**2)
 
         # Vectorized computation over kTout
         K = kTout[:, None]  # Shape (120, 1)
@@ -889,7 +895,7 @@ def PEFTs(kev, mu, NuisanParams, Table):
     
     Args: 
         kev: evaluation points (wave-number coordinates).
-        mu: cosine angle between the wave-vector ‘\vec{k}’ and the line-of-sight direction ‘\hat{n}’.
+        mu: cosine angle between the wave-vector ‘vec-k’ and the line-of-sight direction ‘hat-n’.
         NuisamParams: set of nuisance parameters [b1, b2, bs2, b3nl, alpha0, alpha2, alpha4, ctilde, 
                                                   alphashot0, alphashot2, PshotP] in that order.
                     b1, b2, bs2, b3nl: biasing parameters.
@@ -1015,10 +1021,6 @@ def PEFTs(kev, mu, NuisanParams, Table):
     elif Damping=='vdg':
         W=Winfty(mu,avir)
 
-    print("=========== mu ============")
-    print(mu)
-    print("=========== W: damping ============")
-    print(W)
 
 
     PK = W*PloopSPTs(mu, b1, b2, bs2, b3nl)  + Pshot(mu, alphashot0, alphashot2, PshotP)
@@ -1038,7 +1040,7 @@ def Sigma2Total(kev, mu, Table_NW):
     
     Args:
         kev: evaluation points (wave-number coordinates). 
-        mu: cosine angle between the wave-vector ‘\vec{k}’ and the line-of-sight direction ‘\hat{n}’.
+        mu: cosine angle between the wave-vector ‘vec-k’ and the line-of-sight direction ‘hat-n’.
         Table_NW: List of non-linear terms given by the non-wiggle power spectra.
     Returns:
         Sigma² tot for IR-resummations.
@@ -1051,10 +1053,10 @@ def Sigma2Total(kev, mu, Table_NW):
     PSL_NW = interp(pT, kT, pkl_NW)
     k_BAO = 1/104                                                 #BAO scale
         
-    Sigma2 = 1/(6 * np.pi**2)*scipy.integrate.simpson(PSL_NW*(1 - spherical_jn(0, pT/k_BAO) 
+    Sigma2 = 1/(6 * np.pi**2)*simpson(PSL_NW*(1 - spherical_jn(0, pT/k_BAO) 
                                                 + 2*spherical_jn(2, pT/k_BAO)), pT)
         
-    deltaSigma2 = 1/(2 * np.pi**2)*scipy.integrate.simpson(PSL_NW*spherical_jn(2, pT/k_BAO), pT)
+    deltaSigma2 = 1/(2 * np.pi**2)*simpson(PSL_NW*spherical_jn(2, pT/k_BAO), pT)
         
     def Sigma2T(mu):
         return (1 + f0*mu**2 *(2 + f0))*Sigma2 + (f0*mu)**2 * (mu**2 - 1)* deltaSigma2
@@ -1069,7 +1071,7 @@ def k_AP(k_obs, mu_obs, qperp, qpar):
     
     Args: where ‘_obs’ denote quantities that are observed assuming the reference (fiducial) cosmology.
         k_obs: observed wave-number.
-        mu_obs: observed cosine angle between the wave-vector ‘\vec{k}’ and the line-of-sight direction ‘\hat{n}’.
+        mu_obs: observed cosine angle between the wave-vector ‘vec-k’ and the line-of-sight direction ‘hat-n’.
         qperp, qpar: AP parameters.
     Returns:
         True wave-number ‘k_AP’.
@@ -1084,7 +1086,7 @@ def mu_AP(mu_obs, qperp, qpar):
     '''True ‘mu’ coordinates.
     
     Args: where ‘_obs’ denote quantities that are observed assuming the reference (fiducial) cosmology.
-        mu_obs: observed cosine angle between the wave-vector ‘\vec{k}’ and the line-of-sight direction ‘\hat{n}’.
+        mu_obs: observed cosine angle between the wave-vector ‘vec-k’ and the line-of-sight direction ‘hat-n’.
         qperp, qpar: AP parameters.
     Returns:
         True ‘mu_AP’.
@@ -1212,7 +1214,7 @@ def RSDmultipoles(kev, NuisanParams, Omfid = -1, AP = False):
     
     if AP == True:
         
-        Nx = 12                                        #Points
+        Nx = 12                                         #Points
         xGL, wGL = scipy.special.roots_legendre(Nx)    #x=cosθ and weights
         
         def ModelPkl0(Table, Table_NW):
@@ -1235,7 +1237,7 @@ def RSDmultipoles(kev, NuisanParams, Omfid = -1, AP = False):
     
     else:
         
-        Nx = 12                                        #Points
+        Nx = 12                                         #Points
         xGL, wGL = scipy.special.roots_legendre(Nx)    #x=cosθ and weights
         
         def ModelPkl0(Table, Table_NW):
@@ -1351,7 +1353,7 @@ def RSDmultipoles_marginalized_const(kev, NuisanParams, Omfid = -1, AP = False, 
                 + (1 - np.exp(-k**2 * Sigma2T))*PEFTs(k, mu, NuisanParams_const, Table_NW))
         
         
-    Nx = 6                                         #Points
+    Nx = 12                                         #Points
     xGL, wGL = scipy.special.roots_legendre(Nx)    #x=cosθ and weights
     
     def ModelPkl0_const(Table, Table_NW):
@@ -1400,7 +1402,7 @@ def PEFTs_derivatives(k, mu, pkl, PshotP):
     
     Args:
         k: wave-number coordinates of evaluation.
-        mu: cosine angle between the wave-vector ‘\vec{k}’ and the line-of-sight direction ‘\hat{n}’.
+        mu: cosine angle between the wave-vector ‘vec-k’ and the line-of-sight direction ‘hat-n’.
         pkl: linear power spectrum.
         PshotP: stochastic nuisance parameter.
     Returns:
@@ -1517,7 +1519,7 @@ def RSDmultipoles_marginalized_derivatives(kev, NuisanParams, Omfid = -1, AP = F
             return (PIRs_alpha0, PIRs_alpha2, PIRs_alpha4, PIRs_alphashot0, PIRs_alphashot2)
         
         
-    Nx = 6    
+    Nx = 12    
     xGL, wGL = scipy.special.roots_legendre(Nx)    #x=cosθ and weights
     
     def ModelPkl0_derivatives(Table, Table_NW):
@@ -1690,10 +1692,10 @@ def pklIR(inputpkT, h=0.6711, fullrange=False):
     PSL_NW = interp(pT, kT, pkl_NW)
     k_BAO = 1/104                                                 #BAO scale
         
-    #Sigma2 = 1/(6 * np.pi**2)*scipy.integrate.simps(PSL_NW*(1 - spherical_jn(0, pT/k_BAO) 
+    #Sigma2 = 1/(6 * np.pi**2)*simpson(PSL_NW*(1 - spherical_jn(0, pT/k_BAO) 
     #                                            + 2*spherical_jn(2, pT/k_BAO)), pT)
         
-    Sigma2 = 1/(6 * np.pi**2) * scipy.integrate.simpson(PSL_NW*(1 - spherical_jn(0, pT/k_BAO) 
+    Sigma2 = 1/(6 * np.pi**2) * simpson(PSL_NW*(1 - spherical_jn(0, pT/k_BAO) 
                                                 + 2*spherical_jn(2, pT/k_BAO)), pT)
 
     pklIRs = pkl_NW + np.exp(-kT**2 * Sigma2)*(pkl-pkl_NW)
@@ -1730,7 +1732,7 @@ def pklIR_ini(k, pkl, pklnw, h=0.6711, k_BAO = 1.0/104.):
     pT = np.logspace(np.log10(kinit),np.log10(kS), num = 10**2)   #integration range        
     PSL_NW = interp(pT, k, pklnw)
         
-    Sigma2 = 1/(6 * np.pi**2) * scipy.integrate.simpson(PSL_NW*(1 - spherical_jn(0, pT/k_BAO) 
+    Sigma2 = 1/(6 * np.pi**2) * simpson(PSL_NW*(1 - spherical_jn(0, pT/k_BAO) 
                                                 + 2*spherical_jn(2, pT/k_BAO)), pT)
 
     pklIRs = pklnw + np.exp(-k**2 * Sigma2)*(pkl-pklnw)
@@ -2050,15 +2052,15 @@ def sigmas(kT,pklT):
     k_BAO = 1/104
     kS =0.4
 
-    sigma2v_  = scipy.integrate.simpson(pklT, kT) / (6 * np.pi**2)
+    sigma2v_  = simpson(pklT, kT) / (6 * np.pi**2)
     sigma2v_ *= 1.05  #correction due to k cut
 
     pklT_=pklT[kT<=0.4].copy()
     kT_=kT[kT<=0.4].copy()
     
-    Sigma2_ = 1/(6 * np.pi**2)*scipy.integrate.simpson(pklT_*(1 - spherical_jn(0, kT_/k_BAO) 
+    Sigma2_ = 1/(6 * np.pi**2)*simpson(pklT_*(1 - spherical_jn(0, kT_/k_BAO) 
                                                 + 2*spherical_jn(2, kT_/k_BAO)), kT_)
-    deltaSigma2_ = 1/(2 * np.pi**2)*scipy.integrate.simpson(pklT*spherical_jn(2, kT/k_BAO), kT)
+    deltaSigma2_ = 1/(2 * np.pi**2)*simpson(pklT*spherical_jn(2, kT/k_BAO), kT)
 
     return sigma2v_, Sigma2_, deltaSigma2_
 
