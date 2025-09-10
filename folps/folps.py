@@ -1516,13 +1516,13 @@ class BispectrumCalculator:
 
         
     def Bisp_Sugiyama(self, f, bpars, k_pkl_pklnw, z_pk,
-                      k1k2pairs, qpar, qperp, precision=[4, 5, 5], damping = 'lor'):
+                      k1k2pairs, qpar, qper, precision=[4, 5, 5], damping = 'lor'):
 
         #OmM, h = bisp_cosmo_params
-        #qperp, qpar = 1, 1
+        #qper, qpar = 1, 1
 
         #if Omfid > 0:
-        #    qperp = DA(OmM, z_pk) / DA(Omfid, z_pk)
+        #    qper = DA(OmM, z_pk) / DA(Omfid, z_pk)
         #    qpar = Hubble(Omfid, z_pk) / Hubble(OmM, z_pk)
 
         #f = f0_function(z_pk, OmM)
@@ -1540,11 +1540,11 @@ class BispectrumCalculator:
 
         for ii in range(size):
             k1, k2 = k1k2pairs[ii]
-            B000[ii], B202[ii] = self.Sugiyama_B000_B202(k1, k2, f, sigma2v_, Sigma2_, deltaSigma2_, bpars, qpar, qperp, tablesGL, k_pkl_pklnw, damping = damping)
+            B000[ii], B202[ii] = self.Sugiyama_B000_B202(k1, k2, f, sigma2v_, Sigma2_, deltaSigma2_, bpars, qpar, qper, tablesGL, k_pkl_pklnw, damping = damping)
 
         return B000, B202
 
-    def Sugiyama_B000_B202(self, k1, k2, f, sigma2v, Sigma2, deltaSigma2, bpars, qpar, qperp, tablesGL, k_pkl_pklnw, damping = 'lor'):
+    def Sugiyama_B000_B202(self, k1, k2, f, sigma2v, Sigma2, deltaSigma2, bpars, qpar, qper, tablesGL, k_pkl_pklnw, damping = 'lor'):
         phiGL, xGL, muGL = tablesGL
 
         phi_values, phi_weights = phiGL[:, 0], phiGL[:, 1]
@@ -1558,7 +1558,7 @@ class BispectrumCalculator:
         x_mesh, mu_mesh, phi_mesh = np.meshgrid(x_values, mu_values, phi_values, indexing='ij')
 
         bisp = self.bispectrum(k1, k2, x_mesh, mu_mesh, phi_mesh,
-                               f, sigma2v, Sigma2, deltaSigma2, bpars, qpar, qperp, k_pkl_pklnw, damping)
+                               f, sigma2v, Sigma2, deltaSigma2, bpars, qpar, qper, k_pkl_pklnw, damping)
 
         int_phi = 2 * np.sum(bisp * phi_weights, axis=2)
         int_mu_B000 = np.sum(int_phi * mu_weights, axis=1)
