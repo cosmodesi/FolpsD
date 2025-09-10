@@ -43,7 +43,7 @@ class BackendManager:
         if preferred_backend == 'jax':
             try:
                 import jax
-                if any(device.device_kind == "Gpu" for device in jax.devices()):
+                if any(device.device_kind in ["Gpu", "Metal"] for device in jax.devices()):
                     print("✅ GPU detected. Using JAX with GPU.")
                 else:
                     print("⚠️ No GPU found. Using JAX with CPU.")
@@ -1070,12 +1070,12 @@ class RSDMultipolesPowerSpectrumCalculator:
         extra = 6 if A_full_status else 0
         return tuple(np.moveaxis(interp(k, table[0], np.column_stack(table[1:28+extra])), -1, 0)) + table[28+extra:]
 
-    def k_ap(self, kobs, muobs, qper, qpar):
+    def k_ap(self, kobs, muobs, qpar, qper):
         """Return the true wave-number ‘k_AP’."""
         F = qpar / qper
         return (kobs / qper) * (1 + muobs**2 * (1. / F**2 - 1))**0.5
 
-    def mu_ap(self, muobs, qper, qpar):
+    def mu_ap(self, muobs, qpar, qper):
         """Return the true ‘mu_AP’."""
         F = qpar / qper
         return (muobs / F) * (1 + muobs**2 * (1 / F**2 - 1))**-0.5
@@ -1190,8 +1190,13 @@ class RSDMultipolesPowerSpectrumCalculator:
 
         # --- Model self.model ---
         if not getattr(self, '_printed_model_damping_pk', False):
-            print(f"[FOLPS] Model Pk: {self.model}, Damping: {damping}")
+            if self.model == "EFT" and damping is not None:
+                print(f"[FOLPS] Model Pk: {self.model}, damping: None (WARNING: EFT does not use damping, ignoring damping)")
+            else:
+                print(f"[FOLPS] Model Pk: {self.model}, Damping: {damping}")
+                
             self._printed_model_damping_pk = True
+            
         if self.model == "EFT":
             W = 1
         elif self.model == "TNS":
@@ -1291,7 +1296,7 @@ class RSDMultipolesPowerSpectrumCalculator:
 
         muobs, wmu = weights_leggauss(nmu, sym=True)
         wmu = np.array([wmu * (2 * ell + 1) * legendre(ell)(muobs) for ell in ells])
-        jac, kap, muap = (qpar * qper**2)**(-3), self.k_ap(kobs[:, None], muobs, qpar, qper), self.mu_ap(muobs, qpar, qper)[None, :]
+        jac, kap, muap = (qpar * qper**2)**(-1), self.k_ap(kobs[:, None], muobs, qpar, qper), self.mu_ap(muobs, qpar, qper)[None, :]
         #print(muap[0])
         pkmu = jac * self.get_rsd_pkmu(kap, muap, pars, table, table_now, IR_resummation, damping)
         return np.sum(pkmu * wmu[:, None, :], axis=-1)     
@@ -1636,7 +1641,7 @@ def get_rsd_pkell_marg_const(
 
         muobs, wmu = weights_leggauss(nmu, sym=True)
         wmu_arr = np.array([wmu * (2 * ell + 1) * legendre(ell)(muobs) for ell in ells])
-        jac = (qpar * qper**2)**(-3)
+        jac = (qpar * qper**2)**(-1)
         kap = multipoles.k_ap(kobs[:, None], muobs, qpar, qper)
         muap = multipoles.mu_ap(muobs, qpar, qper)[None, :]
 

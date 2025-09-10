@@ -43,7 +43,7 @@ class BackendManager:
         if preferred_backend == 'jax':
             try:
                 import jax
-                if any(device.device_kind == "Gpu" for device in jax.devices()):
+                if any(device.device_kind in ["Gpu", "Metal"] for device in jax.devices()):
                     print("✅ GPU detected. Using JAX with GPU.")
                 else:
                     print("⚠️ No GPU found. Using JAX with CPU.")
@@ -1070,12 +1070,12 @@ class RSDMultipolesPowerSpectrumCalculator:
         extra = 6 if A_full_status else 0
         return tuple(np.moveaxis(interp(k, table[0], np.column_stack(table[1:28+extra])), -1, 0)) + table[28+extra:]
 
-    def k_ap(self, kobs, muobs, qper, qpar):
+    def k_ap(self, kobs, muobs, qpar, qper):
         """Return the true wave-number ‘k_AP’."""
         F = qpar / qper
         return (kobs / qper) * (1 + muobs**2 * (1. / F**2 - 1))**0.5
 
-    def mu_ap(self, muobs, qper, qpar):
+    def mu_ap(self, muobs, qpar, qper):
         """Return the true ‘mu_AP’."""
         F = qpar / qper
         return (muobs / F) * (1 + muobs**2 * (1 / F**2 - 1))**-0.5
@@ -1190,8 +1190,13 @@ class RSDMultipolesPowerSpectrumCalculator:
 
         # --- Model self.model ---
         if not getattr(self, '_printed_model_damping_pk', False):
-            print(f"[FOLPS] Model Pk: {self.model}, Damping: {damping}")
+            if self.model == "EFT" and damping is not None:
+                print(f"[FOLPS] Model Pk: {self.model}, damping: None (WARNING: EFT does not use damping, ignoring damping)")
+            else:
+                print(f"[FOLPS] Model Pk: {self.model}, Damping: {damping}")
+                
             self._printed_model_damping_pk = True
+            
         if self.model == "EFT":
             W = 1
         elif self.model == "TNS":
