@@ -1,0 +1,133 @@
+stop_at_error: True
+likelihood:
+
+  Likelihood.FolpsLikelihood:
+      python_path: "."
+      input_params: 
+        - omegab
+        - omegac
+        - h
+        - logAs
+        - b1
+        - b2
+        - bs2
+        - a_vir
+        - a_vir_bk
+        
+      # output_params: 
+      #   - Omega_m
+      #   - sigma8
+
+
+params:
+  h:
+    prior:
+      min: 0.5
+      max: 0.9
+    ref: 0.68
+    proposal: 0.01
+    latex: h
+
+  # Omega_m:
+  #   latex: \Omega_\mathrm{m}
+
+  # sigma8:
+  #   latex: \sigma_8
+    
+
+
+
+  omegab:
+    prior:
+        dist: norm
+        loc: 0.02237  
+        scale: 0.00037  
+    ref: 0.02237
+    proposal: 0.00037
+    latex: \omega_\mathrm{b}
+
+
+  omegac:
+    prior:
+      min: 0.05
+      max: 0.2
+      # dist: norm
+      # loc: 0.022
+      # scale: 0.005
+    ref: 0.1186
+    proposal: 0.02
+    latex: \omega_\mathrm{cdm}
+   
+
+  logAs:
+    prior:
+      min: 2.0
+      max: 4.0
+    ref: 3.0322
+    proposal: 0.1
+    latex: \log(10^{10} A_s)
+
+  b1:
+    prior:
+      min: 1e-5   # avoid 0
+      max: 10.0
+    ref: 1.0
+    proposal: 0.1
+    latex: b_1
+
+  b2:
+    prior:
+      min: -50
+      max: 50
+    ref: 0
+    proposal: 1.0
+    latex: b_2
+
+  bs2:
+    prior:
+      min: -50
+      max: 50
+    ref: 0
+    proposal: 1.0
+    latex: b_{s^2}
+
+  a_vir:
+    # prior:
+    #   min: 0
+    #   max: 10
+    # ref: 1.0
+    # proposal: 0.5
+    value: 0.0
+    latex: a_\mathrm{vir}
+
+  a_vir_bk:
+    # prior:
+    #   min: 0
+    #   max: 10
+    # ref: 1.0
+    # proposal: 0.5
+    value: 0.0
+    latex: a_\mathrm{vir,bk}
+
+prior:
+  external:  "lambda omegab,h: 0 if (0.03<=(omegab/h**2)<=0.07) else (-np.inf)"  
+
+sampler:
+  mcmc:
+      max_tries: 10000
+      learn_proposal: True
+  # evaluate:
+
+
+
+# sampler:
+#   # minimize:
+#   #   method: bobyqa
+#   #   best_of: 4
+#   #   ignore_prior: True
+#   mcmc:
+#     max_tries: 10000
+#     learn_proposal: true
+#     covmat: auto
+
+output: ./test_Pkmax_0.201/
