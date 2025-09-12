@@ -43,11 +43,11 @@ from desilike_mcmc.mike_data_tools import *
 model = 'LCDM'
 
 #Put 'True' to resume chain. 'False' to start from 0 steps
-restart_chain = False
+restart_chain = True
 #Biasing and EFT parametrization: 'physical' or 'default' (non-physical)
 prior_basis = 'standard' #Prior to be used 
 
-kr_max = 0.201
+kr_max = 0.251
 kr_b0_max = 0.15
 kr_b2_max = 0.12
 
@@ -87,7 +87,7 @@ if set(tracers) == all_tracers:
 else:
     tracers_str = "+".join(tracers)
 
-chain_name = f'chains/MCMC-fs_abacus2gen_new_folpsv2_fk_ps_0.201_Afull_true'
+chain_name = f'chains/MCMC-fs_abacus2gen_new_folpsv2_fk_ps_0.251_Afull_false'
 if not set_emulator:
     chain_name += '_noemu'
 #print(chain_name)
@@ -104,15 +104,20 @@ def make_params(prior_basis, width_EFT, width_SN0, width_SN2):
         params['b1p'] = {'prior': {'dist':'uniform','limits': [1e-5, 10]}}
         params['b2p'] = {'prior': {'dist':'uniform','limits': [-50, 50]}}
         params['bsp'] = {'prior': {'dist': 'norm', 'loc': 0, 'scale': 20}}
-
+        params['b3p'] = {'fixed':True}
         # PS-only
         params['alpha0p'] = {'prior': {'dist': 'norm', 'loc': 0, 'scale': width_EFT}}
         params['alpha2p'] = {'prior': {'dist': 'norm', 'loc': 0, 'scale': width_EFT}}
         params['alpha4p'] = {'prior': {'dist': 'norm', 'loc': 0, 'scale': width_EFT}}
         params['sn0p'] = {'prior': {'dist': 'norm', 'loc': 0, 'scale': width_SN0}}
         params['sn2p'] = {'prior': {'dist': 'norm', 'loc': 0, 'scale': width_SN2}}
-
+        params['X_FoG_pp'] = {'prior': {'dist':'uniform','limits': [0, 10]}}
         # BS-only → if physical, no c1,c2,Pshot,Bshot,X_FoG_b
+        params['c1'] = {'prior': {'dist':'uniform','limits': [-2000, 2000]}}
+        params['c2'] = {'prior': {'dist':'uniform','limits': [-2000, 2000]}}
+        params['Pshot'] = {'prior': {'dist':'uniform','limits': [-50000, 50000]}}
+        params['Bshot'] = {'prior': {'dist':'uniform','limits': [-50000, 50000]}}
+        params['X_FoG_b'] = {'prior': {'dist':'uniform','limits': [0, 15]}}
 
     else:
         # Shared params
@@ -133,8 +138,8 @@ def make_params(prior_basis, width_EFT, width_SN0, width_SN2):
         # params['alpha4'] = {'value':0.0,'fixed':True}
         # params['sn0'] = {'value':-0.073,'fixed':True}
         # params['sn2'] = {'value':-6.38,'fixed':True}
-        # params['X_FoG_p'] = {'prior': {'dist':'uniform','limits': [0, 10]}} 
-        params['X_FoG_p'] = {'fixed':True}  # fixed in your snippet
+        params['X_FoG_p'] = {'prior': {'dist':'uniform','limits': [0, 10]}} 
+        # params['X_FoG_p'] = {'fixed':True}  # fixed in your snippet
 
         # BS-only
         params['c1'] = {'prior': {'dist':'uniform','limits': [-2000, 2000]}}
@@ -228,7 +233,7 @@ for tracer in tracers:
         # ps_theory = FOLPSv2TracerPowerSpectrumMultipoles(template=template,
         #                                                  prior_basis=prior_basis)
         ps_theory = FOLPSv2TracerPowerSpectrumMultipoles(template=template,
-                                                         prior_basis=prior_basis, A_full=True)
+                                                         prior_basis=prior_basis, A_full=False)
 
     # BS theory always FOLPSv2 in your snippet
     bs_theory = FOLPSv2TracerBispectrumMultipoles(template=template,
@@ -245,8 +250,8 @@ for tracer in tracers:
                 theories[tracer][comp].params[name].update(p)
 
 
-    print("X_FoG_p=",params['X_FoG_p'].value)
-    print("b3=",params['b3'].value)
+    # print("X_FoG_p=",params['X_FoG_pp'].value)
+    # print("b3=",params['b3p'].value)
 
 
         
@@ -261,7 +266,7 @@ for tracer in tracers:
 
 def load_data_vector_and_covariance():
     k_min=0.02
-    k_max=0.201
+    k_max=0.251
     k_max_b0 = 0.15
     k_max_b2 = 0.12
 
@@ -441,7 +446,7 @@ if set_emulator:
         for comp in ["ps"]:  # handle PS and BS separately
             obs = observables[tracer][comp]
 
-            emulator_filename = f'Emulator_test_sims_{comp}/{comp}_emu_{tracers_str}_{tracer}_{kr_max}_folpsv2_fk.npy'
+            emulator_filename = f'Emulator_test_sims_{comp}/{comp}_emu_{tracers_str}_{tracer}_{kr_max}_folpsv2_fk_no_Afull.npy'
             os.makedirs(os.path.dirname(emulator_filename), exist_ok=True)
 
             if os.path.exists(emulator_filename):
@@ -619,7 +624,16 @@ if args.plot_chains:
     g.export("test_chains.png")
 
 if args.run_chains: 
-
+    def load_chain(fi, burnin=0.3):
+        from desilike.samples import Chain
+        # chains = [Chain.load(ff).remove_burnin(burnin) for ff in fi]
+        chains = [Chain.load(fi).remove_burnin(burnin)]
+        chain = chains[0].concatenate(chains)
+        print(f'chain: {chain}')
+        return chain
+    
+    cov_chain_path = Path('/global/homes/p/prakharb/FOLPSpipe/folps/chains/MCMC-fs_abacus2gen_new_folpsv2_fk_ps_0.301_Afull_false.npy')
+    cov_chain = load_chain(cov_chain_path,burnin=0.3)
     
 
 #Run the sampler and save the chain
@@ -627,11 +641,14 @@ if args.run_chains:
     
     if sampler == 'cobaya':
         if restart_chain is False:
-            sampler = MCMCSampler(likelihood, save_fn = chain_name)
+            sampler = MCMCSampler(likelihood, save_fn = chain_name,covariance=cov_chain)
+            
             sampler.run(check={'max_eigen_gr': GR_criteria})
         else:
             sampler = MCMCSampler(likelihood ,save_fn = chain_name, 
-                                  chains=f'{chain_name}.npy')
+                                  chains=f'{chain_name}.npy',covariance=cov_chain)
+            #print(sampler.diagnostics)     # includes R-1, acceptance rate, etc.
+            #print(sampler.converged)       # 
             sampler.run(check={'max_eigen_gr': GR_criteria})
         
     else:
