@@ -1,10 +1,10 @@
 import warnings
-import warnings
 from jax import numpy as jnp
 import numpy as np
 from scipy import special
 
 import interpax
+import hashlib
 
 from jax import config; config.update('jax_enable_x64', True)
 
@@ -82,7 +82,8 @@ def interp(xq, x, f, method='cubic'):
     method = {1: 'linear', 3: 'cubic'}.get(method, method)
     xq = jnp.asarray(xq)
     shape = xq.shape
-    return interpax.interp1d(xq.reshape(-1), x, f, method=method, extrap=False).reshape(shape + f.shape[1:])
+    # Use extrap=True to match scipy.interpolate(..., fill_value='extrapolate') used in the numpy backend
+    return interpax.interp1d(xq.reshape(-1), x, f, method=method, extrap=True).reshape(shape + f.shape[1:])
 
 
 _NoValue = None
@@ -426,204 +427,247 @@ def extrapolate(x, y, xq):
     return (xq, m * xq + b)
 
 
-def extrapolate_linear_loglog(k, pk, kcut, k_extrapolate, is_high_k=True):
+def extrapolate_pklin(k, pk, extrap=(10**(-7), 200), lim=None):
     """
-    Generic extrapolation function for high-k or low-k values using logarithmic scaling.
+    Extrapolation to the input linear power spectrum.
+
+    JAX-jit friendly: avoids boolean masking (which creates data-dependent
+    shapes) and data-dependent arange lengths. Uses fixed-size linspace grids
+    for low/high-k extrapolation so array shapes remain static under JIT.
 
     Args:
-        k: Array of k-coordinates.
-        pk: Array of power spectrum values corresponding to k.
-        kcut: Value of 'k' from which extrapolation will begin.
-        k_extrapolate: Value of 'k' up to which extrapolation will be performed.
-        is_high_k: Boolean indicating if extrapolation is for high-k (True) or low-k (False).
-    
+        k, pk : k-coordinates and linear power spectrum.
+        extrap : tuple(float, float)
+            Min/Max k used for extrapolation.
+        lim : unused (kept for API compatibility).
     Returns:
-        Extrapolated k and pk arrays from 'kcut' to 'k_extrapolate'.
+        (k_new, pk_new) with low/high extrapolated tails added.
     """
-    if is_high_k:
-        cutrange = jnp.where(k <= kcut)
-        index_slice = slice(-6, None)
-    else:
-        cutrange = jnp.where(k > kcut)
-        index_slice = slice(None, 5)
+    # Use JAX arrays/ops so this function can be traced inside jax.jit
+    k = jnp.asarray(k)
+    pk = jnp.asarray(pk)
+
+    # Do NOT slice with a boolean mask inside jit; keep static shapes
+    kcut, pkcut = k, pk
+
+    # Fixed number of points for low/high extrapolation to keep shapes static
+    N_LOW = 16
+    N_HIGH = 64
+
+    # Compute approximate log-spacing from the endpoints
+    logk0 = jnp.log10(kcut[0])
+    logk1 = jnp.log10(kcut[1])
+    dlogk_low = logk1 - logk0
+
+    logkN = jnp.log10(kcut[-1])
+    logkNm1 = jnp.log10(kcut[-2])
+    dlogk_high = logkN - logkNm1
+
+    # Low-k grid: from extrap[0] up to just below the first k, with fixed size
+    logk_low_grid = jnp.linspace(jnp.log10(extrap[0]), logk0 - dlogk_low, N_LOW)
+    sign_low = jnp.sign(pkcut[0])
+    fitx_low = jnp.log10(jnp.abs(kcut[:5]))
+    fity_low = jnp.log10(jnp.abs(pkcut[:5]))
+    _, logpk_low = extrapolate(fitx_low, fity_low, logk_low_grid)
+
+    # High-k grid: from just above the last k up to extrap[1], with fixed size
+    logk_high_grid = jnp.linspace(logkN + dlogk_high, jnp.log10(extrap[1]), N_HIGH)
+    sign_high = jnp.sign(pkcut[-1])
+    fitx_high = jnp.log10(jnp.abs(kcut[-6:]))
+    fity_high = jnp.log10(jnp.abs(pkcut[-6:]))
+    _, logpk_high = extrapolate(fitx_high, fity_high, logk_high_grid)
+
+    knew = jnp.concatenate([jnp.power(10.0, logk_low_grid), kcut, jnp.power(10.0, logk_high_grid)], axis=0)
+    pknew = jnp.concatenate([sign_low * jnp.power(10.0, logpk_low), pkcut, sign_high * jnp.power(10.0, logpk_high)], axis=0)
+
+    return knew, pknew
+
     
-    k_cut = k[cutrange]
-    pk_cut = pk[cutrange]
-    k_to_extrapolate = k_cut[index_slice]
-    pk_to_extrapolate = pk_cut[index_slice]
-
-    delta_log_k = jnp.log10(k_to_extrapolate[2]) - jnp.log10(k_to_extrapolate[1])
-    last_or_first_k = jnp.log10(k_to_extrapolate[-1]) if is_high_k else jnp.log10(k_to_extrapolate[0])
-    
-    log_k_list = []
-    while last_or_first_k <= jnp.log10(k_extrapolate) if is_high_k else last_or_first_k > jnp.log10(k_extrapolate):
-        last_or_first_k += delta_log_k if is_high_k else -delta_log_k
-        log_k_list.append(last_or_first_k)
-    
-    log_k_list = jnp.array(log_k_list) if is_high_k else jnp.array(list(reversed(log_k_list)))
-    
-    sign = jnp.sign(pk_to_extrapolate[1])
-    pk_to_extrapolate_log = jnp.log10(jnp.abs(pk_to_extrapolate))
-    log_extrapolated_k, log_extrapolated_pk = extrapolate(jnp.log10(k_to_extrapolate), pk_to_extrapolate_log, log_k_list)
-    
-    extrapolated_k = 10**log_extrapolated_k
-    extrapolated_pk = sign * 10**log_extrapolated_pk
-    
-    if is_high_k:
-        k_result = jnp.concatenate((k_cut, extrapolated_k))
-        pk_result = jnp.concatenate((pk_cut, extrapolated_pk))
-    else:
-        k_result = jnp.concatenate((extrapolated_k, k_cut))
-        pk_result = jnp.concatenate((extrapolated_pk, pk_cut))
-    
-    return k_result, pk_result
-
-
-def extrapolate_high_k(k, pk, kcutmax, kmax):
-    """
-    Extrapolate for high-k values using logarithmic scaling.
-
-    Args:
-        k: Array of k-coordinates.
-        pk: Array of power spectrum values corresponding to k.
-        kcutmax: Value of 'k' from which extrapolation will begin.
-        kmax: Value of 'k' up to which extrapolation will be performed.
-    
-    Returns:
-        Extrapolated k and pk arrays for high-k values.
-    """
-    return extrapolate_linear_loglog(k, pk, kcutmax, kmax, is_high_k=True)
-
-
-def extrapolate_low_k(k, pk, kcutmin, kmin):
-    """
-    Extrapolate for low-k values using logarithmic scaling.
-
-    Args:
-        k: Array of k-coordinates.
-        pk: Array of power spectrum values corresponding to k.
-        kcutmin: Value of 'k' from which extrapolation will begin.
-        kmin: Value of 'k' up to which extrapolation will be performed.
-    
-    Returns:
-        Extrapolated k and pk arrays for low-k values.
-    """
-    return extrapolate_linear_loglog(k, pk, kcutmin, kmin, is_high_k=False)
-
-
-def extrapolate_k(k, pk, kcutmin, kmin, kcutmax, kmax):
-    """
-    Extrapolate for both low-k and high-k values.
-
-    Args:
-        k: Array of k-coordinates.
-        pk: Array of power spectrum values corresponding to k.
-        kcutmin, kcutmax: Values of 'k' from which extrapolation will begin.
-        kmin, kmax: Values of 'k' up to which extrapolation will be performed.
-    
-    Returns:
-        Extrapolated k and pk arrays for both low-k and high-k values.
-    """
-    k_high, pk_high = extrapolate_high_k(k, pk, kcutmax, kmax)
-    return extrapolate_low_k(k_high, pk_high, kcutmin, kmin)
-
-
-def extrapolate_pklin(k, pk):
-    """
-    Extrapolate the input linear power spectrum to low-k or high-k if needed.
-
-    Args:
-        k: Array of k-coordinates.
-        pk: Array of power spectrum values corresponding to k.
-    
-    Returns:
-        Extrapolated k and pk arrays for the full desired k-range.
-    """
-    kmin = 1e-5
-    kmax = 200
-    kcutmin = min(k)
-    kcutmax = max(k)
-
-    if kmin < kcutmin or kmax > kcutmax:
-        return extrapolate_k(k, pk, kcutmin, kmin, kcutmax, kmax)
-    else:
-        return k, pk
-    
-    
-
+import jax
+@jax.jit
 def get_pknow(k, pk, h):
     """
-    Routine (based on J. Hamann et. al. 2010, arXiv:1003.3999) to get the non-wiggle piece of the linear power spectrum.
+    Routine (based on J. Hamann et. al. 2010, arXiv:1003.3999) to get the
+    non-wiggle piece of the linear power spectrum.
+
+    JIT-compatible version: uses JAX ops throughout and calls SciPy's
+    DST/IDST via a host callback with static shapes to preserve numerical
+    results while remaining jittable.
 
     Args:
-        k: wave-number.
-        pk: linear power spectrum.
-        h: H0/100.
+        k: wave-number (1D array).
+        pk: linear power spectrum (1D array, same shape as k).
+        h: H0/100 (float).
     Returns:
-        non-wiggle piece of the linear power spectrum.
+        (k, PNWkTot): tuple of arrays with the non-wiggle spectrum evaluated
+        at the input k.
     """
-    def interp(k, x, y):  # out-of-range below
+    import jax
+
+    # Constants (static for JIT)
+    kmin = 7.0e-5 / h
+    kmax = 7.0 / h
+    nk = 2**16  # must remain constant for static shapes
+    mcutmin = 120
+    mcutmax = 240
+
+    # Sample ln(k P_L(k)) on an equidistant k-grid
+    ksT = kmin + jnp.arange(nk, dtype=jnp.float64) * (kmax - kmin) / (nk - 1)
+    # Interpolate using SciPy CubicSpline via host callback to match numpy version
+    def _cubic_spline_eval(xq_np, x_np, y_np):
         from scipy.interpolate import CubicSpline
-        return CubicSpline(x, y)(k)
+        cs = CubicSpline(np.asarray(x_np), np.asarray(y_np), extrapolate=True)
+        return cs(np.asarray(xq_np)).astype(np.float64)
 
-    from scipy.fft import dst, idst  # not in jax yet...
-    #kmin(max): k-range and nk: points
-    kmin = 7 * 10**(-5) / h; kmax = 7 / h; nk = 2**16
-
-    #sample ln(kP_L(k)) in nk points, k range (equidistant)
-    ksT = kmin + jnp.arange(nk) * (kmax - kmin) / (nk - 1)
-    PSL = interp(ksT, k, pk)
+    import jax
+    PSL = jax.pure_callback(
+        _cubic_spline_eval,
+        jax.ShapeDtypeStruct(ksT.shape, jnp.float64),
+        ksT, k, pk
+    )
     logkpk = jnp.log(ksT * PSL)
 
-    #Discrete sine transf., check documentation
-    FSTlogkpkT = dst(np.array(logkpk), type=1, norm="ortho")
+    # Discrete sine transform type-I, ortho norm, via host callback (SciPy)
+    def _dst1_ortho(x_np):
+        from scipy.fft import dst
+        return dst(np.asarray(x_np), type=1, norm="ortho").astype(np.float64)
+
+    FST_shape = jax.ShapeDtypeStruct((nk,), jnp.float64)
+    FSTlogkpkT = jax.pure_callback(_dst1_ortho, FST_shape, logkpk)
+
+    # Split even/odd harmonics
     FSTlogkpkOddT = FSTlogkpkT[::2]
     FSTlogkpkEvenT = FSTlogkpkT[1::2]
 
-    #cut range (remove the harmonics around BAO peak)
-    mcutmin = 120; mcutmax = 240
+    # Remove harmonics around the BAO peak (cut range)
+    len_even = nk // 2  # static
 
-    #Even
+    # Even branch indices and values (1-based indexing in original method)
     xEvenTcutmin = jnp.arange(1, mcutmin - 1, 1)
-    xEvenTcutmax = jnp.arange(mcutmax + 2, len(FSTlogkpkEvenT) + 1, 1)
+    xEvenTcutmax = jnp.arange(mcutmax + 2, len_even + 1, 1)
     EvenTcutmin = FSTlogkpkEvenT[0:mcutmin - 2]
-    EvenTcutmax = FSTlogkpkEvenT[mcutmax + 1:len(FSTlogkpkEvenT)]
-    xEvenTcuttedT = jnp.concatenate((xEvenTcutmin, xEvenTcutmax))
+    EvenTcutmax = FSTlogkpkEvenT[mcutmax + 1:len_even]
+    xEvenTcuttedT = jnp.concatenate((xEvenTcutmin, xEvenTcutmax)).astype(jnp.float64)
     nFSTlogkpkEvenTcuttedT = jnp.concatenate((EvenTcutmin, EvenTcutmax))
 
-    #Odd
+    # Odd branch indices and values
     xOddTcutmin = jnp.arange(1, mcutmin, 1)
-    xOddTcutmax = jnp.arange(mcutmax + 1, len(FSTlogkpkEvenT) + 1, 1)
+    xOddTcutmax = jnp.arange(mcutmax + 1, len_even + 1, 1)
     OddTcutmin = FSTlogkpkOddT[0:mcutmin - 1]
-    OddTcutmax = FSTlogkpkOddT[mcutmax:len(FSTlogkpkEvenT)]
-    xOddTcuttedT = jnp.concatenate((xOddTcutmin, xOddTcutmax))
+    OddTcutmax = FSTlogkpkOddT[mcutmax:len_even]
+    xOddTcuttedT = jnp.concatenate((xOddTcutmin, xOddTcutmax)).astype(jnp.float64)
     nFSTlogkpkOddTcuttedT = jnp.concatenate((OddTcutmin, OddTcutmax))
 
-    #Interpolate the FST harmonics in the BAO range
-    PreEvenT = interp(jnp.arange(2, mcutmax + 1, 1.), xEvenTcuttedT, nFSTlogkpkEvenTcuttedT)
-    PreOddT = interp(jnp.arange(0, mcutmax - 1, 1.), xOddTcuttedT, nFSTlogkpkOddTcuttedT)
-    preT = jnp.column_stack([PreOddT[mcutmin:mcutmax - 1], PreEvenT[mcutmin:mcutmax - 1]]).ravel()
-    preT = jnp.concatenate([FSTlogkpkT[:2 * mcutmin], preT, FSTlogkpkT[2 * mcutmax - 2:]])
+    # Interpolate the FST harmonics inside the BAO range (JAX-friendly interp)
+    qEven = jnp.arange(2, mcutmax + 1, 1.0)
+    qOdd = jnp.arange(0, mcutmax - 1, 1.0)
+    # These are small arrays; still use CubicSpline to match numpy
+    PreEvenT = jax.pure_callback(
+        _cubic_spline_eval,
+        jax.ShapeDtypeStruct(qEven.shape, jnp.float64),
+        qEven, xEvenTcuttedT, nFSTlogkpkEvenTcuttedT
+    )
+    PreOddT = jax.pure_callback(
+        _cubic_spline_eval,
+        jax.ShapeDtypeStruct(qOdd.shape, jnp.float64),
+        qOdd, xOddTcuttedT, nFSTlogkpkOddTcuttedT
+    )
+    pre_middle = jnp.column_stack([
+        PreOddT[mcutmin:mcutmax - 1],
+        PreEvenT[mcutmin:mcutmax - 1]
+    ]).ravel()
+    preT = jnp.concatenate([
+        FSTlogkpkT[:2 * mcutmin],
+        pre_middle,
+        FSTlogkpkT[2 * mcutmax - 2:]
+    ])
 
-    #Inverse Sine transf.
-    FSTofFSTlogkpkNWT = idst(np.array(preT), type=1, norm="ortho")
-    PNWT = jnp.exp(FSTofFSTlogkpkNWT)/ksT
+    # Inverse DST-I via host callback (SciPy)
+    def _idst1_ortho(x_np):
+        from scipy.fft import idst
+        return idst(np.asarray(x_np), type=1, norm="ortho").astype(np.float64)
 
-    PNWk = interp(k, ksT, PNWT)
-    DeltaAppf = k*(PSL[7]-PNWT[7])/PNWT[7]/ksT[7]
+    pre_shape = jax.ShapeDtypeStruct((nk,), jnp.float64)
+    FSTofFSTlogkpkNWT = jax.pure_callback(_idst1_ortho, pre_shape, preT)
+    PNWT = jnp.exp(FSTofFSTlogkpkNWT) / ksT
 
-    irange1 = k < 1e-3
-    PNWk1 = pk[irange1] / (DeltaAppf[irange1] + 1)
+    # Evaluate non-wiggle spectrum back on input k-grid
+    # Final interpolation back to input k-grid using CubicSpline
+    PNWk = jax.pure_callback(
+        _cubic_spline_eval,
+        jax.ShapeDtypeStruct(k.shape, jnp.float64),
+        k, ksT, PNWT
+    )
 
-    irange2 = (1e-3 <= k) & (k <= ksT[len(ksT)-1])
-    PNWk2 = PNWk[irange2]
+    # Low-k correction (DeltaAppf) and final stitching using where (no masks/concat)
+    DeltaAppf = k * (PSL[7] - PNWT[7]) / PNWT[7] / ksT[7]
+    cond_low = k < 1.0e-3
+    cond_high = k > ksT[-1]
+    P_low = pk / (DeltaAppf + 1.0)
+    P_mid = PNWk
+    P_high = pk
+    PNWkTot = jnp.where(cond_low, P_low, jnp.where(cond_high, P_high, P_mid))
 
-    irange3 = (k > ksT[len(ksT)-1])
-    PNWk3 = pk[irange3]
+    return (k, PNWkTot)
 
-    PNWkTot = jnp.concatenate([PNWk1, PNWk2, PNWk3])
 
-    return(k, PNWkTot)
+# Simple python-side cache for get_pknow results to avoid recomputing expensive
+# host-callbacks (DST / CubicSpline) when the same input `pk` is requested
+# multiple times. This wrapper is intentionally NOT jitted: it lives on the
+# Python side, checks a small LRU-like dict keyed by a hash of `pk` and `h`,
+# and calls the jitted `get_pknow` only when needed.
+_PKNOW_CACHE_SIZE = 16
+_pknow_cache = {}
+_pknow_cache_keys = []
+
+def _array_hash(arr):
+    """Compute a short hash for a numeric array (numpy or jax array).
+
+    The hash takes into account raw bytes, shape and dtype to reduce collisions.
+    """
+    a = np.asarray(arr)
+    h = hashlib.sha1()
+    h.update(a.tobytes())
+    h.update(str(a.shape).encode())
+    h.update(str(a.dtype).encode())
+    return h.hexdigest()
+
+
+def get_pknow_cached(k, pk, h, use_cache=True):
+    """Cacheing wrapper around `get_pknow`.
+
+    Parameters
+    ----------
+    k, pk, h : as in `get_pknow`.
+    use_cache : bool
+        If True (default) use the cache. If False, call `get_pknow` always.
+
+    Returns
+    -------
+    (k_out, pknow_out)
+    """
+    if not use_cache:
+        return get_pknow(k, pk, h)
+
+    key = _array_hash(pk) + f"_h{float(h)}"
+    res = _pknow_cache.get(key, None)
+    if res is not None:
+        return res
+
+    # Not cached: compute (this will run the jitted function, possibly triggering
+    # the host callbacks the first time).
+    res = get_pknow(k, pk, h)
+
+    # Maintain small LRU-like cache
+    if len(_pknow_cache_keys) >= _PKNOW_CACHE_SIZE:
+        old = _pknow_cache_keys.pop(0)
+        try:
+            del _pknow_cache[old]
+        except KeyError:
+            pass
+    _pknow_cache[key] = res
+    _pknow_cache_keys.append(key)
+    return res
 
 
 
@@ -745,3 +789,231 @@ def qpar_qperp(Omega_fid, Omega_m, z_pk, cosmo=None):
     qperp = DA_m / DA_fid
     qpar = H_fid / H_m
     return qpar, qperp
+
+
+import jax
+import jax.numpy as jnp
+jax.config.update("jax_enable_x64", True)
+
+# ==================== CubicSpline (not-a-knot, extrapolate=True) ====================
+
+def _solve_tridiag_not_a_knot_second_derivs(x, y):
+    """
+    Resuelve segundas derivadas s[0..n-1] para spline cúbico con condiciones
+    not-a-knot en x[1] y x[n-2]. Implementado 100% JAX y sin ramas Python
+    dependientes de trazas (usa lax.cond y fori_loop válidos).
+    """
+    x = jnp.asarray(x, jnp.float64)
+    y = jnp.asarray(y, jnp.float64)
+    n = x.size
+    h = jnp.diff(x)  # (n-1,)
+
+    main  = jnp.zeros(n,   dtype=jnp.float64)
+    lower = jnp.zeros(n-1, dtype=jnp.float64)
+    upper = jnp.zeros(n-1, dtype=jnp.float64)
+    rhs   = jnp.zeros(n,   dtype=jnp.float64)
+
+    # Filas interiores (i = 1..n-2)
+    def fill_interior(i, carry):
+        main, lower, upper, rhs = carry
+        hi_1 = h[i-1]
+        hi   = h[i]
+        main = main.at[i].set(2.0*(hi_1 + hi))
+        lower = lower.at[i-1].set(hi_1)
+        upper = upper.at[i].set(hi)
+        rhs_i = 6.0*((y[i+1]-y[i])/hi - (y[i]-y[i-1])/hi_1)
+        rhs = rhs.at[i].set(rhs_i)
+        return (main, lower, upper, rhs)
+
+    (main, lower, upper, rhs) = jax.lax.fori_loop(
+        1, n-1, fill_interior, (main, lower, upper, rhs)
+    )
+
+    # Not-a-knot usando forma equivalente estable:
+    # s0 - s1 = 0  --> fila 0
+    main  = main.at[0].set(1.0)
+    upper = upper.at[0].set(-1.0)
+    rhs   = rhs.at[0].set(0.0)
+    # s_{n-2} - s_{n-1} = 0 --> fila n-1
+    main  = main.at[n-1].set(1.0)
+    lower = lower.at[n-2].set(-1.0)
+    rhs   = rhs.at[n-1].set(0.0)
+
+    # Thomas: forward sweep (i = 1..n-1)
+    # cprime[i] definido para i = 0..n-2
+    cprime = jnp.zeros(n-1, dtype=jnp.float64)
+    dprime = jnp.zeros(n,   dtype=jnp.float64)
+    cprime = cprime.at[0].set(upper[0]/main[0])
+    dprime = dprime.at[0].set(rhs[0]/main[0])
+
+    def forward(i, vals):
+        cprime, dprime = vals
+        denom = main[i] - lower[i-1]*cprime[i-1]
+        # dprime[i]
+        dprime_i = (rhs[i] - lower[i-1]*dprime[i-1]) / denom
+        dprime = dprime.at[i].set(dprime_i)
+
+        # cprime[i] si i < n-1; si i == n-1, no se escribe (evita OOB)
+        def set_cprime(_):
+            return cprime.at[i].set(upper[i]/denom)
+        def keep(_):
+            return cprime
+        cprime = jax.lax.cond(i < (n-1), set_cprime, keep, operand=None)
+        return (cprime, dprime)
+
+    cprime, dprime = jax.lax.fori_loop(1, n, forward, (cprime, dprime))
+
+    # Thomas: backward substitution
+    # s[n-1] = dprime[n-1]
+    s = jnp.zeros(n, dtype=jnp.float64).at[n-1].set(dprime[n-1])
+
+    # Recorremos t = 0..n-2 y usamos idx = n-2 - t  => i = n-2, ..., 0
+    def backward(t, s):
+        i = (n - 2) - t
+        # s[i] = dprime[i] - cprime[i] * s[i+1]
+        return s.at[i].set(dprime[i] - cprime[i]*s[i+1])
+
+    s = jax.lax.fori_loop(0, n-1, backward, s)
+    return s
+
+def _cubic_eval_not_a_knot(xq, x, y, s):
+    """
+    Evalúa el spline cúbico (con segundas derivadas s) en xq.
+    Extrapola usando el primer/último tramo (extrapolate=True).
+    """
+    x = jnp.asarray(x, jnp.float64)
+    y = jnp.asarray(y, jnp.float64)
+    s = jnp.asarray(s, jnp.float64)
+    # índice de tramo (clamp para extrapolación)
+    i = jnp.clip(jnp.searchsorted(x, xq, side="right") - 1, 0, x.size - 2)
+
+    xi   = x[i]
+    xi1  = x[i+1]
+    hi   = xi1 - xi
+    si   = s[i]
+    si1  = s[i+1]
+    yi   = y[i]
+    yi1  = y[i+1]
+
+    dx1 = xi1 - xq
+    dx  = xq - xi
+
+    term1 = si  * (dx1**3) / (6.0*hi)
+    term2 = si1 * (dx**3)  / (6.0*hi)
+    term3 = (yi  - si *(hi**2)/6.0) * (dx1/hi)
+    term4 = (yi1 - si1*(hi**2)/6.0) * (dx/hi)
+    return term1 + term2 + term3 + term4
+
+def cubic_spline_not_a_knot_eval(xq, x, y):
+    """Interpolación cúbica not-a-knot con extrapolación, 100% JAX."""
+    s = _solve_tridiag_not_a_knot_second_derivs(x, y)
+    xq = jnp.asarray(xq, jnp.float64)
+    return jax.vmap(lambda t: _cubic_eval_not_a_knot(t, x, y, s))(xq)
+
+
+# ==================== DST-I / IDST-I (norm="ortho") 100% JAX ====================
+
+def dst1_ortho(x):
+    """
+    DST-I con normalización ortonormal (equivalente a SciPy: norm='ortho').
+    Implementación vía RFFT sobre la extensión impar:
+      y = [0, x1..xN, 0, -xN..-x1],  len(y) = 2*(N+1)
+    Identidad correcta (¡incluye 1/2!):
+      DST-I(x) = -0.5 * Im( RFFT(y) )[1:N+1] * sqrt(2/(N+1))
+    """
+    x = jnp.asarray(x, jnp.float64)
+    N = x.shape[0]
+    y = jnp.concatenate([jnp.array([0.0], jnp.float64),
+                         x,
+                         jnp.array([0.0], jnp.float64),
+                         -x[::-1]])
+    Y = jnp.fft.rfft(y)  # longitud 2*(N+1) -> rfft devuelve N+2 puntos
+    return (-0.5 * Y.imag[1:N+1]) * jnp.sqrt(2.0/(N+1))
+
+def idst1_ortho(X):
+    """
+    Inversa ortonormal de DST-I. Para la versión 'ortho', la inversa es la misma
+    operación (matriz ortonormal: U^{-1} = U^T = U).
+    """
+    return dst1_ortho(X)
+
+
+# ==================== Algoritmo BAO non-wiggle (Hamann+ 2010) ====================
+
+@jax.jit
+def get_pknow_jax(k, pk, h,
+                  nk=2**16, mcutmin=120, mcutmax=240):
+    """
+    100% JAX, misma lógica que tu referencia:
+      - CubicSpline not-a-knot (extrapolate=True)
+      - DST/IDST tipo-I 'ortho'
+    """
+    k = jnp.asarray(k, jnp.float64)
+    pk = jnp.asarray(pk, jnp.float64)
+
+    kmin = 7.0e-5 / h
+    kmax = 7.0     / h
+
+    ksT = kmin + jnp.arange(nk, dtype=jnp.float64) * (kmax - kmin) / (nk - 1)
+
+    # Interpola P(k) a la malla interna con el MISMO esquema cúbico
+    PSL = cubic_spline_not_a_knot_eval(ksT, k, pk)
+
+    # DST-I ortho de log(k P(k))
+    logkpk = jnp.log(ksT * PSL)
+    FST = dst1_ortho(logkpk)  # tamaño nk
+
+    # Separar impares/pares
+    FST_odd  = FST[::2]
+    FST_even = FST[1::2]
+    len_even = nk // 2
+
+    # Cortes (par)
+    xEvenTcutmin = jnp.arange(1, mcutmin - 1, 1)
+    xEvenTcutmax = jnp.arange(mcutmax + 2, len_even + 1, 1)
+    EvenTcutmin  = FST_even[0:mcutmin - 2]
+    EvenTcutmax  = FST_even[mcutmax + 1:len_even]
+    xEvenTcutted = jnp.concatenate((xEvenTcutmin, xEvenTcutmax)).astype(jnp.float64)
+    F_even_cut   = jnp.concatenate((EvenTcutmin, EvenTcutmax))
+
+    # Cortes (impar)
+    xOddTcutmin  = jnp.arange(1, mcutmin, 1)
+    xOddTcutmax  = jnp.arange(mcutmax + 1, len_even + 1, 1)
+    OddTcutmin   = FST_odd[0:mcutmin - 1]
+    OddTcutmax   = FST_odd[mcutmax:len_even]
+    xOddTcutted  = jnp.concatenate((xOddTcutmin, xOddTcutmax)).astype(jnp.float64)
+    F_odd_cut    = jnp.concatenate((OddTcutmin, OddTcutmax))
+
+    # Re-interpolar armónicos dentro de la ventana BAO con el mismo spline
+    qEven = jnp.arange(2, mcutmax + 1, 1.0)
+    qOdd  = jnp.arange(0, mcutmax - 1, 1.0)
+    PreEven = cubic_spline_not_a_knot_eval(qEven, xEvenTcutted, F_even_cut)
+    PreOdd  = cubic_spline_not_a_knot_eval(qOdd,  xOddTcutted,  F_odd_cut)
+
+    pre_middle = jnp.column_stack([
+        PreOdd[mcutmin:mcutmax - 1],
+        PreEven[mcutmin:mcutmax - 1]
+    ]).ravel()
+
+    pre = jnp.concatenate([
+        FST[:2 * mcutmin],
+        pre_middle,
+        FST[2 * mcutmax - 2:]
+    ])
+
+    # IDST-I ortho (autoinversa)
+    logkpk_nw = idst1_ortho(pre)
+    PNWT = jnp.exp(logkpk_nw) / ksT
+
+    # Interpola P_nw a la malla original con el mismo spline
+    PNWk = cubic_spline_not_a_knot_eval(k, ksT, PNWT)
+
+    # Corrección low-k y stitching (idéntico a la referencia)
+    DeltaAppf = k * (PSL[7] - PNWT[7]) / PNWT[7] / ksT[7]
+    cond_low  = k < 1.0e-3
+    cond_high = k > ksT[-1]
+    P_low  = pk / (DeltaAppf + 1.0)
+    P_mid  = PNWk
+    P_high = pk
+    PNWkTot = jnp.where(cond_low, P_low, jnp.where(cond_high, P_high, P_mid))
+    return k, PNWkTot

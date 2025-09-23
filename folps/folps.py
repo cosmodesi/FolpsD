@@ -49,7 +49,7 @@ class BackendManager:
                     print("⚠️ No GPU found. Using JAX with CPU.")
 
                 from jax import numpy as np
-                from tools_jax import interp, simpson, legendre, extrapolate, extrapolate_pklin, get_pknow, get_linear_ir, get_linear_ir_ini, qpar_qperp
+                from tools_jax import interp, simpson, legendre, extrapolate, extrapolate_pklin, get_pknow, get_linear_ir, get_linear_ir_ini, qpar_qperp, get_pknow_jax
                 self.modules = {
                     "np": np,
                     "interp": interp,
@@ -61,6 +61,7 @@ class BackendManager:
                     "get_linear_ir":get_linear_ir,
                     "get_linear_ir_ini":get_linear_ir_ini,
                     "qpar_qperp": qpar_qperp,
+                    "get_pknow_jax": get_pknow_jax,
                 }
                 #self.using_jax = True
                 self.backend = 'jax'
@@ -109,7 +110,54 @@ get_linear_ir = backend_manager.get_module("get_linear_ir")
 get_linear_ir_ini = backend_manager.get_module("get_linear_ir_ini")
 qpar_qperp = backend_manager.get_module("qpar_qperp")
 backend = backend_manager.backend
+
+# `get_pknow_jax` exists only when JAX backend is selected. Define it conditionally
+# so code that imports `folps` can safely reference the name regardless of backend.
+if backend == 'jax':
+    # try to fetch the JAX-specific implementation; fall back to None if absent
+    get_pknow_jax = backend_manager.get_module("get_pknow_jax")
+else:
+    get_pknow_jax = None
+
 #using_jax = backend_manager.using_jax
+
+
+def spherical_jn_backend(n, x):
+    """Backend-aware spherical Bessel function j_n(x) for small set of orders.
+
+    This function uses the currently-selected `np` (either numpy or jax.numpy)
+    so it works with JAX tracers inside jax.jit. Only j0 and j2 are required in
+    the codebase; for other n it will try to fall back to scipy on CPU (which
+    will fail under jax tracers) and raise a clear error.
+    """
+    x = np.asarray(x)
+    # j0(x) = sin(x)/x with limit 1 at x->0
+    if n == 0:
+        # use safe division with where to handle x==0 for tracers
+        return np.where(x == 0, np.array(1.0, dtype=x.dtype), np.sin(x) / x)
+
+    # j2(x) = (3/x^2 - 1) * sin(x)/x - 3*cos(x)/x^2
+    if n == 2:
+        sinx = np.sin(x)
+        cosx = np.cos(x)
+        x2 = x * x
+        # avoid division by zero using a small-x series expansion
+        small = np.abs(x) < 1e-6
+        j2 = ( (3.0 / x2 - 1.0) * sinx / x ) - (3.0 * cosx / x2)
+        # series limit j2 ~ x^2/15 for x->0
+        j2_safe = np.where(small, x2 / 15.0, j2)
+        return j2_safe
+
+    # fallback: try scipy for generic n when not running under JAX
+    try:
+        from scipy import special as _special
+        # Convert to host numpy array for scipy, then back to backend np
+        x_host = np.asarray(x)
+        # If using jax, x may be a tracer — attempting to call scipy will fail.
+        return _special.spherical_jn(n, x_host)
+    except Exception:
+        raise NotImplementedError(f"spherical_jn for n={n} is not implemented for the current backend")
+
 
 
 # In[3]:
@@ -200,30 +248,48 @@ def f_over_f0_EH(zev, k, OmM0, h, fnu, Nnu=3, Neff=3.046):
 
     etafin = etaofz(zfin)
     
-    from scipy.integrate import odeint
-    #if using_jax:
-    if backend == 'jax':
-        from jax.experimental.ode import odeint
+    # Choose odeint depending on backend
+    # For numpy/scipy use scipy.integrate.odeint(func, y0, t)
+    # For jax use jax.experimental.ode.odeint(func, y0, t)
+    use_jax = (backend == 'jax')
 
-    # differential eq.
-    def Deqs(Df, eta):
-        Df, Dprime = Df
-        return [Dprime, f2(eta)*Df - f1(eta)*Dprime]
+    if use_jax:
+        from jax.experimental.ode import odeint as jax_odeint
+    else:
+        from scipy.integrate import odeint as scipy_odeint
+
+    # differential eq. -- make sure it returns the same array-like type for both odeint flavors
+    def Deqs(y, eta_val):
+        # y is [D, Dprime]
+        D = y[0]
+        Dprime = y[1]
+        return np.array([Dprime, f2(eta_val) * D - f1(eta_val) * Dprime])
 
     #eta range and initial conditions
-    eta = np.linspace(etaini, etafin, 1001)   
+    eta_arr = np.linspace(etaini, etafin, 1001)
     Df0 = np.exp(etaini)
     Df_p0 = np.exp(etaini)
-        
-    #solution
-    Dplus, Dplusp = odeint(Deqs, [Df0,Df_p0], eta).T
-    
-    Dplusp_ = interp(etaofz(zev), eta, Dplusp)
-    Dplus_ = interp(etaofz(zev), eta, Dplus)
-    f0 = Dplusp_/Dplus_ 
+    y0 = np.array([Df0, Df_p0])
+
+    if use_jax:
+        # jax.experimental.ode.odeint expects signature func(y, t, *args)
+        # jax returns an array with shape (len(t), len(y))
+        sol = jax_odeint(Deqs, y0, eta_arr)
+        # sol is array [[D, Dprime], ...]
+        Dplus = sol[:, 0]
+        Dplusp = sol[:, 1]
+    else:
+        # scipy.integrate.odeint returns array with shape (len(t), len(y))
+        sol = scipy_odeint(lambda yy, tt: Deqs(yy, tt), y0, eta_arr)
+        Dplus = sol[:, 0]
+        Dplusp = sol[:, 1]
+
+    # interpolate to requested redshift
+    Dplusp_ = interp(etaofz(zev), eta_arr, Dplusp)
+    Dplus_ = interp(etaofz(zev), eta_arr, Dplus)
+    f0 = Dplusp_ / Dplus_
 
     return (k, fFit, f0)
-
 
 # In[5]:
 
@@ -624,7 +690,20 @@ class NonLinearPowerSpectrumCalculator:
         self.kminout = 0.001
         self.kmaxout = 0.5
         self.nk = 120
-        self.kTout = np.geomspace(self.kminout, self.kmaxout, num=self.nk)
+        # Construct kTout with the system NumPy to ensure these are plain numpy arrays / python scalars
+        try:
+            import numpy as _np_native
+        except Exception:
+            # Fallback: use backend numpy
+            _np_native = np
+        kTout_native = _np_native.geomspace(self.kminout, self.kmaxout, self.nk)
+        #_np_native.exp(_np_native.linspace(_np_native.log(self.kminout), _np_native.log(self.kmaxout), self.nk))
+        # Convert to the selected backend (jax.numpy or numpy)
+        try:
+            self.kTout = np.asarray(kTout_native)
+        except Exception:
+            # As a last resort, keep the native numpy array
+            self.kTout = kTout_native
         
         #FFTLog
         self.kmin = 10**(-7)
@@ -702,11 +781,17 @@ class NonLinearPowerSpectrumCalculator:
         """
         if pknow is None:
             if cosmo is not None:
-                self.inputpkT_NW = get_pknow(inputpkT[0], inputpkT[1], cosmo.h())
+                if backend == 'jax':
+                    self.inputpkT_NW = get_pknow_jax(inputpkT[0], inputpkT[1], cosmo.h())
+                else:
+                    self.inputpkT_NW = get_pknow(inputpkT[0], inputpkT[1], cosmo.h())
             elif 'h' in self.kwargs:
-                self.inputpkT_NW = get_pknow(inputpkT[0], inputpkT[1], self.kwargs['h'])
+                if backend == 'jax':
+                    self.inputpkT_NW = get_pknow_jax(inputpkT[0], inputpkT[1], self.kwargs['h'])
+                else:
+                    self.inputpkT_NW = get_pknow(inputpkT[0], inputpkT[1], self.kwargs['h'])
         else:
-            self.inputpkT_NW = extrapolate_pklin(k, pknow)
+            self.inputpkT_NW = pknow[0], pknow[1]#extrapolate_pklin(k, pknow)
             
             
             
@@ -927,18 +1012,22 @@ class NonLinearPowerSpectrumCalculator:
         self._initialize_fftlog_terms()
         
         #Computations for Table
-        self.pk_l = np.interp(self.kTout, self.inputpkT[0], self.inputpkT[1])
-        self.pk_l_NW = np.interp(self.kTout, self.inputpkT_NW[0], self.inputpkT_NW[1])
+        # use backend-aware interp (from tools or tools_jax) to avoid mixing numpy and jax
+        self.pk_l = interp(self.kTout, self.inputpkT[0], self.inputpkT[1])
+        self.pk_l_NW = interp(self.kTout, self.inputpkT_NW[0], self.inputpkT_NW[1])
+        
         
         self.sigma2w = 1 / (6 * np.pi**2) * simpson(self.inputpkTff[1], x=self.inputpkTff[0])
         self.sigma2w_NW = 1 / (6 * np.pi**2) * simpson(self.inputpkTff_NW[1], x=self.inputpkTff_NW[0])
         
+        
         #rbao = 104.
         p = np.geomspace(10**(-6), 0.4, num=100)
         PSL_NW = interp(p, self.inputpkT_NW[0], self.inputpkT_NW[1])
-        self.sigma2_NW = 1 / (6 * np.pi**2) * simpson(PSL_NW * (1 - special.spherical_jn(0, p * self.rbao) + 2 * special.spherical_jn(2, p * self.rbao)), x=p)
-        self.delta_sigma2_NW = 1 / (2 * np.pi**2) * simpson(PSL_NW * special.spherical_jn(2, p * self.rbao), x=p)
-        
+        self.sigma2_NW = 1 / (6 * np.pi**2) * simpson(PSL_NW * (1 - spherical_jn_backend(0, p * self.rbao) + 2 * spherical_jn_backend(2, p * self.rbao)), x=p)
+        self.delta_sigma2_NW = 1 / (2 * np.pi**2) * simpson(PSL_NW * spherical_jn_backend(2, p * self.rbao), x=p)
+        #self.sigma2_NW = 1 / (6 * np.pi**2) * simpson(PSL_NW * (1 - special.spherical_jn(0, p * self.rbao) + 2 * special.spherical_jn(2, p * self.rbao)), x=p)
+        #self.delta_sigma2_NW = 1 / (2 * np.pi**2) * simpson(PSL_NW * special.spherical_jn(2, p * self.rbao), x=p)
         
         P22, P22_NW = self.calculate_P22()
         P13overpkl, P13overpkl_NW = self.calculate_P13()
@@ -1061,14 +1150,52 @@ class RSDMultipolesPowerSpectrumCalculator:
         
         return pars
      
-    def interp_table(self, k, table, A_full_status):
-        """Interpolation of non-linear terms given by the power spectra."""
-        def interp(k, x, y):  # out-of-range below
-            from scipy.interpolate import CubicSpline
-            return CubicSpline(x, y)(k)
+    #def interp_table(self, k, table, A_full_status):
+    #    """Interpolation of non-linear terms given by the power spectra."""
+    #    def interp(k, x, y):  # out-of-range below
+    #        from scipy.interpolate import CubicSpline
+    #        return CubicSpline(x, y)(k)
+
+    #    extra = 6 if A_full_status else 0
+    #    return tuple(np.moveaxis(interp(k, table[0], np.column_stack(table[1:28+extra])), -1, 0)) + table[28+extra:]
     
+    def interp_table(self, k, table, A_full_status):
+        """Interpolation of non-linear terms.
+
+        Behavior:
+        - If backend is JAX, use the JAX-friendly `interp`.
+        - If backend is NumPy, use CubicSpline for interpolation.
+        """
+
         extra = 6 if A_full_status else 0
-        return tuple(np.moveaxis(interp(k, table[0], np.column_stack(table[1:28+extra])), -1, 0)) + table[28+extra:]
+
+        # Detect JAX backend
+        is_jax_backend = getattr(np, "__name__", "numpy").startswith("jax.")
+
+        # Columns to interpolate
+        cols_to_interp = table[1:28 + extra]
+
+        if is_jax_backend:
+            # JAX backend: use vectorized interp
+            stacked = np.column_stack(cols_to_interp)  # shape (Nk, Ncols)
+            interp_vals = interp(k, table[0], stacked)  # shape (Nk, Ncols)
+            interp_tuple = tuple(np.moveaxis(interp_vals, -1, 0))  # -> (Ncols, Nk)
+            return interp_tuple + tuple(table[28 + extra:])
+
+        else:
+            # NumPy backend: use SciPy CubicSpline column by column
+            from scipy.interpolate import CubicSpline
+
+            x = table[0]  # k nodes
+            y = np.column_stack(cols_to_interp)  # shape (Nk, Ncols)
+
+            # build one spline per column
+            spline = CubicSpline(x, y, axis=0)  # vectorized over columns
+            interp_vals = spline(k)  # shape (Nk, Ncols)
+
+            # match output format (tuple of arrays, like in JAX branch)
+            interp_tuple = tuple(np.moveaxis(interp_vals, -1, 0))  # -> (Ncols, Nk)
+            return interp_tuple + tuple(table[28 + extra:])    
 
     def k_ap(self, kobs, muobs, qpar, qper):
         """Return the true wave-number ‘k_AP’."""
@@ -1516,7 +1643,8 @@ class BispectrumCalculator:
 
         
     def Bisp_Sugiyama(self, f, bpars, k_pkl_pklnw, z_pk,
-                      k1k2pairs, qpar, qper, precision=[4, 5, 5], damping = 'lor'):
+                      k1k2pairs, qpar, qper, precision=[4, 5, 5], damping = 'lor',
+                      m_bin=None, k_thy=None, do_binning=False):
 
         #OmM, h = bisp_cosmo_params
         #qper, qpar = 1, 1
@@ -1535,12 +1663,83 @@ class BispectrumCalculator:
         tablesGL = self.tablesGL_f(precision)
         size = len(k1k2pairs)
 
-        B000 = np.zeros(size)
-        B202 = np.zeros(size)
+        # Fast path: if running with JAX, try to use jax.vmap to compute all
+        # pairs at once (avoids Python loops). If that fails, fall back to a
+        # list comprehension which is still faster than repeated append.
+        if backend == 'jax':
+            try:
+                import jax
 
-        for ii in range(size):
-            k1, k2 = k1k2pairs[ii]
-            B000[ii], B202[ii] = self.Sugiyama_B000_B202(k1, k2, f, sigma2v_, Sigma2_, deltaSigma2_, bpars, qpar, qper, tablesGL, k_pkl_pklnw, damping = damping)
+                # Build vmapped function that maps over two inputs (k1,k2).
+                def _single(k1, k2):
+                    return self.Sugiyama_B000_B202(
+                        k1, k2, f, sigma2v_, Sigma2_, deltaSigma2_, bpars, qpar, qper, tablesGL, k_pkl_pklnw, damping=damping
+                    )
+
+                vm = jax.vmap(_single)
+                # k1k2pairs may be a Python list; convert to backend arrays first
+                pairs_arr = np.asarray(k1k2pairs)
+                k1s = pairs_arr[:, 0]
+                k2s = pairs_arr[:, 1]
+                stacked = vm(k1s, k2s)
+                # stacked shape: (size, 2) or a tuple depending on return signature
+                try:
+                    # If vmapped returned a stacked array with shape (size, 2)
+                    B000 = stacked[:, 0]
+                    B202 = stacked[:, 1]
+                except Exception:
+                    # If vmapped returned a tuple of arrays
+                    B000, B202 = stacked
+
+                # Optional internal binning: interpolate to theory k grid and apply m_bin
+                if do_binning:
+                    if m_bin is None or k_thy is None:
+                        raise ValueError("do_binning=True requires m_bin and k_thy to be provided.")
+                    m_bin_arr = np.asarray(m_bin)
+                    k_thy_arr = np.asarray(k_thy)
+                    x = np.asarray(k1k2pairs)[:, 0]
+                    B000_ = interp(k_thy_arr, x, B000)
+                    B202_ = interp(k_thy_arr, x, B202)
+                    B000_binned = m_bin_arr @ B000_
+                    B202_binned = m_bin_arr @ B202_
+                    return B000_binned, B202_binned
+
+                return B000, B202
+            except Exception:
+                # If JAX vmapping isn't possible (e.g., internal use of non-JAX ops),
+                # fall back to a fast Python list comprehension.
+                pass
+
+        # Fallback (NumPy or JAX when vmap isn't available): list comprehension
+        results = [
+            self.Sugiyama_B000_B202(
+                k1, k2, f, sigma2v_, Sigma2_, deltaSigma2_, bpars, qpar, qper, tablesGL, k_pkl_pklnw, damping=damping
+            )
+            for k1, k2 in k1k2pairs
+        ]
+
+        # results is a list of (b000, b202) tuples; unzip and convert once
+        B000_list, B202_list = zip(*results) if results else ([], [])
+
+        try:
+            B000 = np.asarray(B000_list)
+            B202 = np.asarray(B202_list)
+        except Exception:
+            B000 = list(B000_list)
+            B202 = list(B202_list)
+
+        # Optional internal binning: interpolate to theory k grid and apply m_bin
+        if do_binning:
+            if m_bin is None or k_thy is None:
+                raise ValueError("do_binning=True requires m_bin and k_thy to be provided.")
+            m_bin_arr = np.asarray(m_bin)
+            k_thy_arr = np.asarray(k_thy)
+            x = np.asarray(k1k2pairs)[:, 0]
+            B000_ = interp(k_thy_arr, x, B000)
+            B202_ = interp(k_thy_arr, x, B202)
+            B000_binned = m_bin_arr @ B000_
+            B202_binned = m_bin_arr @ B202_
+            return B000_binned, B202_binned
 
         return B000, B202
 
@@ -1633,11 +1832,26 @@ def get_rsd_pkell_marg_const(
         pars = multipoles.set_bias_scheme(pars, bias_scheme=bias_scheme)
 
         def weights_leggauss(nx, sym=False):
-            """Return weights for Gauss-Legendre integration."""
-            x, wx = np.polynomial.legendre.leggauss((1 + sym) * nx)
+            """Return weights for Gauss-Legendre integration.
+
+            Use SciPy's roots_legendre so this function works when the
+            global ``np`` is ``jax.numpy`` (which doesn't expose
+            ``polynomial.legendre.leggauss``).
+            The outputs are converted to the currently selected backend
+            array via ``np.asarray`` so downstream code can operate with
+            either NumPy or JAX arrays.
+            """
+            # scipy.special.roots_legendre returns (roots, weights)
+            x, wx = special.roots_legendre((1 + sym) * nx)
             if sym:
                 x, wx = x[nx:], (wx[nx:] + wx[nx - 1::-1]) / 2.
-            return x, wx
+            # Convert to backend array (jax.numpy or numpy)
+            try:
+                return np.asarray(x), np.asarray(wx)
+            except Exception:
+                # If conversion to backend arrays fails (e.g. unexpected backend),
+                # just return the SciPy/NumPy arrays as-is.
+                return x, wx
 
         muobs, wmu = weights_leggauss(nmu, sym=True)
         wmu_arr = np.array([wmu * (2 * ell + 1) * legendre(ell)(muobs) for ell in ells])
