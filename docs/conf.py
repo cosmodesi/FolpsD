@@ -41,6 +41,10 @@ except Exception:
     html_theme = 'alabaster'
     html_theme_path = []
 
+# Logo: point to the repository root image
+# Use a path relative to the docs directory
+html_logo = os.path.join('..', 'folps_logo.png')
+
 # Documentation language
 language = 'en'
 

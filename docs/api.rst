@@ -1,4 +1,5 @@
 API Reference
+API Reference
 =============
 
 This page exposes the main modules and a short summary for each. The detailed API is generated from docstrings using Sphinx `autodoc`.

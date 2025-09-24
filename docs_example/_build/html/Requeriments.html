@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Requeriments &mdash; PBHBeta 1.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Installation" href="Installation.html" />
+    <link rel="prev" title="PBH-\(\beta\), a code to explore PBHs abundance and power spectrum constraints." href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> PBHBeta
+            <img src="_static/Beta_img.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">FIRST STEPS</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Requeriments</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#pre-requisites">Pre-requisites</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#installing-dependencies-in-python">Installing dependencies in python</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#using-google-colab">Using Google Colab</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Jupyter notebooks</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">CLASS REFERENCE</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Classes.html">Classes</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">MODULES AND COMPONENTS</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Module_1.html">functions.py</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Module_2.html">constants.py</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Module_3.html">constraints.py</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">PBHBeta</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a></li>
+      <li class="breadcrumb-item active">Requeriments</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/Requeriments.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="requeriments">
+<h1>Requeriments<a class="headerlink" href="#requeriments" title="Permalink to this heading"></a></h1>
+<section id="pre-requisites">
+<h2>Pre-requisites<a class="headerlink" href="#pre-requisites" title="Permalink to this heading"></a></h2>
+<p>The only pre-requisites are Python and the Python package manager pip:</p>
+<p><strong>Python 3.9 or later:</strong> The <code class="docutils literal notranslate"><span class="pre">PBHBeta</span></code> library requires Python 3.9 or later to be installed on your system.</p>
+<p><strong>pip package manager:</strong> The pip package manager is used to install <code class="docutils literal notranslate"><span class="pre">PBHBeta</span></code> and its dependencies. It should be included with your Python installation by default.</p>
+<p>To check if you have Python installed, type <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">--version</span></code> in the shell, and you should get <code class="docutils literal notranslate"><span class="pre">Python</span> <span class="pre">3.[whatever]</span></code>.
+Then, type python <code class="docutils literal notranslate"><span class="pre">-m</span> <span class="pre">pip</span> <span class="pre">--version</span></code> in the shell, and see if you get a proper version line starting with <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">20.0.0</span> <span class="pre">[...]</span></code> or a higher version. If an older version is shown, please update pip with <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">pip</span> <span class="pre">install</span> <span class="pre">pip</span> <span class="pre">--upgrade</span></code>.
+If either Python 3 is not installed, or the pip version check produces a <code class="docutils literal notranslate"><span class="pre">no</span> <span class="pre">module</span> <span class="pre">named</span> <span class="pre">pip</span></code> error, use your system’s package manager or contact your local IT service.</p>
+</section>
+<section id="installing-dependencies-in-python">
+<h2>Installing dependencies in python<a class="headerlink" href="#installing-dependencies-in-python" title="Permalink to this heading"></a></h2>
+<p>Imperative libraries are:</p>
+<ol class="arabic simple">
+<li><p><strong>NumPy:</strong> NumPy is a Python library that provides support for working with multidimensional arrays and high-performance mathematical functions. It is widely used in data science and scientific computing due to its efficiency, linear algebra capabilities, and integration with other Python libraries. It is an essential tool for complex mathematical operations and numerical data manipulation in Python.</p></li>
+</ol>
+<p>To install copy-paste this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="hll"><span class="n">pip</span> <span class="n">install</span> <span class="n">numpy</span>
+</span></pre></div>
+</div>
+<ol class="arabic simple" start="2">
+<li><p><strong>SciPy:</strong> SciPy is a Python library that extends the capabilities of NumPy and provides additional functionalities for scientific computing. It includes tools for integration, optimization, interpolation, signal and image processing, statistical functions, and more.</p></li>
+</ol>
+<p>To install copy-paste this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="hll"><span class="n">pip</span> <span class="n">install</span> <span class="n">scipy</span>
+</span></pre></div>
+</div>
+<ol class="arabic simple" start="3">
+<li><p><strong>Matplotlib:</strong> This library provides support for creating various types of charts and graphs in Python.</p></li>
+</ol>
+<p>To install copy-paste this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="hll"><span class="n">pip</span> <span class="n">install</span> <span class="n">matplotlib</span>
+</span></pre></div>
+</div>
+<p>If you prefer, you can install all in one copy-paste line:</p>
+<p>:::{tip}
+:name: a-tip-reference</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="hll"><span class="n">pip</span> <span class="n">install</span> <span class="n">matplotlib</span> <span class="n">numpy</span> <span class="n">scipy</span>
+</span></pre></div>
+</div>
+<p>:::</p>
+</section>
+<section id="using-google-colab">
+<h2>Using Google Colab<a class="headerlink" href="#using-google-colab" title="Permalink to this heading"></a></h2>
+<p>For easy and immediate use, we recommend using Google Colab. Within it, it is necessary to install some libraries and <code class="docutils literal notranslate"><span class="pre">PBHBeta</span></code> in the first cells.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>%pip install numpy matplotlib scipy
+!pip install -e git+https://github.com/TadeoDGAguilar/PBHBeta#egg=PBHBeta
+%cd /content/src/pbhbeta
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="PBH-\(\beta\), a code to explore PBHs abundance and power spectrum constraints." accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Installation.html" class="btn btn-neutral float-right" title="Installation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Tadeo Dariney Gomez Aguilar.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

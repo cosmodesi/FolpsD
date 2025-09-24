@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Classes &mdash; PBHBeta 1.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="functions.py" href="Module_1.html" />
+    <link rel="prev" title="Jupyter notebooks" href="examples.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> PBHBeta
+            <img src="_static/Beta_img.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">FIRST STEPS</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Requeriments.html">Requeriments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Jupyter notebooks</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">CLASS REFERENCE</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Classes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#beta-from-number-of-reheating-bfn">Beta from Number of Reheating (BfN)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#PBHBeta.BfN.get_betas_reh_tot"><code class="docutils literal notranslate"><span class="pre">get_betas_reh_tot()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#beta-from-stiff-fluid-dominated-bfs">Beta from Stiff Fluid- Dominated (BfS)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#PBHBeta.BfS.get_betas_stiff_tot"><code class="docutils literal notranslate"><span class="pre">get_betas_stiff_tot()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#k-from-number-of-reheating-kfn">K from Number of Reheating (KfN)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#PBHBeta.KfN.get_k_Nreh"><code class="docutils literal notranslate"><span class="pre">get_k_Nreh()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#k-from-stiff-fluid-dominated-kfs">K from Stiff Fluid-Dominated (KfS)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#PBHBeta.KfS.get_k_SD"><code class="docutils literal notranslate"><span class="pre">get_k_SD()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">MODULES AND COMPONENTS</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Module_1.html">functions.py</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Module_2.html">constants.py</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Module_3.html">constraints.py</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">PBHBeta</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a></li>
+      <li class="breadcrumb-item active">Classes</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/Classes.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="classes">
+<h1>Classes<a class="headerlink" href="#classes" title="Permalink to this heading"></a></h1>
+<section id="beta-from-number-of-reheating-bfn">
+<h2>Beta from Number of Reheating (BfN)<a class="headerlink" href="#beta-from-number-of-reheating-bfn" title="Permalink to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="PBHBeta.BfN.get_betas_reh_tot">
+<span class="sig-prename descclassname"><span class="pre">PBHBeta.BfN.</span></span><span class="sig-name descname"><span class="pre">get_betas_reh_tot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">N_re</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">omega</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gam_reh</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PBHBeta.BfN.get_betas_reh_tot" title="Permalink to this definition"></a></dt>
+<dd><p>Calculates the values of betas_reh_tot for a given set of parameters.</p>
+<dl class="simple">
+<dt>Parameters:</dt><dd><ul class="simple">
+<li><p>N_re (float): The number of efolds during reheating.</p></li>
+<li><p>omega (float): The equation of state parameter during reheating.</p></li>
+<li><p>gam_reh (float): The ratio of the radiation energy density to the inflaton energy density at the end of reheating..</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>betas_reh_tot (list): A list of values of betas_reh_tot.</p></li>
+</ul>
+</dd>
+<dt>Raises:</dt><dd><ul class="simple">
+<li><p>ValueError: If the end of reheating happens after BBN.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="beta-from-stiff-fluid-dominated-bfs">
+<h2>Beta from Stiff Fluid- Dominated (BfS)<a class="headerlink" href="#beta-from-stiff-fluid-dominated-bfs" title="Permalink to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="PBHBeta.BfS.get_betas_stiff_tot">
+<span class="sig-prename descclassname"><span class="pre">PBHBeta.BfS.</span></span><span class="sig-name descname"><span class="pre">get_betas_stiff_tot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">N_stiff</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">omega</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gam_stiff</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PBHBeta.BfS.get_betas_stiff_tot" title="Permalink to this definition"></a></dt>
+<dd><p>Calculate the betas for the stiff era.</p>
+<dl class="simple">
+<dt>Parameters:</dt><dd><ul class="simple">
+<li><p>N_stiff (float): Number of e-folds during the stiff era.</p></li>
+<li><p>omega (float): Parameter value.</p></li>
+<li><p>gam_stiff (float): Stiff parameter value.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>betas_stiff (list): List of beta values for the stiff era.</p></li>
+</ul>
+</dd>
+<dt>Raises:</dt><dd><ul class="simple">
+<li><p>ValueError: If the end of the stiff era happens after BBN.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="k-from-number-of-reheating-kfn">
+<h2>K from Number of Reheating (KfN)<a class="headerlink" href="#k-from-number-of-reheating-kfn" title="Permalink to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="PBHBeta.KfN.get_k_Nreh">
+<span class="sig-prename descclassname"><span class="pre">PBHBeta.KfN.</span></span><span class="sig-name descname"><span class="pre">get_k_Nreh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">M</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N_re</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">omega</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gam_reh</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PBHBeta.KfN.get_k_Nreh" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="k-from-stiff-fluid-dominated-kfs">
+<h2>K from Stiff Fluid-Dominated (KfS)<a class="headerlink" href="#k-from-stiff-fluid-dominated-kfs" title="Permalink to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="PBHBeta.KfS.get_k_SD">
+<span class="sig-prename descclassname"><span class="pre">PBHBeta.KfS.</span></span><span class="sig-name descname"><span class="pre">get_k_SD</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">M</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N_stiff</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">omega</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gam_stiff</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PBHBeta.KfS.get_k_SD" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="examples.html" class="btn btn-neutral float-left" title="Jupyter notebooks" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Module_1.html" class="btn btn-neutral float-right" title="functions.py" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Tadeo Dariney Gomez Aguilar.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

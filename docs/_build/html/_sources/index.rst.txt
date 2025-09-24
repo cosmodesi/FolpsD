@@ -1,4 +1,3 @@
-
 FOLPSpipe documentation
 =======================
 
@@ -60,8 +59,12 @@ The API reference is generated from docstrings. See the "API Reference" for modu
 .. toctree::
    :maxdepth: 2
 
-   api
+   Installation
+   Requirements
+   Quickstart
    usage
+   examples
+   api
 
 Indices and tables
 ==================
