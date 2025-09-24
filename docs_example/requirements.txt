@@ -1,3 +1,0 @@
-renku
-myst-parser
-sphinx
