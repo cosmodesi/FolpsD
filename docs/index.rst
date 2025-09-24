@@ -65,6 +65,8 @@ The API reference is generated from docstrings. See the "API Reference" for modu
    usage
    examples
    api
+   Classes
+   Changelog
 
 Indices and tables
 ==================

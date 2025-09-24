@@ -1,5 +1,5 @@
 RSDMultipolesPowerSpectrumCalculator
-===================================
+====================================
 
 Description
 -----------

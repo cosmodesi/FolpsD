@@ -17,7 +17,7 @@ Installing everything (recommended for full features):
    python -m pip install -r requirements.txt
 
 Using Google Colab or cloud environments
----------------------------------------
+----------------------------------------
 
 .. code-block:: python
 

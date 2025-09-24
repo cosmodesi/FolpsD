@@ -26,7 +26,7 @@ manual summaries so the docs build does not require importing heavy dependencies
    api/Backend_and_helpers
 
 folps.cosmo_class
-------------------
+-----------------
 
 Utilities to obtain or load the linear power spectrum. The main entry point is `run_class`, a thin wrapper around CLASS that returns a dictionary with keys `k`, `pk`, `fz`, `Dz`, and other useful quantities. If CLASS isn't available, the repository includes precomputed `inputpkT.txt` used as a fallback in examples.
 
