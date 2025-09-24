@@ -22,14 +22,12 @@ docstrings.
   :rtype: callable
   :raises NotImplementedError: if ``ell`` is not supported.
 
-  Notes
-  -----
+  Notes:
   The implementation provides explicit expressions for the low-order
   polynomials commonly used in multipole statistics. For higher orders use
   ``scipy.special.legendre``.
 
-  Example
-  -------
+  Example:
 
   .. code-block:: python
 
@@ -50,15 +48,13 @@ docstrings.
     :returns: interpolated values at ``k``.
     :rtype: numpy.ndarray
 
-    Notes
-    -----
+    Notes:
     The function uses ``scipy.interpolate.interp1d(kind='cubic',
     fill_value='extrapolate')`` and forces the output to ``float64`` for
     numerical consistency. For JAX-compatible behaviour use the matching
     functions in ``tools_jax.py``.
 
-    Example
-    -------
+    Example:
 
     .. code-block:: python
 

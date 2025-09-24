@@ -1,54 +1,268 @@
 Tools
 =====
 
-This page documents the utility functions implemented in the ``folps.tools``
-module. Each function signature is shown together with a short description of
-its purpose, arguments, return values, implementation notes, and a brief
-example where appropriate.
+This page provides concise, reference-style documentation for the public
+utility functions defined in the ``folps.tools`` module. Each entry shows the
+Python signature, a short description, parameter and return types, implementation
+notes and a short usage example where helpful. The layout follows the Sphinx
+Python domain conventions so it renders similarly to generated API pages.
 
-All function names and signatures are kept in English exactly as they appear
-in the source code.
+Note: these pages are written as static reference documentation (no import is
+required to build the docs). If you later enable ``autodoc`` you can replace
+these manual entries with automatically generated ones from in-source
+docstrings.
 
-Legendre
---------
+.. py:function:: legendre(ell)
 
-Signature
+  Return a callable that evaluates the Legendre polynomial of order
+  ``ell``.
 
-    ``legendre(ell)``
+  :param int ell: polynomial order (supported: ``0``, ``2``, ``4``).
+  :returns: callable P(x) evaluating the polynomial at ``x``.
+  :rtype: callable
+  :raises NotImplementedError: if ``ell`` is not supported.
 
-Purpose
+  Notes:
+  The implementation provides explicit expressions for the low-order
+  polynomials commonly used in multipole statistics. For higher orders use
+  ``scipy.special.legendre``.
 
-    Return a callable that evaluates the Legendre polynomial of order ``ell``
-    over an array of points ``x``.
+  Example:
 
-Parameters
+  .. code-block:: python
 
-- ``ell`` (int): polynomial order. The implementation currently supports
-  orders 0, 2 and 4.
+    P2 = legendre(2)
+    vals = P2(np.array([0.0, 0.5, 1.0]))
 
-Returns
 
-- callable: a function ``P(x)`` returning the Legendre polynomial evaluated
-  at ``x`` for the specified order.
+.. py:function:: interp(k, x, y)
 
-Errors
+  One-dimensional cubic interpolation wrapper.
 
-- ``NotImplementedError`` if ``ell`` is not one of the supported orders.
+    :param k: query points where an interpolated value is required.
+    :type k: array-like
+    :param x: monotonic x nodes.
+    :type x: array-like
+    :param y: function values at the nodes ``x``.
+    :type y: array-like
+    :returns: interpolated values at ``k``.
+    :rtype: numpy.ndarray
 
-Notes
+    Notes:
+    The function uses ``scipy.interpolate.interp1d(kind='cubic',
+    fill_value='extrapolate')`` and forces the output to ``float64`` for
+    numerical consistency. For JAX-compatible behaviour use the matching
+    functions in ``tools_jax.py``.
 
-- This is an explicit, minimal implementation for the low-order polynomials
-  commonly used in multipole statistics (``ell = 0, 2, 4``). For other
-  orders prefer ``scipy.special.legendre`` or similar utilities.
+    Example:
 
-Example
+    .. code-block:: python
 
-.. code-block:: python
+      kq = np.linspace(0.1, 1.0, 50)
+      yq = interp(kq, x_nodes, y_nodes)
 
-   P2 = legendre(2)
-   vals = P2(np.array([0.0, 0.5, 1.0]))
 
-interp
+.. py:function:: tupleset(t, i, value)
+
+  Small helper returning a new tuple with element ``i`` replaced by
+  ``value``.
+
+  :param tuple t: original tuple
+  :param int i: index to replace
+  :param value: value to place at index ``i``
+  :returns: new tuple with the replacement
+  :rtype: tuple
+
+
+.. py:function:: true_divide(h0, h1, out=None, where=None)
+
+  Safe elementwise division with optional ``where`` mask and ``out``
+  parameter.
+
+  :param h0: numerator array
+  :type h0: array-like
+  :param h1: denominator array
+  :type h1: array-like
+  :param out: optional output array
+  :param where: optional boolean mask
+  :returns: elementwise division result
+  :rtype: numpy.ndarray
+
+
+.. py:function:: simpson(y, *, x=None, dx=1.0, axis=-1, even=_NoValue)
+
+  Composite Simpson rule integrator adapted from SciPy.
+
+  :param y: sampled function values
+  :type y: array-like
+  :param x: sample points (optional)
+  :type x: array-like or None
+  :param float dx: spacing used when ``x`` is ``None``
+  :param int axis: axis along which to integrate
+  :param even: controls behaviour for even number of samples
+  :returns: estimated integral (float or array)
+  :rtype: float or numpy.ndarray
+
+  Notes
+  -----
+  The implementation includes an internal ``_basic_simpson`` helper and
+  handles both regular and irregular spacing, as well as even/odd sample
+  counts in a way compatible with SciPy's behaviour.
+
+
+.. py:function:: extrapolate(x, y, xq)
+
+  Fit a straight line to ``(x, y)`` by ordinary least squares and evaluate it
+  at ``xq``.
+
+  :param x: independent variable
+  :type x: array-like
+  :param y: dependent variable
+  :type y: array-like
+  :param xq: query points
+  :type xq: array-like
+  :returns: tuple ``(xq, yq)`` with extrapolated values
+  :rtype: tuple
+
+
+.. py:function:: extrapolate_linear_loglog(k, pk, kcut, k_extrapolate, is_high_k=True)
+
+  Log–log linear extrapolation for power spectra.
+
+  :param k: input wavenumbers
+  :type k: array-like
+  :param pk: input power spectrum
+  :type pk: array-like
+  :param float kcut: cutoff wavenumber where extrapolation begins
+  :param float k_extrapolate: final bound for extrapolation
+  :param bool is_high_k: if True extrapolate to higher ``k`` else to lower
+  :returns: tuple ``(k_result, pk_result)`` including the extrapolated region
+  :rtype: tuple
+
+  Notes
+  -----
+  The routine works in ``log10(k)`` and ``log10(abs(pk))`` to capture
+  power-law behaviour. The sign of ``pk`` is preserved and handled
+  separately.
+
+
+.. rubric:: Convenience wrappers
+
+.. py:function:: extrapolate_high_k(k, pk, kcutmax, kmax)
+
+.. py:function:: extrapolate_low_k(k, pk, kcutmin, kmin)
+
+.. py:function:: extrapolate_k(k, pk, kcutmin, kmin, kcutmax, kmax)
+
+  Convenience wrappers that call the general extrapolation routine for the
+  appropriate k-end(s).
+
+
+.. py:function:: extrapolate_pklin(k, pk)
+
+  Ensure the power spectrum covers the working range (approx. 1e-5 to 200).
+
+  :param k: input wavenumbers
+  :type k: array-like
+  :param pk: input power spectrum
+  :type pk: array-like
+  :returns: extended (k_out, pk_out)
+  :rtype: tuple
+
+
+.. py:function:: get_pknow(k, pk, h)
+
+  Compute a smooth (no-wiggle) linear power spectrum using a DST-based
+  filtering method (following Hamann et al. and related approaches).
+
+  :param k: input wavenumbers
+  :type k: array-like
+  :param pk: linear power spectrum with BAO wiggles
+  :type pk: array-like
+  :param float h: H0/100 used to build the internal sampling grid
+  :returns: tuple ``(k, pknow)`` with the reconstructed smooth spectrum
+  :rtype: tuple
+
+  Notes
+  -----
+  The algorithm densely samples ln(k*P(k)), applies a type-I discrete sine
+  transform (DST), removes harmonic components in a BAO window, and
+  reconstructs the smooth component via the inverse transform. SciPy
+  (FFT/DST) is required; this routine is not JAX-compatible in its current
+  form.
+
+
+.. py:function:: get_linear_ir(k, pk, h, pknow=None, fullrange=False, kmin=0.01, kmax=0.5, rbao=104, saveout=False)
+
+  Compute an IR-resummed linear power spectrum by damping BAO oscillations
+  according to large-scale displacement variance derived from the no-wiggle
+  component.
+
+  :param k, pk: input wavenumbers and linear power spectrum
+  :param float h: H0/100
+  :param pknow: optional no-wiggle spectrum; if ``None`` it is computed
+    internally via ``get_pknow``
+  :param bool fullrange: when ``False`` returns a sub-sampled result; when
+    ``True`` returns the full internal grid
+  :returns: see notes
+  :rtype: tuple
+
+  Notes
+  -----
+  The damping integral used for the displacement variance is evaluated with
+  a Simpson-like quadrature on a geometrical momentum grid. When ``pknow`` is
+  not provided the function computes it via ``get_pknow``.
+
+
+.. py:function:: get_linear_ir_ini(k, pkl, pklnw, h=0.6711, k_BAO=1.0 / 104.)
+
+  Compact variant to compute an IR-resummed linear spectrum using a fixed
+  BAO scale ``k_BAO``. Returns ``(k, pkl_IR)``.
+
+
+.. py:function:: Hubble(Om, z_ev)
+
+  Return H(z)/H0 for a flat matter + Lambda cosmology: ``sqrt(Om*(1+z)**3 + (1-Om))``.
+
+
+.. py:function:: DA(Om, z_ev)
+
+  Comoving angular diameter distance computed via numerical integration of
+  ``1/H(z)``.
+
+
+.. py:function:: qpar_qperp(Omega_fid, Omega_m, z_pk, cosmo=None)
+
+  Compute Alcock-Paczynski distortion factors ``(q_parallel, q_perp)`` by
+  comparing a fiducial cosmology with the cosmology of interest. If a
+  ``cosmo`` object (CLASS) is provided its distance/H(z) methods are used;
+  otherwise simple analytic expressions are used.
+
+
+.. py:function:: pknwJ(k, PSLk, h)
+
+  Historical/alternative implementation of the no-wiggle extraction. Kept
+  primarily for debugging and backward compatibility; conceptually similar
+  to ``get_pknow``.
+
+
+Final remarks
+-------------
+
+The functions in ``folps.tools`` cover generic numerical utilities (integration,
+interpolation) and cosmology-specific helpers (power spectrum extrapolation,
+wiggle/no-wiggle separation, IR resummation). If you prefer an automatically
+generated API reference, I can add docstrings to the source and enable
+``autodoc`` so pages like this are produced directly from the code.
+
+References
+----------
+
+- Hamann, J., et al. (2010). Method for computing a smooth (no-wiggle)
+  component of the matter power spectrum.
+- SciPy documentation and source related to ``simpson`` and discrete sine
+  transforms (DST/IDST).
+
 ------
 
 Signature
