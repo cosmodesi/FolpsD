@@ -27,7 +27,8 @@ Installing everything (recommended for full features):
    python -m pip install -r requirements.txt
 
 Using Google Colab or cloud environments
----------------------------------------
+----------------------------------------
+
 You can run notebooks in Google Colab, but you must install required packages in the first cell. Example:
 
 .. code-block:: python

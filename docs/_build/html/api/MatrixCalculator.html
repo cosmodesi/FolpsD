@@ -14,7 +14,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="NonLinearPowerSpectrumCalculator" href="NonLinearPowerSpectrumCalculator.html" />
-    <link rel="prev" title="API Reference" href="../api.html" />
+    <link rel="prev" title="folps.folps" href="../api.html" />
    
   <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
   
@@ -34,28 +34,24 @@
             
   <section id="matrixcalculator">
 <h1>MatrixCalculator<a class="headerlink" href="#matrixcalculator" title="Link to this heading">¶</a></h1>
-<section id="description">
-<h2>Description<a class="headerlink" href="#description" title="Link to this heading">¶</a></h2>
+<p>Description</p>
 <p><cite>MatrixCalculator</cite> computes the M matrices that are independent of cosmology and
 can be reused in different runs. The matrices are stored on disk under the filename
 constructed from the FFTLog settings and flags.</p>
-</section>
-<section id="usage">
-<h2>Usage<a class="headerlink" href="#usage" title="Link to this heading">¶</a></h2>
+<p>Usage</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">folps</span> <span class="kn">import</span> <span class="n">MatrixCalculator</span>
 
+
 <span class="n">matrix</span> <span class="o">=</span> <span class="n">MatrixCalculator</span><span class="p">(</span><span class="n">nfftlog</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span> <span class="n">A_full</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
 <span class="n">mmatrices</span> <span class="o">=</span> <span class="n">matrix</span><span class="o">.</span><span class="n">get_mmatrices</span><span class="p">()</span>
 </pre></div>
 </div>
-</section>
-<section id="notes">
-<h2>Notes<a class="headerlink" href="#notes" title="Link to this heading">¶</a></h2>
+<p>Notes</p>
 <ul class="simple">
 <li><p>The computation may take some time but is done once; results are cached in a .npy file.</p></li>
 <li><p>The default <cite>b_nu</cite> and k-range are tuned to the original implementation; changing them is not yet fully tested.</p></li>
 </ul>
-</section>
 </section>
 
 
@@ -79,22 +75,32 @@ constructed from the FFTLog settings and flags.</p>
 
 <h3>Navigation</h3>
 <ul class="current">
-<li class="toctree-l1 current"><a class="reference internal" href="../api.html">API Reference</a><ul class="current">
-<li class="toctree-l2 current"><a class="reference internal" href="../api.html#folps-folps">folps.folps</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../api.html#folps-cosmo-class">folps.cosmo_class</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../api.html#folps-tools">folps.tools</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../api.html#folps-tools-jax">folps.tools_jax</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Requirements.html">Requirements</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage and examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples.html">Examples</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../api.html">folps.folps</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">MatrixCalculator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="NonLinearPowerSpectrumCalculator.html">NonLinearPowerSpectrumCalculator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="RSDMultipolesPowerSpectrumCalculator.html">RSDMultipolesPowerSpectrumCalculator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="BispectrumCalculator.html">BispectrumCalculator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Backend_and_helpers.html">BackendManager and helpers</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../usage.html">Examples and quick start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api.html#folps-cosmo-class">folps.cosmo_class</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api.html#folps-tools">folps.tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api.html#folps-tools-jax">folps.tools_jax</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Classes.html">Classes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Changelog.html">Changelog</a></li>
 </ul>
 
 <div class="relations">
 <h3>Related Topics</h3>
 <ul>
   <li><a href="../index.html">Documentation overview</a><ul>
-  <li><a href="../api.html">API Reference</a><ul>
-      <li>Previous: <a href="../api.html" title="previous chapter">API Reference</a></li>
+  <li><a href="../api.html">folps.folps</a><ul>
+      <li>Previous: <a href="../api.html" title="previous chapter">folps.folps</a></li>
       <li>Next: <a href="NonLinearPowerSpectrumCalculator.html" title="next chapter">NonLinearPowerSpectrumCalculator</a></li>
   </ul></li>
   </ul></li>
