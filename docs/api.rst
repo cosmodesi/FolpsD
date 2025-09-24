@@ -24,6 +24,7 @@ manual summaries so the docs build does not require importing heavy dependencies
    api/RSDMultipolesPowerSpectrumCalculator
    api/BispectrumCalculator
    api/Backend_and_helpers
+   api/Tools
 
 folps.cosmo_class
 -----------------

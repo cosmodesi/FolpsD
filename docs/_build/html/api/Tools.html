@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+    <title>Tools &#8212; FOLPSpipe 0.0.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=61cd365c" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=12dfc556" />
+    <script src="../_static/documentation_options.js?v=7026087e"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Classes" href="../Classes.html" />
+    <link rel="prev" title="BackendManager and helpers" href="Backend_and_helpers.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="tools">
+<h1>Tools<a class="headerlink" href="#tools" title="Link to this heading">¶</a></h1>
+<p>This page documents the utility functions implemented in the <code class="docutils literal notranslate"><span class="pre">folps.tools</span></code>
+module. Each function signature is shown together with a short description of
+its purpose, arguments, return values, implementation notes, and a brief
+example where appropriate.</p>
+<p>All function names and signatures are kept in English exactly as they appear
+in the source code.</p>
+<section id="legendre">
+<h2>Legendre<a class="headerlink" href="#legendre" title="Link to this heading">¶</a></h2>
+<p>Signature</p>
+<blockquote>
+<div><p><code class="docutils literal notranslate"><span class="pre">legendre(ell)</span></code></p>
+</div></blockquote>
+<p>Purpose</p>
+<blockquote>
+<div><p>Return a callable that evaluates the Legendre polynomial of order <code class="docutils literal notranslate"><span class="pre">ell</span></code>
+over an array of points <code class="docutils literal notranslate"><span class="pre">x</span></code>.</p>
+</div></blockquote>
+<p>Parameters</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">ell</span></code> (int): polynomial order. The implementation currently supports
+orders 0, 2 and 4.</p></li>
+</ul>
+<p>Returns</p>
+<ul class="simple">
+<li><p>callable: a function <code class="docutils literal notranslate"><span class="pre">P(x)</span></code> returning the Legendre polynomial evaluated
+at <code class="docutils literal notranslate"><span class="pre">x</span></code> for the specified order.</p></li>
+</ul>
+<p>Errors</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">NotImplementedError</span></code> if <code class="docutils literal notranslate"><span class="pre">ell</span></code> is not one of the supported orders.</p></li>
+</ul>
+<p>Notes</p>
+<ul class="simple">
+<li><p>This is an explicit, minimal implementation for the low-order polynomials
+commonly used in multipole statistics (<code class="docutils literal notranslate"><span class="pre">ell</span> <span class="pre">=</span> <span class="pre">0,</span> <span class="pre">2,</span> <span class="pre">4</span></code>). For other
+orders prefer <code class="docutils literal notranslate"><span class="pre">scipy.special.legendre</span></code> or similar utilities.</p></li>
+</ul>
+<p>Example</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">P2</span> <span class="o">=</span> <span class="n">legendre</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">vals</span> <span class="o">=</span> <span class="n">P2</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">]))</span>
+</pre></div>
+</div>
+</section>
+<section id="interp">
+<h2>interp<a class="headerlink" href="#interp" title="Link to this heading">¶</a></h2>
+<p>Signature</p>
+<blockquote>
+<div><p><code class="docutils literal notranslate"><span class="pre">interp(k,</span> <span class="pre">x,</span> <span class="pre">y)</span></code></p>
+</div></blockquote>
+<p>Purpose</p>
+<blockquote>
+<div><p>One-dimensional cubic interpolator. Given nodes <code class="docutils literal notranslate"><span class="pre">(x,</span> <span class="pre">y)</span></code> evaluate the
+interpolated values at points <code class="docutils literal notranslate"><span class="pre">k</span></code>. The implementation uses
+<code class="docutils literal notranslate"><span class="pre">scipy.interpolate.interp1d</span></code> with <code class="docutils literal notranslate"><span class="pre">kind='cubic'</span></code> and
+<code class="docutils literal notranslate"><span class="pre">fill_value='extrapolate'</span></code>.</p>
+</div></blockquote>
+<p>Parameters</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">k</span></code> (array-like): query points where the interpolation is required.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">x</span></code> (array-like): monotonically increasing nodes in the x-axis.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">y</span></code> (array-like): function values at the nodes <code class="docutils literal notranslate"><span class="pre">x</span></code>.</p></li>
+</ul>
+<p>Returns</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">ndarray</span></code> (float64): interpolated values at <code class="docutils literal notranslate"><span class="pre">k</span></code> (forced to float64 for
+numerical consistency).</p></li>
+</ul>
+<p>Notes</p>
+<ul class="simple">
+<li><p>If you need JAX-compatible interpolation, use the corresponding routines in
+<code class="docutils literal notranslate"><span class="pre">tools_jax.py</span></code>.</p></li>
+</ul>
+<p>Example</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">kq</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mi">50</span><span class="p">)</span>
+<span class="n">yq</span> <span class="o">=</span> <span class="n">interp</span><span class="p">(</span><span class="n">kq</span><span class="p">,</span> <span class="n">x_nodes</span><span class="p">,</span> <span class="n">y_nodes</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="tupleset-helper">
+<h2>tupleset (helper)<a class="headerlink" href="#tupleset-helper" title="Link to this heading">¶</a></h2>
+<p>Signature</p>
+<blockquote>
+<div><p><code class="docutils literal notranslate"><span class="pre">tupleset(t,</span> <span class="pre">i,</span> <span class="pre">value)</span></code></p>
+</div></blockquote>
+<p>Purpose</p>
+<blockquote>
+<div><p>Small helper that returns a new tuple based on <code class="docutils literal notranslate"><span class="pre">t</span></code> with the element at
+position <code class="docutils literal notranslate"><span class="pre">i</span></code> replaced by <code class="docutils literal notranslate"><span class="pre">value</span></code>. It is used internally to construct
+multi-dimensional slice objects.</p>
+</div></blockquote>
+<p>Parameters</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">t</span></code> (tuple): original tuple.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">i</span></code> (int): index to replace.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">value</span></code>: new value to place at position <code class="docutils literal notranslate"><span class="pre">i</span></code>.</p></li>
+</ul>
+<p>Returns</p>
+<ul class="simple">
+<li><p>tuple: a new tuple with the specified replacement.</p></li>
+</ul>
+</section>
+<section id="true-divide-helper">
+<h2>true_divide (helper)<a class="headerlink" href="#true-divide-helper" title="Link to this heading">¶</a></h2>
+<p>Signature</p>
+<blockquote>
+<div><p><code class="docutils literal notranslate"><span class="pre">true_divide(h0,</span> <span class="pre">h1,</span> <span class="pre">out=None,</span> <span class="pre">where=None)</span></code></p>
+</div></blockquote>
+<p>Purpose</p>
+<blockquote>
+<div><p>Element-wise division utility that supports a boolean <code class="docutils literal notranslate"><span class="pre">where</span></code> mask and
+optional <code class="docutils literal notranslate"><span class="pre">out</span></code> storage. The routine mimics safe division logic found in
+NumPy/SciPy/JAX code paths and helps avoiding division-by-zero issues while
+preserving broadcasting semantics.</p>
+</div></blockquote>
+<p>Parameters</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">h0</span></code>, <code class="docutils literal notranslate"><span class="pre">h1</span></code>: arrays to be divided (must be broadcast-compatible).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">out</span></code>: optional output array to store the result.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">where</span></code>: optional boolean mask indicating where the division should be
+performed.</p></li>
+</ul>
+<p>Returns</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">ndarray</span></code>: the resulting array, shaped as <code class="docutils literal notranslate"><span class="pre">out</span></code> if provided, otherwise
+as the broadcast result of <code class="docutils literal notranslate"><span class="pre">h0/h1</span></code>.</p></li>
+</ul>
+<p>Notes</p>
+<ul class="simple">
+<li><p>If <code class="docutils literal notranslate"><span class="pre">out</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code> the function allocates an array filled with zeros and
+writes the computed values into it according to <code class="docutils literal notranslate"><span class="pre">where</span></code>.</p></li>
+</ul>
+</section>
+<section id="simpson-integrator">
+<h2>simpson (integrator)<a class="headerlink" href="#simpson-integrator" title="Link to this heading">¶</a></h2>
+<p>Signature</p>
+<blockquote>
+<div><p><code class="docutils literal notranslate"><span class="pre">simpson(y,</span> <span class="pre">*,</span> <span class="pre">x=None,</span> <span class="pre">dx=1.0,</span> <span class="pre">axis=-1,</span> <span class="pre">even=_NoValue)</span></code></p>
+</div></blockquote>
+<p>Purpose</p>
+<blockquote>
+<div><p>Composite Simpson rule implementation for integrating sampled data. This
+code is adapted from SciPy and supports irregular spacing as well as the
+handling of even/odd numbers of samples.</p>
+</div></blockquote>
+<p>Parameters</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">y</span></code>: array-like of sampled function values (supports multi-dimensional
+arrays).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">x</span></code>: optional array-like of sample points. If omitted, the spacing
+specified by <code class="docutils literal notranslate"><span class="pre">dx</span></code> is used.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dx</span></code>: scalar spacing used when <code class="docutils literal notranslate"><span class="pre">x</span></code> is None (default <code class="docutils literal notranslate"><span class="pre">1.0</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">axis</span></code>: axis along which to integrate.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">even</span></code>: controls behaviour for an even number of samples. This parameter
+mirrors the SciPy API; the default behaviour matches SciPy’s precise
+selection.</p></li>
+</ul>
+<p>Returns</p>
+<ul class="simple">
+<li><p>float or <code class="docutils literal notranslate"><span class="pre">ndarray</span></code>: estimated integral along the requested axis.</p></li>
+</ul>
+<p>Implementation notes</p>
+<ul class="simple">
+<li><p>A helper <code class="docutils literal notranslate"><span class="pre">_basic_simpson</span></code> is used to apply Simpson’s rule to the odd
+number-of-samples case; the wrapper handles adjustments required when the
+number of points is even.</p></li>
+<li><p>The implementation aims to remain numerically stable and compatible with
+SciPy’s reference behaviour.</p></li>
+</ul>
+</section>
+<section id="extrapolate">
+<h2>extrapolate<a class="headerlink" href="#extrapolate" title="Link to this heading">¶</a></h2>
+<p>Signature</p>
+<blockquote>
+<div><p><code class="docutils literal notranslate"><span class="pre">extrapolate(x,</span> <span class="pre">y,</span> <span class="pre">xq)</span></code></p>
+</div></blockquote>
+<p>Purpose</p>
+<blockquote>
+<div><p>Perform a linear regression on the data <code class="docutils literal notranslate"><span class="pre">(x,</span> <span class="pre">y)</span></code> and evaluate the
+fitted line at points <code class="docutils literal notranslate"><span class="pre">xq</span></code>.</p>
+</div></blockquote>
+<p>Parameters</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">x</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span></code>: base data used for the linear fit.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">xq</span></code>: query points where the extrapolated values are required.</p></li>
+</ul>
+<p>Returns</p>
+<ul class="simple">
+<li><p>tuple <code class="docutils literal notranslate"><span class="pre">(xq,</span> <span class="pre">yq)</span></code>: the input query coordinates and the extrapolated
+values.</p></li>
+</ul>
+<p>Notes</p>
+<ul class="simple">
+<li><p>The routine performs an ordinary least-squares linear fit and returns the
+corresponding straight line. It is suitable when the asymptotic behaviour
+is approximately linear in the chosen scale.</p></li>
+</ul>
+</section>
+<section id="extrapolate-linear-loglog">
+<h2>extrapolate_linear_loglog<a class="headerlink" href="#extrapolate-linear-loglog" title="Link to this heading">¶</a></h2>
+<p>Signature</p>
+<blockquote>
+<div><p><code class="docutils literal notranslate"><span class="pre">extrapolate_linear_loglog(k,</span> <span class="pre">pk,</span> <span class="pre">kcut,</span> <span class="pre">k_extrapolate,</span> <span class="pre">is_high_k=True)</span></code></p>
+</div></blockquote>
+<p>Purpose</p>
+<blockquote>
+<div><p>Extrapolate a power spectrum <code class="docutils literal notranslate"><span class="pre">pk(k)</span></code> toward higher or lower <code class="docutils literal notranslate"><span class="pre">k</span></code> using
+a log-log linear fit. The routine selects a small window of points near
+<code class="docutils literal notranslate"><span class="pre">kcut</span></code> and fits a straight line in log10-space to generate geometrically
+spaced extrapolated points.</p>
+</div></blockquote>
+<p>Parameters</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">k</span></code>, <code class="docutils literal notranslate"><span class="pre">pk</span></code>: arrays of modes and corresponding power spectrum values.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">kcut</span></code>: cut point where extrapolation begins.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">k_extrapolate</span></code>: final <code class="docutils literal notranslate"><span class="pre">k</span></code> bound for extrapolation (max or min as
+required).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">is_high_k</span></code>: if <code class="docutils literal notranslate"><span class="pre">True</span></code> extrapolate to larger <code class="docutils literal notranslate"><span class="pre">k</span></code>, otherwise toward
+smaller <code class="docutils literal notranslate"><span class="pre">k</span></code>.</p></li>
+</ul>
+<p>Returns</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">(k_result,</span> <span class="pre">pk_result)</span></code>: arrays concatenating the original region with the
+extrapolated segment.</p></li>
+</ul>
+<p>Notes</p>
+<ul class="simple">
+<li><p>The method operates on <code class="docutils literal notranslate"><span class="pre">log10(k)</span></code> and <code class="docutils literal notranslate"><span class="pre">log10(abs(pk))</span></code> to preserve
+apparent power-law behaviours and handles the sign of <code class="docutils literal notranslate"><span class="pre">pk</span></code> separately.</p></li>
+</ul>
+</section>
+<section id="convenience-wrappers-for-extrapolation">
+<h2>Convenience wrappers for extrapolation<a class="headerlink" href="#convenience-wrappers-for-extrapolation" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">extrapolate_high_k(k,</span> <span class="pre">pk,</span> <span class="pre">kcutmax,</span> <span class="pre">kmax)</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">extrapolate_low_k(k,</span> <span class="pre">pk,</span> <span class="pre">kcutmin,</span> <span class="pre">kmin)</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">extrapolate_k(k,</span> <span class="pre">pk,</span> <span class="pre">kcutmin,</span> <span class="pre">kmin,</span> <span class="pre">kcutmax,</span> <span class="pre">kmax)</span></code></p></li>
+</ul>
+<p>These convenience wrappers call the general routine above with appropriate
+arguments to extrapolate only at high- or low-<code class="docutils literal notranslate"><span class="pre">k</span></code>, or both ends.</p>
+</section>
+<section id="extrapolate-pklin">
+<h2>extrapolate_pklin<a class="headerlink" href="#extrapolate-pklin" title="Link to this heading">¶</a></h2>
+<p>Signature</p>
+<blockquote>
+<div><p><code class="docutils literal notranslate"><span class="pre">extrapolate_pklin(k,</span> <span class="pre">pk)</span></code></p>
+</div></blockquote>
+<p>Purpose</p>
+<blockquote>
+<div><p>Check whether the supplied <code class="docutils literal notranslate"><span class="pre">k</span></code> range covers the typical working window
+(approximately <code class="docutils literal notranslate"><span class="pre">kmin=1e-5</span></code> to <code class="docutils literal notranslate"><span class="pre">kmax=200</span></code>). If coverage is missing the
+input power spectrum is extended using <code class="docutils literal notranslate"><span class="pre">extrapolate_k</span></code>.</p>
+</div></blockquote>
+<p>Returns</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">(k_out,</span> <span class="pre">pk_out)</span></code>: arrays that are guaranteed to cover roughly the range
+<code class="docutils literal notranslate"><span class="pre">[1e-5,</span> <span class="pre">200]</span></code>.</p></li>
+</ul>
+</section>
+<section id="get-pknow">
+<h2>get_pknow<a class="headerlink" href="#get-pknow" title="Link to this heading">¶</a></h2>
+<p>Signature</p>
+<blockquote>
+<div><p><code class="docutils literal notranslate"><span class="pre">get_pknow(k,</span> <span class="pre">pk,</span> <span class="pre">h)</span></code></p>
+</div></blockquote>
+<p>Purpose</p>
+<blockquote>
+<div><p>Compute the ‘no-wiggle’ (smooth) component of the linear power spectrum
+by following the approach of Hamann et al. (2010). The method uses a
+discrete sine transform (DST) to isolate and remove BAO-related
+oscillatory modes, then reconstructs the smooth component with the
+inverse transform.</p>
+</div></blockquote>
+<p>Parameters</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">k</span></code> (array): wavenumber vector where <code class="docutils literal notranslate"><span class="pre">pk</span></code> is defined.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pk</span></code> (array): linear power spectrum (contains BAO wiggles).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">h</span></code> (float): dimensionless Hubble parameter (H0/100) used to define the
+internal sampling grid.</p></li>
+</ul>
+<p>Returns</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">(k,</span> <span class="pre">pknow)</span></code>: tuple containing <code class="docutils literal notranslate"><span class="pre">k</span></code> and the reconstructed smooth power
+spectrum evaluated on that grid.</p></li>
+</ul>
+<p>Notes</p>
+<ul class="simple">
+<li><p>The routine densely samples ln(k P(k)), applies a type-I DST, removes the
+harmonic components in a BAO window (<code class="docutils literal notranslate"><span class="pre">mcutmin</span></code> to <code class="docutils literal notranslate"><span class="pre">mcutmax</span></code>) and
+reassembles the smooth spectrum.</p></li>
+<li><p>This implementation requires SciPy (FFT / DST). It is not JAX-compatible as
+implemented.</p></li>
+</ul>
+</section>
+<section id="get-linear-ir">
+<h2>get_linear_ir<a class="headerlink" href="#get-linear-ir" title="Link to this heading">¶</a></h2>
+<p>Signature</p>
+<blockquote>
+<div><p><code class="docutils literal notranslate"><span class="pre">get_linear_ir(k,</span> <span class="pre">pk,</span> <span class="pre">h,</span> <span class="pre">pknow=None,</span> <span class="pre">fullrange=False,</span> <span class="pre">kmin=0.01,</span> <span class="pre">kmax=0.5,</span> <span class="pre">rbao=104,</span> <span class="pre">saveout=False)</span></code></p>
+</div></blockquote>
+<p>Purpose</p>
+<blockquote>
+<div><p>Compute an infrared-resummed (IR-resummed) version of the linear power
+spectrum. The routine applies a damping factor computed from the smooth
+(no-wiggle) component to model the broadening of BAO oscillations by
+large-scale displacements.</p>
+</div></blockquote>
+<p>Parameters</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">k,</span> <span class="pre">pk</span></code>: input wavenumbers and linear power spectrum.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">h</span></code>: dimensionless Hubble parameter.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pknow</span></code>: optional precomputed no-wiggle power spectrum. If <code class="docutils literal notranslate"><span class="pre">None</span></code>, the
+function will call <code class="docutils literal notranslate"><span class="pre">get_pknow</span></code> internally.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">fullrange</span></code>: if <code class="docutils literal notranslate"><span class="pre">False</span></code> the function returns a reduced sampling; if
+<code class="docutils literal notranslate"><span class="pre">True</span></code> it returns the full internal grid used in the computation.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">kmin,</span> <span class="pre">kmax</span></code>: bounding wavenumbers used for some internal integrals.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">rbao</span></code>: BAO scale (default 104 Mpc/h).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">saveout</span></code>: boolean flag reserved for debugging or output saving.</p></li>
+</ul>
+<p>Returns</p>
+<ul class="simple">
+<li><p>If <code class="docutils literal notranslate"><span class="pre">fullrange</span></code> is <code class="docutils literal notranslate"><span class="pre">False</span></code> the function returns <code class="docutils literal notranslate"><span class="pre">(newkT,</span> <span class="pre">newpk)</span></code> sampled
+on a subgrid; if <code class="docutils literal notranslate"><span class="pre">True</span></code> it returns <code class="docutils literal notranslate"><span class="pre">(kT,</span> <span class="pre">pk_IRs)</span></code> covering the complete
+internal range.</p></li>
+</ul>
+<p>Notes</p>
+<ul class="simple">
+<li><p>When <code class="docutils literal notranslate"><span class="pre">pknow</span></code> is not provided the routine computes it via
+<code class="docutils literal notranslate"><span class="pre">get_pknow</span></code>. The variance integral used to compute the damping factor is
+evaluated with a Simpson quadrature over a geometrical momentum grid.</p></li>
+</ul>
+</section>
+<section id="get-linear-ir-ini">
+<h2>get_linear_ir_ini<a class="headerlink" href="#get-linear-ir-ini" title="Link to this heading">¶</a></h2>
+<p>Signature</p>
+<blockquote>
+<div><p><code class="docutils literal notranslate"><span class="pre">get_linear_ir_ini(k,</span> <span class="pre">pkl,</span> <span class="pre">pklnw,</span> <span class="pre">h=0.6711,</span> <span class="pre">k_BAO=1.0</span> <span class="pre">/</span> <span class="pre">104.)</span></code></p>
+</div></blockquote>
+<p>Purpose</p>
+<blockquote>
+<div><p>A compact variant to compute an IR-resummed linear spectrum using a fixed
+BAO scale (<code class="docutils literal notranslate"><span class="pre">k_BAO</span></code>). Returns <code class="docutils literal notranslate"><span class="pre">(k,</span> <span class="pre">pkl_IR)</span></code>.</p>
+</div></blockquote>
+</section>
+<section id="hubble-da-qpar-qperp">
+<h2>Hubble, DA, qpar_qperp<a class="headerlink" href="#hubble-da-qpar-qperp" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Hubble(Om,</span> <span class="pre">z_ev)</span></code>: returns <code class="docutils literal notranslate"><span class="pre">H(z)/H0</span></code> for a flat matter + cosmological
+constant model: <code class="docutils literal notranslate"><span class="pre">sqrt(Om*(1+z)**3</span> <span class="pre">+</span> <span class="pre">(1-Om))</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">DA(Om,</span> <span class="pre">z_ev)</span></code>: comoving angular diameter distance computed via a
+numerical integral over <code class="docutils literal notranslate"><span class="pre">1/H(z)</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">qpar_qperp(Omega_fid,</span> <span class="pre">Omega_m,</span> <span class="pre">z_pk,</span> <span class="pre">cosmo=None)</span></code>: compute Alcock-Paczynski
+distortion factors <code class="docutils literal notranslate"><span class="pre">(q_parallel,</span> <span class="pre">q_perp)</span></code> by comparing a fiducial
+cosmology with the cosmology of interest. If a <code class="docutils literal notranslate"><span class="pre">cosmo</span></code> object (CLASS)
+is provided its distance and H(z) methods are used; otherwise the simple
+analytic expressions above are employed.</p></li>
+</ul>
+</section>
+<section id="pknwj-alternative-routine">
+<h2>pknwJ (alternative routine)<a class="headerlink" href="#pknwj-alternative-routine" title="Link to this heading">¶</a></h2>
+<p>Signature</p>
+<blockquote>
+<div><p><code class="docutils literal notranslate"><span class="pre">pknwJ(k,</span> <span class="pre">PSLk,</span> <span class="pre">h)</span></code></p>
+</div></blockquote>
+<p>Purpose</p>
+<blockquote>
+<div><p>An alternative / historical implementation for extracting the no-wiggle
+component of the power spectrum, conceptually similar to
+<code class="docutils literal notranslate"><span class="pre">get_pknow</span></code>. It is preserved in the module for compatibility and
+debugging.</p>
+</div></blockquote>
+</section>
+<section id="final-remarks">
+<h2>Final remarks<a class="headerlink" href="#final-remarks" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>The functions in <code class="docutils literal notranslate"><span class="pre">folps.tools</span></code> combine general numerical utilities
+(integration, interpolation) with cosmology-specific tools (power spectrum
+extrapolation, wiggle/no-wiggle separation, IR resummation) and small
+internal helpers.</p></li>
+<li><p>To keep API documentation fully synchronized with the codebase it is
+recommended to add or enrich docstrings in <code class="docutils literal notranslate"><span class="pre">folps/tools.py</span></code> and then
+enable <code class="docutils literal notranslate"><span class="pre">autodoc</span></code> for automated API pages. I can help with either adding
+docstrings or switching the docs to <code class="docutils literal notranslate"><span class="pre">autodoc</span></code> if you prefer.</p></li>
+</ul>
+</section>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>Hamann, J., et al. (2010). Method for computing a smooth (no-wiggle)
+component of the matter power spectrum.</p></li>
+<li><p>SciPy documentation and source related to <code class="docutils literal notranslate"><span class="pre">simpson</span></code> and discrete sine
+transforms (DST/IDST).</p></li>
+</ul>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/folps_logo.png" alt="Logo"/>
+            </a></p>
+<h1 class="logo"><a href="../index.html">FOLPSpipe</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../Installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Requirements.html">Requirements</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage and examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples.html">Examples</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../api.html">folps.folps</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="MatrixCalculator.html">MatrixCalculator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="NonLinearPowerSpectrumCalculator.html">NonLinearPowerSpectrumCalculator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="RSDMultipolesPowerSpectrumCalculator.html">RSDMultipolesPowerSpectrumCalculator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="BispectrumCalculator.html">BispectrumCalculator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Backend_and_helpers.html">BackendManager and helpers</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Tools</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../api.html#folps-cosmo-class">folps.cosmo_class</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api.html#folps-tools">folps.tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api.html#folps-tools-jax">folps.tools_jax</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Classes.html">Classes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Changelog.html">Changelog</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="../api.html">folps.folps</a><ul>
+      <li>Previous: <a href="Backend_and_helpers.html" title="previous chapter">BackendManager and helpers</a></li>
+      <li>Next: <a href="../Classes.html" title="next chapter">Classes</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2025, Hernán E. Noriega.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.3.7</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+      |
+      <a href="../_sources/api/Tools.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
