@@ -86,6 +86,30 @@ def interp(xq, x, f, method='cubic'):
     return interpax.interp1d(xq.reshape(-1), x, f, method=method, extrap=True).reshape(shape + f.shape[1:])
 
 
+def interp_at_kmin(x, f):
+    """
+    Interpolate at k→0 using linear extrapolation from the first two points.
+    This provides more stable and accurate results for very small k values
+    compared to cubic extrapolation, matching the behavior of scipy.
+    
+    Parameters
+    ----------
+    x : ndarray, shape(Nx,)
+        coordinates of known function values ("knots")
+    f : ndarray, shape(Nx,...)
+        function values to interpolate
+    
+    Returns
+    -------
+    f0 : float or ndarray
+        extrapolated function value at k→0
+    """
+    # Use linear extrapolation from first two points: f(0) ≈ f[0] - x[0] * (f[1]-f[0])/(x[1]-x[0])
+    # This is more stable than cubic extrapolation for k→0
+    slope = (f[1] - f[0]) / (x[1] - x[0])
+    return f[0] - x[0] * slope
+
+
 _NoValue = None
 
 
