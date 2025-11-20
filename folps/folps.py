@@ -49,7 +49,7 @@ class BackendManager:
                     print("⚠️ No GPU found. Using JAX with CPU.")
 
                 from jax import numpy as np
-                from tools_jax import interp, simpson, legendre, extrapolate, extrapolate_pklin, get_pknow, get_linear_ir, get_linear_ir_ini, qpar_qperp, get_pknow_jax, interp_at_kmin
+                from .tools_jax import interp, simpson, legendre, extrapolate, extrapolate_pklin, get_pknow, get_linear_ir, get_linear_ir_ini, qpar_qperp, get_pknow_jax, interp_at_kmin
                 self.modules = {
                     "np": np,
                     "interp": interp,
@@ -73,7 +73,7 @@ class BackendManager:
         elif preferred_backend == 'numpy':
             print("✅ Using NumPy with CPU.")
             import numpy as np
-            from tools import interp, simpson, legendre, extrapolate, extrapolate_pklin, get_pknow, get_linear_ir, get_linear_ir_ini, qpar_qperp
+            from .tools import interp, simpson, legendre, extrapolate, extrapolate_pklin, get_pknow, get_linear_ir, get_linear_ir_ini, qpar_qperp
             self.modules = {
                 "np": np,
                 "interp": interp,
