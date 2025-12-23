@@ -6,6 +6,8 @@
 FOLPS is a Python code that computes the galaxy redshift space power spectrum for cosmologies containing massive neutrinos. The code combines analytical modeling and numerical methods based on the FFTLog formalism. 
 
 
+
+
 For version with JAX (x10 times faster!): [Folpsax](https://github.com/cosmodesi/folpsax)
 
 [![arXiv](https://img.shields.io/badge/arXiv-2208.02791-red)](https://arxiv.org/abs/2208.02791)
