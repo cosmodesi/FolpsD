@@ -798,7 +798,15 @@ def DA(Om, z_ev, nsteps=1000):
     return r / (1.0 + z_ev)
 
 def qpar_qperp(Omega_fid, Omega_m, z_pk, cosmo=None):
-     #check this eqs for CLASS  (see script in external disk)
+    """
+    Compute qpar and qperp using analytical formulas or a cosmo object from CLASS.
+    If Omega_fid<0 or z_pk=0 return qpar, qperp = 1,1
+    """
+    
+    if (Omega_fid<0) or  (z_pk<=0):
+        return 1,1
+
+    #check this eqs for CLASS  (see script in external disk)
     if cosmo is not None:
         DA_fid = DA(Omega_fid, z_pk)
         H_fid = Hubble(Omega_fid, z_pk)
@@ -809,9 +817,9 @@ def qpar_qperp(Omega_fid, Omega_m, z_pk, cosmo=None):
         DA_m = DA(Omega_m, z_pk)
         H_fid = Hubble(Omega_fid, z_pk)
         H_m = Hubble(Omega_m, z_pk)
-
     qperp = DA_m / DA_fid
     qpar = H_fid / H_m
+    
     return qpar, qperp
 
 
