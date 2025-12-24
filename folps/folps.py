@@ -2267,7 +2267,7 @@ class BispectrumCalculator:
         elif damping == 'vdg':
             l123_2   = - 0.5 * l2 * f**2
             X2       = X_FoG_b**2
-            exp      = l123_2 * sigma2v /(1+c2*X2)
+            exp      = l123_2 * sigma2v /(1-l123_2*X2)
             Winfty   = np.exp(exp) / (1-l123_2*X2)**1.5
             
         # l2 = (k1AP * mu1AP)**2 + (k2AP * mu2AP)**2 + (k3AP * mu3AP)**2            
@@ -3171,7 +3171,7 @@ class BispectrumCalculator_fk:
         elif damping == 'vdg':
             l123_2   = - 0.5 * l2 * f**2
             X2       = X_FoG_b**2
-            exp      = l123_2 * sigma2v /(1+c2*X2)
+            exp      = l123_2 * sigma2v /(1-l123_2*X2)
             Winfty   = np.exp(exp) / (1-l123_2*X2)**1.5
             
         # l2 = (k1AP * mu1AP)**2 + (k2AP * mu2AP)**2 + (k3AP * mu3AP)**2            
