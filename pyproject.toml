@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "folps"
+dynamic = ["version"]
+description = "FOLPS code (includes JAX)"
+readme = {file = "README.md", content-type = "text/markdown"}
+
+authors = [
+    {name = "Hernan E. Noriega", email = "henoriega@icf.unam.mx"},
+    {name = "Prakhar Bansal", email = "prakharb@umich.edu"},
+    {name = "Alejandro Aviles", email = "avilescervantes@gmail.com"}
+]
+
+license = {text = "BSD-3-Clause"}
+requires-python = ">=3.7"
+
+dependencies = [
+    "numpy",
+    "scipy",
+    "jax",
+    "interpax"
+]
+
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: BSD License",
+    "Operating System :: OS Independent"
+]
+
+[project.urls]
+Homepage = "https://github.com/henoriega/FOLPSpipe"
+
+[tool.setuptools.dynamic]
+version = {attr = "folps._version.__version__"}
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["folps*"]
+
+[tool.setuptools]
+include-package-data = true

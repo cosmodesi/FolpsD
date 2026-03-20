@@ -1,0 +1,161 @@
+/var/spool/slurmd/job43527650/slurm_script: line 11: cd: global/homes/p/prakharb/FOLPSpipe/folps/: No such file or directory
+
+Lmod is automatically replacing "cray-mpich/8.1.30" with "openmpi/5.0.7".
+
+
+Lmod is automatically replacing "openmpi/5.0.7" with "cray-mpich/8.1.30".
+
+
+The following have been reloaded with a version change:
+  1) cudatoolkit/12.4 => cudatoolkit/12.2     2) gcc-native/13.2 => gcc-native/12.3
+
+2025-10-03 11:30:35.954117: E external/xla/xla/stream_executor/cuda/cuda_driver.cc:282] failed call to cuInit: CUDA_ERROR_NO_DEVICE: no CUDA-capable device is detected
+2025-10-03 11:30:35.959707: E external/xla/xla/stream_executor/cuda/cuda_driver.cc:282] failed call to cuInit: CUDA_ERROR_NO_DEVICE: no CUDA-capable device is detected
+2025-10-03 11:30:35.962635: E external/xla/xla/stream_executor/cuda/cuda_driver.cc:282] failed call to cuInit: CUDA_ERROR_NO_DEVICE: no CUDA-capable device is detected
+2025-10-03 11:30:35.966683: E external/xla/xla/stream_executor/cuda/cuda_driver.cc:282] failed call to cuInit: CUDA_ERROR_NO_DEVICE: no CUDA-capable device is detected
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/__init__.py
+⚠️ No GPU found. Using JAX with CPU.
+/global/u1/p/prakharb/FOLPS_JAX/folps/folps.py
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/__init__.py
+No valid pt_model specified, defaulting to FOLPS model
+No valid pt_model specified, defaulting to FOLPS model
+No valid pt_model specified, defaulting to FOLPS model
+No valid pt_model specified, defaulting to FOLPS model
+No valid pt_model specified, defaulting to FOLPS model
+No valid pt_model specified, defaulting to FOLPS model
+FS emulator 0 already exists, loading it now
+FS emulator 1 already exists, loading it now
+FS emulator 2 already exists, loading it now
+FS emulator 3 already exists, loading it now
+FS emulator 4 already exists, loading it now
+FS emulator 5 already exists, loading it now
+FS theories have been emulated successfully
+BAO emulator 0 already exists, loading it now
+BAO emulator 1 already exists, loading it now
+BAO emulator 2 already exists, loading it now
+BAO emulator 3 already exists, loading it now
+BAO emulator 4 already exists, loading it now
+BAO emulator 5 already exists, loading it now
+BAO has been emulated successfully
+[000000.00] [1/4] 10-03 11:30  ObservableCovariance      INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/forfit_2pt/forfit_power+bao-recon_syst-rotation-hod-photo_klim_0-0.02-0.20_2-0.02-0.20_BGS_BRIGHT-21.5_GCcomb_z0.1-0.4.npy.
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/__init__.py
+⚠️ No GPU found. Using JAX with CPU.
+/global/u1/p/prakharb/FOLPS_JAX/folps/folps.py
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/__init__.py
+No valid pt_model specified, defaulting to FOLPS model
+No valid pt_model specified, defaulting to FOLPS model
+No valid pt_model specified, defaulting to FOLPS model
+No valid pt_model specified, defaulting to FOLPS model
+No valid pt_model specified, defaulting to FOLPS model
+No valid pt_model specified, defaulting to FOLPS model
+FS emulator 0 already exists, loading it now
+FS emulator 1 already exists, loading it now
+FS emulator 2 already exists, loading it now
+FS emulator 3 already exists, loading it now
+FS emulator 4 already exists, loading it now
+FS emulator 5 already exists, loading it now
+FS theories have been emulated successfully
+BAO emulator 0 already exists, loading it now
+BAO emulator 1 already exists, loading it now
+BAO emulator 2 already exists, loading it now
+BAO emulator 3 already exists, loading it now
+BAO emulator 4 already exists, loading it now
+BAO emulator 5 already exists, loading it now
+BAO has been emulated successfully
+[000000.00] [3/4] 10-03 11:30  ObservableCovariance      INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/forfit_2pt/forfit_power+bao-recon_syst-rotation-hod-photo_klim_0-0.02-0.20_2-0.02-0.20_BGS_BRIGHT-21.5_GCcomb_z0.1-0.4.npy.
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/__init__.py
+⚠️ No GPU found. Using JAX with CPU.
+/global/u1/p/prakharb/FOLPS_JAX/folps/folps.py
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/__init__.py
+No valid pt_model specified, defaulting to FOLPS model
+No valid pt_model specified, defaulting to FOLPS model
+No valid pt_model specified, defaulting to FOLPS model
+No valid pt_model specified, defaulting to FOLPS model
+No valid pt_model specified, defaulting to FOLPS model
+No valid pt_model specified, defaulting to FOLPS model
+FS emulator 0 already exists, loading it now
+FS emulator 1 already exists, loading it now
+FS emulator 2 already exists, loading it now
+FS emulator 3 already exists, loading it now
+FS emulator 4 already exists, loading it now
+FS emulator 5 already exists, loading it now
+FS theories have been emulated successfully
+BAO emulator 0 already exists, loading it now
+BAO emulator 1 already exists, loading it now
+BAO emulator 2 already exists, loading it now
+BAO emulator 3 already exists, loading it now
+BAO emulator 4 already exists, loading it now
+BAO emulator 5 already exists, loading it now
+BAO has been emulated successfully
+[000000.00] [0/4] 10-03 11:30  ObservableCovariance      INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/forfit_2pt/forfit_power+bao-recon_syst-rotation-hod-photo_klim_0-0.02-0.20_2-0.02-0.20_BGS_BRIGHT-21.5_GCcomb_z0.1-0.4.npy.
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/__init__.py
+⚠️ No GPU found. Using JAX with CPU.
+/global/u1/p/prakharb/FOLPS_JAX/folps/folps.py
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/__init__.py
+No valid pt_model specified, defaulting to FOLPS model
+No valid pt_model specified, defaulting to FOLPS model
+No valid pt_model specified, defaulting to FOLPS model
+No valid pt_model specified, defaulting to FOLPS model
+No valid pt_model specified, defaulting to FOLPS model
+No valid pt_model specified, defaulting to FOLPS model
+FS emulator 0 already exists, loading it now
+FS emulator 1 already exists, loading it now
+FS emulator 2 already exists, loading it now
+FS emulator 3 already exists, loading it now
+FS emulator 4 already exists, loading it now
+FS emulator 5 already exists, loading it now
+FS theories have been emulated successfully
+BAO emulator 0 already exists, loading it now
+BAO emulator 1 already exists, loading it now
+BAO emulator 2 already exists, loading it now
+BAO emulator 3 already exists, loading it now
+BAO emulator 4 already exists, loading it now
+BAO emulator 5 already exists, loading it now
+BAO has been emulated successfully
+[000000.00] [2/4] 10-03 11:30  ObservableCovariance      INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/forfit_2pt/forfit_power+bao-recon_syst-rotation-hod-photo_klim_0-0.02-0.20_2-0.02-0.20_BGS_BRIGHT-21.5_GCcomb_z0.1-0.4.npy.
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/base.py:447: UserWarning: Derived parameter H0 of <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7f763c177d00> is already derived in <desilike.observables.galaxy_clustering.compression.BAOCompressionObservable object at 0x7f75f4636bc0>.
+  if self.mpicomm.rank == 0: warnings.warn(msg)
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/base.py:447: UserWarning: Derived parameter Omega_m of <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7f763c177d00> is already derived in <desilike.observables.galaxy_clustering.compression.BAOCompressionObservable object at 0x7f75f4636bc0>.
+  if self.mpicomm.rank == 0: warnings.warn(msg)
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/base.py:447: UserWarning: Derived parameter sigma8_m of <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7f763c177d00> is already derived in <desilike.observables.galaxy_clustering.compression.BAOCompressionObservable object at 0x7f75f4636bc0>.
+  if self.mpicomm.rank == 0: warnings.warn(msg)
+[000003.59] [3/4] 10-03 11:30  ObservableCovariance      INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/forfit_2pt/forfit_power+bao-recon_syst-rotation-hod-photo_klim_0-0.02-0.20_2-0.02-0.20_LRG_GCcomb_z0.4-0.6.npy.
+[000003.43] [2/4] 10-03 11:30  ObservableCovariance      INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/forfit_2pt/forfit_power+bao-recon_syst-rotation-hod-photo_klim_0-0.02-0.20_2-0.02-0.20_LRG_GCcomb_z0.4-0.6.npy.
+[000003.55] [0/4] 10-03 11:30  ObservableCovariance      INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/forfit_2pt/forfit_power+bao-recon_syst-rotation-hod-photo_klim_0-0.02-0.20_2-0.02-0.20_LRG_GCcomb_z0.4-0.6.npy.
+[000003.60] [1/4] 10-03 11:30  ObservableCovariance      INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/forfit_2pt/forfit_power+bao-recon_syst-rotation-hod-photo_klim_0-0.02-0.20_2-0.02-0.20_LRG_GCcomb_z0.4-0.6.npy.
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/base.py:447: UserWarning: Derived parameter H0 of <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7f75f4763790> is already derived in <desilike.observables.galaxy_clustering.compression.BAOCompressionObservable object at 0x7f75f46c9540>.
+  if self.mpicomm.rank == 0: warnings.warn(msg)
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/base.py:447: UserWarning: Derived parameter Omega_m of <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7f75f4763790> is already derived in <desilike.observables.galaxy_clustering.compression.BAOCompressionObservable object at 0x7f75f46c9540>.
+  if self.mpicomm.rank == 0: warnings.warn(msg)
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/base.py:447: UserWarning: Derived parameter sigma8_m of <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7f75f4763790> is already derived in <desilike.observables.galaxy_clustering.compression.BAOCompressionObservable object at 0x7f75f46c9540>.
+  if self.mpicomm.rank == 0: warnings.warn(msg)
+[000005.94] [0/4] 10-03 11:30  ObservableCovariance      INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/forfit_2pt/forfit_power+bao-recon_syst-rotation-hod-photo_klim_0-0.02-0.20_2-0.02-0.20_LRG_GCcomb_z0.6-0.8.npy.
+[000005.99] [3/4] 10-03 11:30  ObservableCovariance      INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/forfit_2pt/forfit_power+bao-recon_syst-rotation-hod-photo_klim_0-0.02-0.20_2-0.02-0.20_LRG_GCcomb_z0.6-0.8.npy.
+[000006.00] [1/4] 10-03 11:30  ObservableCovariance      INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/forfit_2pt/forfit_power+bao-recon_syst-rotation-hod-photo_klim_0-0.02-0.20_2-0.02-0.20_LRG_GCcomb_z0.6-0.8.npy.
+[000005.84] [2/4] 10-03 11:30  ObservableCovariance      INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/forfit_2pt/forfit_power+bao-recon_syst-rotation-hod-photo_klim_0-0.02-0.20_2-0.02-0.20_LRG_GCcomb_z0.6-0.8.npy.
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/base.py:447: UserWarning: Derived parameter H0 of <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7f75f479a680> is already derived in <desilike.observables.galaxy_clustering.compression.BAOCompressionObservable object at 0x7f75f46ea050>.
+  if self.mpicomm.rank == 0: warnings.warn(msg)
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/base.py:447: UserWarning: Derived parameter Omega_m of <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7f75f479a680> is already derived in <desilike.observables.galaxy_clustering.compression.BAOCompressionObservable object at 0x7f75f46ea050>.
+  if self.mpicomm.rank == 0: warnings.warn(msg)
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/base.py:447: UserWarning: Derived parameter sigma8_m of <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7f75f479a680> is already derived in <desilike.observables.galaxy_clustering.compression.BAOCompressionObservable object at 0x7f75f46ea050>.
+  if self.mpicomm.rank == 0: warnings.warn(msg)
+[000008.11] [0/4] 10-03 11:30  ObservableCovariance      INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/forfit_2pt/forfit_power+bao-recon_syst-rotation-hod-photo_klim_0-0.02-0.20_2-0.02-0.20_LRG_GCcomb_z0.8-1.1.npy.
+[000007.99] [2/4] 10-03 11:30  ObservableCovariance      INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/forfit_2pt/forfit_power+bao-recon_syst-rotation-hod-photo_klim_0-0.02-0.20_2-0.02-0.20_LRG_GCcomb_z0.8-1.1.npy.
+[000008.17] [3/4] 10-03 11:30  ObservableCovariance      INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/forfit_2pt/forfit_power+bao-recon_syst-rotation-hod-photo_klim_0-0.02-0.20_2-0.02-0.20_LRG_GCcomb_z0.8-1.1.npy.
+[000008.21] [1/4] 10-03 11:30  ObservableCovariance      INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/forfit_2pt/forfit_power+bao-recon_syst-rotation-hod-photo_klim_0-0.02-0.20_2-0.02-0.20_LRG_GCcomb_z0.8-1.1.npy.
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/base.py:447: UserWarning: Derived parameter H0 of <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7f75f47d95a0> is already derived in <desilike.observables.galaxy_clustering.compression.BAOCompressionObservable object at 0x7f75f4516b60>.
+  if self.mpicomm.rank == 0: warnings.warn(msg)
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/base.py:447: UserWarning: Derived parameter Omega_m of <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7f75f47d95a0> is already derived in <desilike.observables.galaxy_clustering.compression.BAOCompressionObservable object at 0x7f75f4516b60>.
+  if self.mpicomm.rank == 0: warnings.warn(msg)
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/base.py:447: UserWarning: Derived parameter sigma8_m of <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7f75f47d95a0> is already derived in <desilike.observables.galaxy_clustering.compression.BAOCompressionObservable object at 0x7f75f4516b60>.
+  if self.mpicomm.rank == 0: warnings.warn(msg)
+[000010.20] [0/4] 10-03 11:30  ObservableCovariance      INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/forfit_2pt/forfit_power+bao-recon_syst-rotation-hod-photo_klim_0-0.02-0.20_2-0.02-0.20_ELG_LOPnotqso_GCcomb_z1.1-1.6.npy.
+[000010.08] [2/4] 10-03 11:30  ObservableCovariance      INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/forfit_2pt/forfit_power+bao-recon_syst-rotation-hod-photo_klim_0-0.02-0.20_2-0.02-0.20_ELG_LOPnotqso_GCcomb_z1.1-1.6.npy.
+[000010.25] [3/4] 10-03 11:30  ObservableCovariance      INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/forfit_2pt/forfit_power+bao-recon_syst-rotation-hod-photo_klim_0-0.02-0.20_2-0.02-0.20_ELG_LOPnotqso_GCcomb_z1.1-1.6.npy.
+[000010.27] [1/4] 10-03 11:30  ObservableCovariance      INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/forfit_2pt/forfit_power+bao-recon_syst-rotation-hod-photo_klim_0-0.02-0.20_2-0.02-0.20_ELG_LOPnotqso_GCcomb_z1.1-1.6.npy.
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/base.py:447: UserWarning: Derived parameter H0 of <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7f75f461c4c0> is already derived in <desilike.observables.galaxy_clustering.compression.BAOCompressionObservable object at 0x7f75f453b670>.
+  if self.mpicomm.rank == 0: warnings.warn(msg)
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/base.py:447: UserWarning: Derived parameter Omega_m of <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7f75f461c4c0> is already derived in <desilike.observables.galaxy_clustering.compression.BAOCompressionObservable object at 0x7f75f453b670>.
+  if self.mpicomm.rank == 0: warnings.warn(msg)
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/base.py:447: UserWarning: Derived parameter sigma8_m of <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7f75f461c4c0> is already derived in <desilike.observables.galaxy_clustering.compression.BAOCompressionObservable object at 0x7f75f453b670>.
+  if self.mpicomm.rank == 0: warnings.warn(msg)

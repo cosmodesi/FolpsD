@@ -1,0 +1,1153 @@
+/var/spool/slurmd/job45391884/slurm_script: line 11: cd: global/homes/p/prakharb/FOLPS_JAX/folps/: No such file or directory
+
+Lmod is automatically replacing "cray-mpich/8.1.30" with "openmpi/5.0.7".
+
+
+Lmod is automatically replacing "openmpi/5.0.7" with "cray-mpich/8.1.30".
+
+
+The following have been reloaded with a version change:
+  1) cudatoolkit/12.4 => cudatoolkit/12.2     2) gcc-native/13.2 => gcc-native/12.3
+
+2025-11-19 11:03:09.446838: E external/xla/xla/stream_executor/cuda/cuda_driver.cc:282] failed call to cuInit: CUDA_ERROR_NO_DEVICE: no CUDA-capable device is detected
+2025-11-19 11:03:09.461097: E external/xla/xla/stream_executor/cuda/cuda_driver.cc:282] failed call to cuInit: CUDA_ERROR_NO_DEVICE: no CUDA-capable device is detected
+2025-11-19 11:03:09.463780: E external/xla/xla/stream_executor/cuda/cuda_driver.cc:282] failed call to cuInit: CUDA_ERROR_NO_DEVICE: no CUDA-capable device is detected
+2025-11-19 11:03:09.465985: E external/xla/xla/stream_executor/cuda/cuda_driver.cc:282] failed call to cuInit: CUDA_ERROR_NO_DEVICE: no CUDA-capable device is detected
+/global/common/software/desi/users/adematti/perlmutter/cosmodesiconda/20240118-1.0.0/code/cosmoprimo/main/lib/python3.10/site-packages/cosmoprimo/eisenstein_hu.py:25: UserWarning: EisensteinHuNoWiggleEngine cannot cope with massive neutrinos
+  warnings.warn('{} cannot cope with massive neutrinos'.format(self.__class__.__name__))
+/global/common/software/desi/users/adematti/perlmutter/cosmodesiconda/20240118-1.0.0/code/cosmoprimo/main/lib/python3.10/site-packages/cosmoprimo/eisenstein_hu.py:25: UserWarning: EisensteinHuNoWiggleEngine cannot cope with massive neutrinos
+  warnings.warn('{} cannot cope with massive neutrinos'.format(self.__class__.__name__))
+/global/common/software/desi/users/adematti/perlmutter/cosmodesiconda/20240118-1.0.0/code/cosmoprimo/main/lib/python3.10/site-packages/cosmoprimo/eisenstein_hu.py:25: UserWarning: EisensteinHuNoWiggleEngine cannot cope with massive neutrinos
+  warnings.warn('{} cannot cope with massive neutrinos'.format(self.__class__.__name__))
+/global/common/software/desi/users/adematti/perlmutter/cosmodesiconda/20240118-1.0.0/code/cosmoprimo/main/lib/python3.10/site-packages/cosmoprimo/eisenstein_hu.py:25: UserWarning: EisensteinHuNoWiggleEngine cannot cope with massive neutrinos
+  warnings.warn('{} cannot cope with massive neutrinos'.format(self.__class__.__name__))
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/__init__.py
+⚠️ No GPU found. Using JAX with CPU.
+   If you have an NVIDIA GPU, install: pip install -U 'jax[cuda12]'
+/global/u1/p/prakharb/FOLPS_JAX/folps/folps.py
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/__init__.py
+Loading matrices from matrices_nfftlog128_Afull_False_remove-DeltaP_False.npy
+Loading matrices from matrices_nfftlog128_Afull_False_remove-DeltaP_False.npy
+h : uniform[0.5, 0.9]({})
+omega_cdm : uniform[0.05, 0.2]({})
+omega_b : norm({'loc': 0.02218, 'scale': 0.00055})
+logA : uniform[2.0, 4.0]({})
+n_s : norm({'loc': 0.9649, 'scale': 0.042})
+tau_reio : uniform[0.01, 0.8]({})
+m_ncdm : uniform[0.0, 5.0]({})
+N_eff : uniform[0.01, 10.0]({})
+w0_fld : uniform[-3.0, 1.0]({})
+wa_fld : uniform[-3.0, 2.0]({})
+Omega_k : uniform[-0.3, 0.3]({})
+H0 : uniform({})
+Omega_m : uniform({})
+sigma8_m : uniform({})
+b1p : uniform[1e-05, 10]({})
+b2p : uniform[-50, 50]({})
+bsp : norm({'loc': 0.0, 'scale': 40.0})
+b3p : norm({'loc': 0.10158730158730159, 'scale': 0.20317460317460317})
+alpha0p : norm({'loc': 0.0, 'scale': 12.5})
+alpha2p : norm({'loc': 0.0, 'scale': 12.5})
+alpha4p : norm({'loc': 0.0, 'scale': 12.5})
+ctp : uniform({})
+sn0p : norm({'loc': 0.0, 'scale': 2.0})
+sn2p : norm({'loc': 0.0, 'scale': 5.0})
+X_FoG_pp : uniform[0, 10]({})
+FS emulator 0 already exists, loading it now
+FS emulator 1 already exists, loading it now
+FS emulator 2 already exists, loading it now
+FS emulator 3 already exists, loading it now
+FS emulator 4 already exists, loading it now
+FS emulator 5 already exists, loading it now
+FS theories have been emulated successfully
+[000000.01] [0/4] 11-19 11:03  TracerPowerSpectrumMultipolesObservable INFO     Loading 1 file ['/global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/corrected/pkpoles_corrected_BGS_BRIGHT-21.5_GCcomb_z0.1-0.4_thetacut0.05.npy'].
+[000000.19] [0/4] 11-19 11:03  MeshFFTWindow             INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_BGS_BRIGHT-21.5_GCcomb_z0.1-0.4_thetacut0.05.npy.
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/__init__.py
+⚠️ No GPU found. Using JAX with CPU.
+   If you have an NVIDIA GPU, install: pip install -U 'jax[cuda12]'
+/global/u1/p/prakharb/FOLPS_JAX/folps/folps.py
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/__init__.py
+Loading matrices from matrices_nfftlog128_Afull_False_remove-DeltaP_False.npy
+Loading matrices from matrices_nfftlog128_Afull_False_remove-DeltaP_False.npy
+h : uniform[0.5, 0.9]({})
+omega_cdm : uniform[0.05, 0.2]({})
+omega_b : norm({'loc': 0.02218, 'scale': 0.00055})
+logA : uniform[2.0, 4.0]({})
+n_s : norm({'loc': 0.9649, 'scale': 0.042})
+tau_reio : uniform[0.01, 0.8]({})
+m_ncdm : uniform[0.0, 5.0]({})
+N_eff : uniform[0.01, 10.0]({})
+w0_fld : uniform[-3.0, 1.0]({})
+wa_fld : uniform[-3.0, 2.0]({})
+Omega_k : uniform[-0.3, 0.3]({})
+H0 : uniform({})
+Omega_m : uniform({})
+sigma8_m : uniform({})
+b1p : uniform[1e-05, 10]({})
+b2p : uniform[-50, 50]({})
+bsp : norm({'loc': 0.0, 'scale': 40.0})
+b3p : norm({'loc': 0.10158730158730159, 'scale': 0.20317460317460317})
+alpha0p : norm({'loc': 0.0, 'scale': 12.5})
+alpha2p : norm({'loc': 0.0, 'scale': 12.5})
+alpha4p : norm({'loc': 0.0, 'scale': 12.5})
+ctp : uniform({})
+sn0p : norm({'loc': 0.0, 'scale': 2.0})
+sn2p : norm({'loc': 0.0, 'scale': 5.0})
+X_FoG_pp : uniform[0, 10]({})
+FS emulator 0 already exists, loading it now
+FS emulator 1 already exists, loading it now
+FS emulator 2 already exists, loading it now
+FS emulator 3 already exists, loading it now
+FS emulator 4 already exists, loading it now
+FS emulator 5 already exists, loading it now
+FS theories have been emulated successfully
+[000000.23] [1/4] 11-19 11:03  MeshFFTWindow             INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_BGS_BRIGHT-21.5_GCcomb_z0.1-0.4_thetacut0.05.npy.
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/__init__.py
+⚠️ No GPU found. Using JAX with CPU.
+   If you have an NVIDIA GPU, install: pip install -U 'jax[cuda12]'
+/global/u1/p/prakharb/FOLPS_JAX/folps/folps.py
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/__init__.py
+Loading matrices from matrices_nfftlog128_Afull_False_remove-DeltaP_False.npy
+Loading matrices from matrices_nfftlog128_Afull_False_remove-DeltaP_False.npy
+h : uniform[0.5, 0.9]({})
+omega_cdm : uniform[0.05, 0.2]({})
+omega_b : norm({'loc': 0.02218, 'scale': 0.00055})
+logA : uniform[2.0, 4.0]({})
+n_s : norm({'loc': 0.9649, 'scale': 0.042})
+tau_reio : uniform[0.01, 0.8]({})
+m_ncdm : uniform[0.0, 5.0]({})
+N_eff : uniform[0.01, 10.0]({})
+w0_fld : uniform[-3.0, 1.0]({})
+wa_fld : uniform[-3.0, 2.0]({})
+Omega_k : uniform[-0.3, 0.3]({})
+H0 : uniform({})
+Omega_m : uniform({})
+sigma8_m : uniform({})
+b1p : uniform[1e-05, 10]({})
+b2p : uniform[-50, 50]({})
+bsp : norm({'loc': 0.0, 'scale': 40.0})
+b3p : norm({'loc': 0.10158730158730159, 'scale': 0.20317460317460317})
+alpha0p : norm({'loc': 0.0, 'scale': 12.5})
+alpha2p : norm({'loc': 0.0, 'scale': 12.5})
+alpha4p : norm({'loc': 0.0, 'scale': 12.5})
+ctp : uniform({})
+sn0p : norm({'loc': 0.0, 'scale': 2.0})
+sn2p : norm({'loc': 0.0, 'scale': 5.0})
+X_FoG_pp : uniform[0, 10]({})
+FS emulator 0 already exists, loading it now
+FS emulator 1 already exists, loading it now
+FS emulator 2 already exists, loading it now
+FS emulator 3 already exists, loading it now
+FS emulator 4 already exists, loading it now
+FS emulator 5 already exists, loading it now
+FS theories have been emulated successfully
+[000000.23] [3/4] 11-19 11:03  MeshFFTWindow             INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_BGS_BRIGHT-21.5_GCcomb_z0.1-0.4_thetacut0.05.npy.
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/__init__.py
+⚠️ No GPU found. Using JAX with CPU.
+   If you have an NVIDIA GPU, install: pip install -U 'jax[cuda12]'
+/global/u1/p/prakharb/FOLPS_JAX/folps/folps.py
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/__init__.py
+Loading matrices from matrices_nfftlog128_Afull_False_remove-DeltaP_False.npy
+Loading matrices from matrices_nfftlog128_Afull_False_remove-DeltaP_False.npy
+h : uniform[0.5, 0.9]({})
+omega_cdm : uniform[0.05, 0.2]({})
+omega_b : norm({'loc': 0.02218, 'scale': 0.00055})
+logA : uniform[2.0, 4.0]({})
+n_s : norm({'loc': 0.9649, 'scale': 0.042})
+tau_reio : uniform[0.01, 0.8]({})
+m_ncdm : uniform[0.0, 5.0]({})
+N_eff : uniform[0.01, 10.0]({})
+w0_fld : uniform[-3.0, 1.0]({})
+wa_fld : uniform[-3.0, 2.0]({})
+Omega_k : uniform[-0.3, 0.3]({})
+H0 : uniform({})
+Omega_m : uniform({})
+sigma8_m : uniform({})
+b1p : uniform[1e-05, 10]({})
+b2p : uniform[-50, 50]({})
+bsp : norm({'loc': 0.0, 'scale': 40.0})
+b3p : norm({'loc': 0.10158730158730159, 'scale': 0.20317460317460317})
+alpha0p : norm({'loc': 0.0, 'scale': 12.5})
+alpha2p : norm({'loc': 0.0, 'scale': 12.5})
+alpha4p : norm({'loc': 0.0, 'scale': 12.5})
+ctp : uniform({})
+sn0p : norm({'loc': 0.0, 'scale': 2.0})
+sn2p : norm({'loc': 0.0, 'scale': 5.0})
+X_FoG_pp : uniform[0, 10]({})
+FS emulator 0 already exists, loading it now
+FS emulator 1 already exists, loading it now
+FS emulator 2 already exists, loading it now
+FS emulator 3 already exists, loading it now
+FS emulator 4 already exists, loading it now
+FS emulator 5 already exists, loading it now
+FS theories have been emulated successfully
+[000000.23] [2/4] 11-19 11:03  MeshFFTWindow             INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_BGS_BRIGHT-21.5_GCcomb_z0.1-0.4_thetacut0.05.npy.
+[000000.71] [0/4] 11-19 11:03  BaseMatrix                INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_BGS_BRIGHT-21.5_GCcomb_z0.1-0.4_thetacut0.05.npy.
+[000000.77] [2/4] 11-19 11:03  BaseMatrix                INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_BGS_BRIGHT-21.5_GCcomb_z0.1-0.4_thetacut0.05.npy.
+[000000.77] [1/4] 11-19 11:03  BaseMatrix                INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_BGS_BRIGHT-21.5_GCcomb_z0.1-0.4_thetacut0.05.npy.
+[000000.81] [3/4] 11-19 11:03  BaseMatrix                INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_BGS_BRIGHT-21.5_GCcomb_z0.1-0.4_thetacut0.05.npy.
+[000005.15] [0/4] 11-19 11:03  ObservablesGaussianLikelihood INFO     Covariance matrix with 112 points built from 1000 observations.
+[000005.15] [0/4] 11-19 11:03  ObservablesGaussianLikelihood INFO     ...resulting in a Hartlap 2007 factor of 0.8869.
+[000005.22] [0/4] 11-19 11:03  TracerPowerSpectrumMultipolesObservable INFO     Loading 1 file ['/global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/corrected/pkpoles_corrected_LRG_GCcomb_z0.4-0.6_thetacut0.05.npy'].
+[000005.46] [0/4] 11-19 11:03  MeshFFTWindow             INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_LRG_GCcomb_z0.4-0.6_thetacut0.05.npy.
+[000005.46] [1/4] 11-19 11:03  MeshFFTWindow             INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_LRG_GCcomb_z0.4-0.6_thetacut0.05.npy.
+[000005.46] [3/4] 11-19 11:03  MeshFFTWindow             INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_LRG_GCcomb_z0.4-0.6_thetacut0.05.npy.
+[000005.46] [2/4] 11-19 11:03  MeshFFTWindow             INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_LRG_GCcomb_z0.4-0.6_thetacut0.05.npy.
+[000005.95] [0/4] 11-19 11:03  BaseMatrix                INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_LRG_GCcomb_z0.4-0.6_thetacut0.05.npy.
+[000005.95] [1/4] 11-19 11:03  BaseMatrix                INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_LRG_GCcomb_z0.4-0.6_thetacut0.05.npy.
+[000005.97] [3/4] 11-19 11:03  BaseMatrix                INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_LRG_GCcomb_z0.4-0.6_thetacut0.05.npy.
+[000005.98] [2/4] 11-19 11:03  BaseMatrix                INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_LRG_GCcomb_z0.4-0.6_thetacut0.05.npy.
+[000010.03] [0/4] 11-19 11:03  ObservablesGaussianLikelihood INFO     Covariance matrix with 112 points built from 1000 observations.
+[000010.03] [0/4] 11-19 11:03  ObservablesGaussianLikelihood INFO     ...resulting in a Hartlap 2007 factor of 0.8869.
+[000010.10] [0/4] 11-19 11:03  TracerPowerSpectrumMultipolesObservable INFO     Loading 1 file ['/global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/corrected/pkpoles_corrected_LRG_GCcomb_z0.6-0.8_thetacut0.05.npy'].
+[000010.17] [0/4] 11-19 11:03  MeshFFTWindow             INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_LRG_GCcomb_z0.6-0.8_thetacut0.05.npy.
+[000010.17] [1/4] 11-19 11:03  MeshFFTWindow             INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_LRG_GCcomb_z0.6-0.8_thetacut0.05.npy.
+[000010.17] [3/4] 11-19 11:03  MeshFFTWindow             INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_LRG_GCcomb_z0.6-0.8_thetacut0.05.npy.
+[000010.17] [2/4] 11-19 11:03  MeshFFTWindow             INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_LRG_GCcomb_z0.6-0.8_thetacut0.05.npy.
+[000010.75] [1/4] 11-19 11:03  BaseMatrix                INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_LRG_GCcomb_z0.6-0.8_thetacut0.05.npy.
+[000010.76] [2/4] 11-19 11:03  BaseMatrix                INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_LRG_GCcomb_z0.6-0.8_thetacut0.05.npy.
+[000010.76] [3/4] 11-19 11:03  BaseMatrix                INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_LRG_GCcomb_z0.6-0.8_thetacut0.05.npy.
+[000010.82] [0/4] 11-19 11:03  BaseMatrix                INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_LRG_GCcomb_z0.6-0.8_thetacut0.05.npy.
+[000014.95] [0/4] 11-19 11:03  ObservablesGaussianLikelihood INFO     Covariance matrix with 112 points built from 1000 observations.
+[000014.95] [0/4] 11-19 11:03  ObservablesGaussianLikelihood INFO     ...resulting in a Hartlap 2007 factor of 0.8869.
+[000015.02] [0/4] 11-19 11:03  TracerPowerSpectrumMultipolesObservable INFO     Loading 1 file ['/global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/corrected/pkpoles_corrected_LRG_GCcomb_z0.8-1.1_thetacut0.05.npy'].
+[000015.11] [1/4] 11-19 11:03  MeshFFTWindow             INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_LRG_GCcomb_z0.8-1.1_thetacut0.05.npy.
+[000015.11] [2/4] 11-19 11:03  MeshFFTWindow             INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_LRG_GCcomb_z0.8-1.1_thetacut0.05.npy.
+[000015.10] [0/4] 11-19 11:03  MeshFFTWindow             INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_LRG_GCcomb_z0.8-1.1_thetacut0.05.npy.
+[000015.11] [3/4] 11-19 11:03  MeshFFTWindow             INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_LRG_GCcomb_z0.8-1.1_thetacut0.05.npy.
+[000015.57] [0/4] 11-19 11:03  BaseMatrix                INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_LRG_GCcomb_z0.8-1.1_thetacut0.05.npy.
+[000015.57] [2/4] 11-19 11:03  BaseMatrix                INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_LRG_GCcomb_z0.8-1.1_thetacut0.05.npy.
+[000015.57] [1/4] 11-19 11:03  BaseMatrix                INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_LRG_GCcomb_z0.8-1.1_thetacut0.05.npy.
+[000015.57] [3/4] 11-19 11:03  BaseMatrix                INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_LRG_GCcomb_z0.8-1.1_thetacut0.05.npy.
+[000019.63] [0/4] 11-19 11:03  ObservablesGaussianLikelihood INFO     Covariance matrix with 112 points built from 1000 observations.
+[000019.63] [0/4] 11-19 11:03  ObservablesGaussianLikelihood INFO     ...resulting in a Hartlap 2007 factor of 0.8869.
+[000019.68] [0/4] 11-19 11:03  TracerPowerSpectrumMultipolesObservable INFO     Loading 1 file ['/global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/corrected/pkpoles_corrected_ELG_LOPnotqso_GCcomb_z1.1-1.6_thetacut0.05.npy'].
+[000019.77] [2/4] 11-19 11:03  MeshFFTWindow             INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_ELG_LOPnotqso_GCcomb_z1.1-1.6_thetacut0.05.npy.
+[000019.77] [0/4] 11-19 11:03  MeshFFTWindow             INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_ELG_LOPnotqso_GCcomb_z1.1-1.6_thetacut0.05.npy.
+[000019.77] [1/4] 11-19 11:03  MeshFFTWindow             INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_ELG_LOPnotqso_GCcomb_z1.1-1.6_thetacut0.05.npy.
+[000019.77] [3/4] 11-19 11:03  MeshFFTWindow             INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_ELG_LOPnotqso_GCcomb_z1.1-1.6_thetacut0.05.npy.
+[000020.29] [3/4] 11-19 11:03  BaseMatrix                INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_ELG_LOPnotqso_GCcomb_z1.1-1.6_thetacut0.05.npy.
+[000020.30] [2/4] 11-19 11:03  BaseMatrix                INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_ELG_LOPnotqso_GCcomb_z1.1-1.6_thetacut0.05.npy.
+[000020.31] [1/4] 11-19 11:03  BaseMatrix                INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_ELG_LOPnotqso_GCcomb_z1.1-1.6_thetacut0.05.npy.
+[000020.31] [0/4] 11-19 11:03  BaseMatrix                INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_ELG_LOPnotqso_GCcomb_z1.1-1.6_thetacut0.05.npy.
+[000024.42] [0/4] 11-19 11:03  ObservablesGaussianLikelihood INFO     Covariance matrix with 112 points built from 1000 observations.
+[000024.42] [0/4] 11-19 11:03  ObservablesGaussianLikelihood INFO     ...resulting in a Hartlap 2007 factor of 0.8869.
+[000024.48] [0/4] 11-19 11:03  TracerPowerSpectrumMultipolesObservable INFO     Loading 1 file ['/global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/corrected/pkpoles_corrected_QSO_GCcomb_z0.8-2.1_thetacut0.05.npy'].
+[000024.56] [1/4] 11-19 11:03  MeshFFTWindow             INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_QSO_GCcomb_z0.8-2.1_thetacut0.05.npy.
+[000024.56] [0/4] 11-19 11:03  MeshFFTWindow             INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_QSO_GCcomb_z0.8-2.1_thetacut0.05.npy.
+[000024.56] [2/4] 11-19 11:03  MeshFFTWindow             INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_QSO_GCcomb_z0.8-2.1_thetacut0.05.npy.
+[000024.56] [3/4] 11-19 11:03  MeshFFTWindow             INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_QSO_GCcomb_z0.8-2.1_thetacut0.05.npy.
+[000025.11] [0/4] 11-19 11:03  BaseMatrix                INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_QSO_GCcomb_z0.8-2.1_thetacut0.05.npy.
+[000025.11] [2/4] 11-19 11:03  BaseMatrix                INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_QSO_GCcomb_z0.8-2.1_thetacut0.05.npy.
+[000025.14] [1/4] 11-19 11:03  BaseMatrix                INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_QSO_GCcomb_z0.8-2.1_thetacut0.05.npy.
+[000025.14] [3/4] 11-19 11:03  BaseMatrix                INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_QSO_GCcomb_z0.8-2.1_thetacut0.05.npy.
+[000029.26] [0/4] 11-19 11:03  ObservablesGaussianLikelihood INFO     Covariance matrix with 112 points built from 1000 observations.
+[000029.26] [0/4] 11-19 11:03  ObservablesGaussianLikelihood INFO     ...resulting in a Hartlap 2007 factor of 0.8869.
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/base.py:447: UserWarning: Derived parameter H0 of <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7fa4e82c93c0> is already derived in <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7fa4e82e7c40>.
+  if self.mpicomm.rank == 0: warnings.warn(msg)
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/base.py:447: UserWarning: Derived parameter Omega_m of <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7fa4e82c93c0> is already derived in <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7fa4e82e7c40>.
+  if self.mpicomm.rank == 0: warnings.warn(msg)
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/base.py:447: UserWarning: Derived parameter sigma8_m of <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7fa4e82c93c0> is already derived in <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7fa4e82e7c40>.
+  if self.mpicomm.rank == 0: warnings.warn(msg)
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/base.py:447: UserWarning: Derived parameter loglikelihood of <desilike.likelihoods.base.ObservablesGaussianLikelihood object at 0x7fa4e831cd30> is already derived in <desilike.likelihoods.base.ObservablesGaussianLikelihood object at 0x7fa4e831d480>.
+  if self.mpicomm.rank == 0: warnings.warn(msg)
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/base.py:447: UserWarning: Derived parameter logprior of <desilike.likelihoods.base.ObservablesGaussianLikelihood object at 0x7fa4e831cd30> is already derived in <desilike.likelihoods.base.ObservablesGaussianLikelihood object at 0x7fa4e831d480>.
+  if self.mpicomm.rank == 0: warnings.warn(msg)
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/base.py:447: UserWarning: Derived parameter H0 of <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7fa4e84c2b30> is already derived in <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7fa4e82c93c0>.
+  if self.mpicomm.rank == 0: warnings.warn(msg)
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/base.py:447: UserWarning: Derived parameter Omega_m of <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7fa4e84c2b30> is already derived in <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7fa4e82c93c0>.
+  if self.mpicomm.rank == 0: warnings.warn(msg)
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/base.py:447: UserWarning: Derived parameter sigma8_m of <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7fa4e84c2b30> is already derived in <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7fa4e82c93c0>.
+  if self.mpicomm.rank == 0: warnings.warn(msg)
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/base.py:447: UserWarning: Derived parameter loglikelihood of <desilike.likelihoods.base.ObservablesGaussianLikelihood object at 0x7fa4e831c5e0> is already derived in <desilike.likelihoods.base.ObservablesGaussianLikelihood object at 0x7fa4e831cd30>.
+  if self.mpicomm.rank == 0: warnings.warn(msg)
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/base.py:447: UserWarning: Derived parameter logprior of <desilike.likelihoods.base.ObservablesGaussianLikelihood object at 0x7fa4e831c5e0> is already derived in <desilike.likelihoods.base.ObservablesGaussianLikelihood object at 0x7fa4e831cd30>.
+  if self.mpicomm.rank == 0: warnings.warn(msg)
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/base.py:447: UserWarning: Derived parameter H0 of <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7fa4e84a42e0> is already derived in <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7fa4e84c2b30>.
+  if self.mpicomm.rank == 0: warnings.warn(msg)
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/base.py:447: UserWarning: Derived parameter Omega_m of <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7fa4e84a42e0> is already derived in <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7fa4e84c2b30>.
+  if self.mpicomm.rank == 0: warnings.warn(msg)
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/base.py:447: UserWarning: Derived parameter sigma8_m of <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7fa4e84a42e0> is already derived in <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7fa4e84c2b30>.
+  if self.mpicomm.rank == 0: warnings.warn(msg)
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/base.py:447: UserWarning: Derived parameter loglikelihood of <desilike.likelihoods.base.ObservablesGaussianLikelihood object at 0x7fa4e8314040> is already derived in <desilike.likelihoods.base.ObservablesGaussianLikelihood object at 0x7fa4e831c5e0>.
+  if self.mpicomm.rank == 0: warnings.warn(msg)
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/base.py:447: UserWarning: Derived parameter logprior of <desilike.likelihoods.base.ObservablesGaussianLikelihood object at 0x7fa4e8314040> is already derived in <desilike.likelihoods.base.ObservablesGaussianLikelihood object at 0x7fa4e831c5e0>.
+  if self.mpicomm.rank == 0: warnings.warn(msg)
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/base.py:447: UserWarning: Derived parameter H0 of <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7fa4e845da20> is already derived in <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7fa4e84a42e0>.
+  if self.mpicomm.rank == 0: warnings.warn(msg)
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/base.py:447: UserWarning: Derived parameter Omega_m of <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7fa4e845da20> is already derived in <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7fa4e84a42e0>.
+  if self.mpicomm.rank == 0: warnings.warn(msg)
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/base.py:447: UserWarning: Derived parameter sigma8_m of <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7fa4e845da20> is already derived in <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7fa4e84a42e0>.
+  if self.mpicomm.rank == 0: warnings.warn(msg)
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/base.py:447: UserWarning: Derived parameter loglikelihood of <desilike.likelihoods.base.ObservablesGaussianLikelihood object at 0x7fa4e8303e20> is already derived in <desilike.likelihoods.base.ObservablesGaussianLikelihood object at 0x7fa4e8314040>.
+  if self.mpicomm.rank == 0: warnings.warn(msg)
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/base.py:447: UserWarning: Derived parameter logprior of <desilike.likelihoods.base.ObservablesGaussianLikelihood object at 0x7fa4e8303e20> is already derived in <desilike.likelihoods.base.ObservablesGaussianLikelihood object at 0x7fa4e8314040>.
+  if self.mpicomm.rank == 0: warnings.warn(msg)
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/base.py:447: UserWarning: Derived parameter H0 of <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7fa4e86234c0> is already derived in <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7fa4e845da20>.
+  if self.mpicomm.rank == 0: warnings.warn(msg)
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/base.py:447: UserWarning: Derived parameter Omega_m of <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7fa4e86234c0> is already derived in <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7fa4e845da20>.
+  if self.mpicomm.rank == 0: warnings.warn(msg)
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/base.py:447: UserWarning: Derived parameter sigma8_m of <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7fa4e86234c0> is already derived in <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7fa4e845da20>.
+  if self.mpicomm.rank == 0: warnings.warn(msg)
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/base.py:447: UserWarning: Derived parameter loglikelihood of <desilike.likelihoods.base.ObservablesGaussianLikelihood object at 0x7fa4e83036a0> is already derived in <desilike.likelihoods.base.ObservablesGaussianLikelihood object at 0x7fa4e8303e20>.
+  if self.mpicomm.rank == 0: warnings.warn(msg)
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/base.py:447: UserWarning: Derived parameter logprior of <desilike.likelihoods.base.ObservablesGaussianLikelihood object at 0x7fa4e83036a0> is already derived in <desilike.likelihoods.base.ObservablesGaussianLikelihood object at 0x7fa4e8303e20>.
+  if self.mpicomm.rank == 0: warnings.warn(msg)
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/base.py:447: UserWarning: Derived parameter loglikelihood of <desilike.likelihoods.base.SumLikelihood object at 0x7fa4e831dba0> is already derived in <desilike.likelihoods.base.ObservablesGaussianLikelihood object at 0x7fa4e83036a0>.
+  if self.mpicomm.rank == 0: warnings.warn(msg)
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/base.py:447: UserWarning: Derived parameter logprior of <desilike.likelihoods.base.SumLikelihood object at 0x7fa4e831dba0> is already derived in <desilike.likelihoods.base.ObservablesGaussianLikelihood object at 0x7fa4e83036a0>.
+  if self.mpicomm.rank == 0: warnings.warn(msg)
+[000029.36] [0/4] 11-19 11:03  ObservablesGaussianLikelihood INFO     Covariance matrix with 112 points built from 1000 observations, varying 15 parameters.
+[000029.36] [0/4] 11-19 11:03  ObservablesGaussianLikelihood INFO     ...resulting in a Percival 2014 factor of 1.0899.
+[000029.36] [0/4] 11-19 11:03  ObservablesGaussianLikelihood INFO     Covariance matrix with 112 points built from 1000 observations, varying 15 parameters.
+[000029.36] [0/4] 11-19 11:03  ObservablesGaussianLikelihood INFO     ...resulting in a Percival 2014 factor of 1.0899.
+[000029.36] [0/4] 11-19 11:03  ObservablesGaussianLikelihood INFO     Covariance matrix with 112 points built from 1000 observations, varying 15 parameters.
+[000029.36] [0/4] 11-19 11:03  ObservablesGaussianLikelihood INFO     ...resulting in a Percival 2014 factor of 1.0899.
+[000029.36] [0/4] 11-19 11:03  ObservablesGaussianLikelihood INFO     Covariance matrix with 112 points built from 1000 observations, varying 15 parameters.
+[000029.36] [0/4] 11-19 11:03  ObservablesGaussianLikelihood INFO     ...resulting in a Percival 2014 factor of 1.0899.
+[000029.37] [0/4] 11-19 11:03  ObservablesGaussianLikelihood INFO     Covariance matrix with 112 points built from 1000 observations, varying 15 parameters.
+[000029.37] [0/4] 11-19 11:03  ObservablesGaussianLikelihood INFO     ...resulting in a Percival 2014 factor of 1.0899.
+[000029.37] [0/4] 11-19 11:03  ObservablesGaussianLikelihood INFO     Covariance matrix with 112 points built from 1000 observations, varying 15 parameters.
+[000029.37] [0/4] 11-19 11:03  ObservablesGaussianLikelihood INFO     ...resulting in a Percival 2014 factor of 1.0899.
+likelihood:  -1377.5165990960566 ParameterCollection(['h', 'omega_cdm', 'omega_b', 'logA', 'n_s', 'QSO.b1p', 'QSO.b2p', 'QSO.bsp', 'QSO.b3p', 'QSO.X_FoG_pp', 'ELG.b1p', 'ELG.b2p', 'ELG.bsp', 'ELG.b3p', 'ELG.X_FoG_pp', 'LRG3.b1p', 'LRG3.b2p', 'LRG3.bsp', 'LRG3.b3p', 'LRG3.X_FoG_pp', 'LRG2.b1p', 'LRG2.b2p', 'LRG2.bsp', 'LRG2.b3p', 'LRG2.X_FoG_pp', 'LRG1.b1p', 'LRG1.b2p', 'LRG1.bsp', 'LRG1.b3p', 'LRG1.X_FoG_pp', 'BGS.b1p', 'BGS.b2p', 'BGS.bsp', 'BGS.b3p', 'BGS.X_FoG_pp'])
+Test Successful!
+[000079.46] [0/4] 11-19 11:04  MCMCSampler               INFO     Varied parameters: ['h', 'omega_cdm', 'omega_b', 'logA', 'n_s', 'QSO.b1p', 'QSO.b2p', 'QSO.bsp', 'QSO.b3p', 'QSO.X_FoG_pp', 'ELG.b1p', 'ELG.b2p', 'ELG.bsp', 'ELG.b3p', 'ELG.X_FoG_pp', 'LRG3.b1p', 'LRG3.b2p', 'LRG3.bsp', 'LRG3.b3p', 'LRG3.X_FoG_pp', 'LRG2.b1p', 'LRG2.b2p', 'LRG2.bsp', 'LRG2.b3p', 'LRG2.X_FoG_pp', 'LRG1.b1p', 'LRG1.b2p', 'LRG1.bsp', 'LRG1.b3p', 'LRG1.X_FoG_pp', 'BGS.b1p', 'BGS.b2p', 'BGS.bsp', 'BGS.b3p', 'BGS.X_FoG_pp'].
+[000080.61] [0/4] 11-19 11:04  Chain                     INFO     Loading /global/cfs/cdirs/desicollab/users/prakharb/folpsD_paper_chains/y1_chains/base/correct_measurements/MCMC-fs_klim_0-0.02-0.301_2-0.02-0.301-all-GCcomb_schoneberg2024-bbn_planck2018-ns10_physical-prior_LCDM_folpsD_Ano_tight_eft_b3_free.npy.
+[000086.69] [0/4] 11-19 11:04  BasePipeline              INFO     Found speeds:
+[000086.78] [0/4] 11-19 11:04  BasePipeline              INFO     - <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7fa4e82e7c40>: 47.60 iterations / second - 0.021 s / iteration
+[000086.78] [0/4] 11-19 11:04  BasePipeline              INFO     - <desilike.theories.galaxy_clustering.full_shape.FOLPSv2TracerPowerSpectrumMultipoles object at 0x7fa4e872d5a0>: 115.64 iterations / second - 0.009 s / iteration
+[000086.78] [0/4] 11-19 11:04  BasePipeline              INFO     - <desilike.observables.galaxy_clustering.window.WindowedPowerSpectrumMultipoles object at 0x7fa4e82d6410>: 1619.77 iterations / second - 0.001 s / iteration
+[000086.78] [0/4] 11-19 11:04  BasePipeline              INFO     - <desilike.observables.galaxy_clustering.power_spectrum.TracerPowerSpectrumMultipolesObservable object at 0x7fa4e8620d30>: 228261.44 iterations / second - 0.000 s / iteration
+[000086.78] [0/4] 11-19 11:04  BasePipeline              INFO     - <desilike.likelihoods.base.ObservablesGaussianLikelihood object at 0x7fa4e831d480>: 1093.21 iterations / second - 0.001 s / iteration
+[000086.78] [0/4] 11-19 11:04  BasePipeline              INFO     - <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7fa4e82c93c0>: 47.81 iterations / second - 0.021 s / iteration
+[000086.78] [0/4] 11-19 11:04  BasePipeline              INFO     - <desilike.theories.galaxy_clustering.full_shape.FOLPSv2TracerPowerSpectrumMultipoles object at 0x7fa4e876e770>: 116.10 iterations / second - 0.009 s / iteration
+[000086.78] [0/4] 11-19 11:04  BasePipeline              INFO     - <desilike.observables.galaxy_clustering.window.WindowedPowerSpectrumMultipoles object at 0x7fa4e84f3100>: 1648.64 iterations / second - 0.001 s / iteration
+[000086.78] [0/4] 11-19 11:04  BasePipeline              INFO     - <desilike.observables.galaxy_clustering.power_spectrum.TracerPowerSpectrumMultipolesObservable object at 0x7fa4e87a79d0>: 230245.42 iterations / second - 0.000 s / iteration
+[000086.78] [0/4] 11-19 11:04  BasePipeline              INFO     - <desilike.likelihoods.base.ObservablesGaussianLikelihood object at 0x7fa4e831cd30>: 1098.60 iterations / second - 0.001 s / iteration
+[000086.78] [0/4] 11-19 11:04  BasePipeline              INFO     - <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7fa4e84c2b30>: 47.94 iterations / second - 0.021 s / iteration
+[000086.78] [0/4] 11-19 11:04  BasePipeline              INFO     - <desilike.theories.galaxy_clustering.full_shape.FOLPSv2TracerPowerSpectrumMultipoles object at 0x7fa4e8738dc0>: 116.14 iterations / second - 0.009 s / iteration
+[000086.78] [0/4] 11-19 11:04  BasePipeline              INFO     - <desilike.observables.galaxy_clustering.window.WindowedPowerSpectrumMultipoles object at 0x7fa4e84b0be0>: 1635.51 iterations / second - 0.001 s / iteration
+[000086.78] [0/4] 11-19 11:04  BasePipeline              INFO     - <desilike.observables.galaxy_clustering.power_spectrum.TracerPowerSpectrumMultipolesObservable object at 0x7fa4e87b5870>: 227848.11 iterations / second - 0.000 s / iteration
+[000086.78] [0/4] 11-19 11:04  BasePipeline              INFO     - <desilike.likelihoods.base.ObservablesGaussianLikelihood object at 0x7fa4e831c5e0>: 1105.57 iterations / second - 0.001 s / iteration
+[000086.78] [0/4] 11-19 11:04  BasePipeline              INFO     - <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7fa4e84a42e0>: 47.86 iterations / second - 0.021 s / iteration
+[000086.78] [0/4] 11-19 11:04  BasePipeline              INFO     - <desilike.theories.galaxy_clustering.full_shape.FOLPSv2TracerPowerSpectrumMultipoles object at 0x7fa5082ff130>: 116.32 iterations / second - 0.009 s / iteration
+[000086.78] [0/4] 11-19 11:04  BasePipeline              INFO     - <desilike.observables.galaxy_clustering.window.WindowedPowerSpectrumMultipoles object at 0x7fa4e84768f0>: 1642.35 iterations / second - 0.001 s / iteration
+[000086.78] [0/4] 11-19 11:04  BasePipeline              INFO     - <desilike.observables.galaxy_clustering.power_spectrum.TracerPowerSpectrumMultipolesObservable object at 0x7fa4e87b75b0>: 231091.13 iterations / second - 0.000 s / iteration
+[000086.78] [0/4] 11-19 11:04  BasePipeline              INFO     - <desilike.likelihoods.base.ObservablesGaussianLikelihood object at 0x7fa4e8314040>: 1095.67 iterations / second - 0.001 s / iteration
+[000086.78] [0/4] 11-19 11:04  BasePipeline              INFO     - <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7fa4e845da20>: 47.65 iterations / second - 0.021 s / iteration
+[000086.78] [0/4] 11-19 11:04  BasePipeline              INFO     - <desilike.theories.galaxy_clustering.full_shape.FOLPSv2TracerPowerSpectrumMultipoles object at 0x7fa508303190>: 116.57 iterations / second - 0.009 s / iteration
+[000086.78] [0/4] 11-19 11:04  BasePipeline              INFO     - <desilike.observables.galaxy_clustering.window.WindowedPowerSpectrumMultipoles object at 0x7fa4e86529e0>: 1642.35 iterations / second - 0.001 s / iteration
+[000086.78] [0/4] 11-19 11:04  BasePipeline              INFO     - <desilike.observables.galaxy_clustering.power_spectrum.TracerPowerSpectrumMultipolesObservable object at 0x7fa4e87b40d0>: 223795.68 iterations / second - 0.000 s / iteration
+[000086.78] [0/4] 11-19 11:04  BasePipeline              INFO     - <desilike.likelihoods.base.ObservablesGaussianLikelihood object at 0x7fa4e8303e20>: 1099.85 iterations / second - 0.001 s / iteration
+[000086.78] [0/4] 11-19 11:04  BasePipeline              INFO     - <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7fa4e86234c0>: 47.71 iterations / second - 0.021 s / iteration
+[000086.78] [0/4] 11-19 11:04  BasePipeline              INFO     - <desilike.theories.galaxy_clustering.full_shape.FOLPSv2TracerPowerSpectrumMultipoles object at 0x7fa5082aacb0>: 116.70 iterations / second - 0.009 s / iteration
+[000086.78] [0/4] 11-19 11:04  BasePipeline              INFO     - <desilike.observables.galaxy_clustering.window.WindowedPowerSpectrumMultipoles object at 0x7fa4d85bab30>: 1650.47 iterations / second - 0.001 s / iteration
+[000086.78] [0/4] 11-19 11:04  BasePipeline              INFO     - <desilike.observables.galaxy_clustering.power_spectrum.TracerPowerSpectrumMultipolesObservable object at 0x7fa4e86018d0>: 229092.62 iterations / second - 0.000 s / iteration
+[000086.78] [0/4] 11-19 11:04  BasePipeline              INFO     - <desilike.likelihoods.base.ObservablesGaussianLikelihood object at 0x7fa4e83036a0>: 1110.03 iterations / second - 0.001 s / iteration
+[000086.78] [0/4] 11-19 11:04  BasePipeline              INFO     - <desilike.likelihoods.base.SumLikelihood object at 0x7fa4e831dba0>: 1068.10 iterations / second - 0.001 s / iteration
+[000086.78] [0/4] 11-19 11:04  BasePipeline              INFO     - total speed: 5.34 iterations / second - 0.1873 s / iteration
+[000086.87] [0/4] 11-19 11:04  MCMCSampler               INFO     Oversampling with factors:
+[000086.87] [0/4] 11-19 11:04  MCMCSampler               INFO     1: ['h', 'omega_cdm', 'omega_b', 'logA', 'n_s']
+[000086.87] [0/4] 11-19 11:04  MCMCSampler               INFO     1: ['QSO.b1p', 'QSO.b2p', 'QSO.bsp', 'QSO.b3p', 'QSO.X_FoG_pp']
+[000086.87] [0/4] 11-19 11:04  MCMCSampler               INFO     1: ['ELG.b1p', 'ELG.b2p', 'ELG.bsp', 'ELG.b3p', 'ELG.X_FoG_pp']
+[000086.87] [0/4] 11-19 11:04  MCMCSampler               INFO     1: ['LRG3.b1p', 'LRG3.b2p', 'LRG3.bsp', 'LRG3.b3p', 'LRG3.X_FoG_pp']
+[000086.87] [0/4] 11-19 11:04  MCMCSampler               INFO     2: ['LRG2.b1p', 'LRG2.b2p', 'LRG2.bsp', 'LRG2.b3p', 'LRG2.X_FoG_pp']
+[000086.87] [0/4] 11-19 11:04  MCMCSampler               INFO     2: ['LRG1.b1p', 'LRG1.b2p', 'LRG1.bsp', 'LRG1.b3p', 'LRG1.X_FoG_pp']
+[000086.87] [0/4] 11-19 11:04  MCMCSampler               INFO     3: ['BGS.b1p', 'BGS.b2p', 'BGS.bsp', 'BGS.b3p', 'BGS.X_FoG_pp']
+[000086.90] [0/4] 11-19 11:04  MCMCSampler               INFO     Using provided covariance matrix.
+[000146.66] [0/4] 11-19 11:05  MCMCSampler               INFO     Successfully vmap input likelihood.
+[000233.45] [0/4] 11-19 11:07  MCMCSampler               INFO     Successfully jit input likelihood.
+[000246.52] [0/4] 11-19 11:07  MCMCSampler               INFO     Updating proposal covariance.
+[000277.07] [0/4] 11-19 11:07  MCMCSampler               INFO     974 steps, acceptance rate 0.084.
+[000308.38] [0/4] 11-19 11:08  MCMCSampler               INFO     1994 steps, acceptance rate 0.084.
+[000338.50] [0/4] 11-19 11:09  MCMCSampler               INFO     3016 steps, acceptance rate 0.085.
+[000361.27] [0/4] 11-19 11:09  Chain                     INFO     Saving /global/cfs/cdirs/desicollab/users/prakharb/folpsD_paper_chains/y1_chains/base/correct_measurements/MCMC-fs_klim_0-0.02-0.301_2-0.02-0.301-all-GCcomb_schoneberg2024-bbn_planck2018-ns10_physical-prior_LCDM_folpsD_Ano_tight_eft_b3_free.
+[000362.23] [0/4] 11-19 11:09  MCMCSampler               INFO     Diagnostics:
+[000362.42] [0/4] 11-19 11:09  Diagnostics               INFO     - max eigen Gelman-Rubin - 1 is 8.47; not < 0.05.
+[000362.60] [0/4] 11-19 11:09  Diagnostics               INFO     - max diag Gelman-Rubin - 1 is 3.32.
+[000363.45] [0/4] 11-19 11:09  Diagnostics               INFO     - max diag Gelman-Rubin - 1 at 1.0 sigmas is 6.86.
+[000363.57] [0/4] 11-19 11:09  Diagnostics               INFO     - max Geweke is 2.03.
+[000363.57] [0/4] 11-19 11:09  Diagnostics               INFO     - Geweke p-value is 2.5e-13.
+[000363.84] [0/4] 11-19 11:09  Diagnostics               INFO     - effective sample size = (71250 iterations / integrated autocorrelation time) is 11.
+[000363.84] [0/4] 11-19 11:09  Diagnostics               INFO     - current mean acceptance rate is 0.0795.
+[000363.84] [0/4] 11-19 11:09  Diagnostics               INFO     - total mean acceptance rate is 0.105.
+[000364.09] [0/4] 11-19 11:09  MCMCSampler               INFO     Updating proposal covariance.
+[000394.32] [0/4] 11-19 11:09  MCMCSampler               INFO     954 steps, acceptance rate 0.092.
+[000424.40] [0/4] 11-19 11:10  MCMCSampler               INFO     1902 steps, acceptance rate 0.101.
+[000454.65] [0/4] 11-19 11:10  MCMCSampler               INFO     2850 steps, acceptance rate 0.101.
+[000460.18] [0/4] 11-19 11:11  Chain                     INFO     Saving /global/cfs/cdirs/desicollab/users/prakharb/folpsD_paper_chains/y1_chains/base/correct_measurements/MCMC-fs_klim_0-0.02-0.301_2-0.02-0.301-all-GCcomb_schoneberg2024-bbn_planck2018-ns10_physical-prior_LCDM_folpsD_Ano_tight_eft_b3_free.
+[000461.10] [0/4] 11-19 11:11  MCMCSampler               INFO     Diagnostics:
+[000461.29] [0/4] 11-19 11:11  Diagnostics               INFO     - max eigen Gelman-Rubin - 1 is 8.19; not < 0.05.
+[000461.48] [0/4] 11-19 11:11  Diagnostics               INFO     - max diag Gelman-Rubin - 1 is 3.19.
+[000462.33] [0/4] 11-19 11:11  Diagnostics               INFO     - max diag Gelman-Rubin - 1 at 1.0 sigmas is 6.85.
+[000462.45] [0/4] 11-19 11:11  Diagnostics               INFO     - max Geweke is 1.87.
+[000462.45] [0/4] 11-19 11:11  Diagnostics               INFO     - Geweke p-value is 1.21e-13.
+[000462.72] [0/4] 11-19 11:11  Diagnostics               INFO     - effective sample size = (71400 iterations / integrated autocorrelation time) is 11.
+[000462.72] [0/4] 11-19 11:11  Diagnostics               INFO     - max variation of integrated autocorrelation time is 0.0367.
+[000462.72] [0/4] 11-19 11:11  Diagnostics               INFO     - current mean acceptance rate is 0.0992.
+[000462.72] [0/4] 11-19 11:11  Diagnostics               INFO     - total mean acceptance rate is 0.105.
+[000462.97] [0/4] 11-19 11:11  MCMCSampler               INFO     Updating proposal covariance.
+[000493.21] [0/4] 11-19 11:11  MCMCSampler               INFO     1030 steps, acceptance rate 0.069.
+[000523.35] [0/4] 11-19 11:12  MCMCSampler               INFO     2115 steps, acceptance rate 0.069.
+[000553.72] [0/4] 11-19 11:12  MCMCSampler               INFO     3195 steps, acceptance rate 0.069.
+[000579.02] [0/4] 11-19 11:13  Chain                     INFO     Saving /global/cfs/cdirs/desicollab/users/prakharb/folpsD_paper_chains/y1_chains/base/correct_measurements/MCMC-fs_klim_0-0.02-0.301_2-0.02-0.301-all-GCcomb_schoneberg2024-bbn_planck2018-ns10_physical-prior_LCDM_folpsD_Ano_tight_eft_b3_free.
+[000580.16] [0/4] 11-19 11:13  MCMCSampler               INFO     Diagnostics:
+[000580.35] [0/4] 11-19 11:13  Diagnostics               INFO     - max eigen Gelman-Rubin - 1 is 8.01; not < 0.05.
+[000580.54] [0/4] 11-19 11:13  Diagnostics               INFO     - max diag Gelman-Rubin - 1 is 3.05.
+[000581.39] [0/4] 11-19 11:13  Diagnostics               INFO     - max diag Gelman-Rubin - 1 at 1.0 sigmas is 6.71.
+[000581.50] [0/4] 11-19 11:13  Diagnostics               INFO     - max Geweke is 1.8.
+[000581.51] [0/4] 11-19 11:13  Diagnostics               INFO     - Geweke p-value is 2.18e-12.
+[000581.77] [0/4] 11-19 11:13  Diagnostics               INFO     - effective sample size = (71550 iterations / integrated autocorrelation time) is 11.
+[000581.77] [0/4] 11-19 11:13  Diagnostics               INFO     - max variation of integrated autocorrelation time is 0.0193.
+[000581.77] [0/4] 11-19 11:13  Diagnostics               INFO     - current mean acceptance rate is 0.0753.
+[000581.77] [0/4] 11-19 11:13  Diagnostics               INFO     - total mean acceptance rate is 0.105.
+[000582.02] [0/4] 11-19 11:13  MCMCSampler               INFO     Updating proposal covariance.
+[000612.04] [0/4] 11-19 11:13  MCMCSampler               INFO     1098 steps, acceptance rate 0.058.
+[000642.19] [0/4] 11-19 11:14  MCMCSampler               INFO     2119 steps, acceptance rate 0.066.
+[000672.37] [0/4] 11-19 11:14  MCMCSampler               INFO     3099 steps, acceptance rate 0.077.
+[000696.90] [0/4] 11-19 11:14  Chain                     INFO     Saving /global/cfs/cdirs/desicollab/users/prakharb/folpsD_paper_chains/y1_chains/base/correct_measurements/MCMC-fs_klim_0-0.02-0.301_2-0.02-0.301-all-GCcomb_schoneberg2024-bbn_planck2018-ns10_physical-prior_LCDM_folpsD_Ano_tight_eft_b3_free.
+[000700.51] [0/4] 11-19 11:15  MCMCSampler               INFO     Diagnostics:
+[000700.69] [0/4] 11-19 11:15  Diagnostics               INFO     - max eigen Gelman-Rubin - 1 is 8.01; not < 0.05.
+[000700.88] [0/4] 11-19 11:15  Diagnostics               INFO     - max diag Gelman-Rubin - 1 is 2.94.
+[000701.73] [0/4] 11-19 11:15  Diagnostics               INFO     - max diag Gelman-Rubin - 1 at 1.0 sigmas is 6.54.
+[000701.85] [0/4] 11-19 11:15  Diagnostics               INFO     - max Geweke is 1.64.
+[000701.85] [0/4] 11-19 11:15  Diagnostics               INFO     - Geweke p-value is 3.47e-11.
+[000702.11] [0/4] 11-19 11:15  Diagnostics               INFO     - effective sample size = (71700 iterations / integrated autocorrelation time) is 11.
+[000702.11] [0/4] 11-19 11:15  Diagnostics               INFO     - max variation of integrated autocorrelation time is 0.0483.
+[000702.11] [0/4] 11-19 11:15  Diagnostics               INFO     - current mean acceptance rate is 0.076.
+[000702.11] [0/4] 11-19 11:15  Diagnostics               INFO     - total mean acceptance rate is 0.105.
+[000702.58] [0/4] 11-19 11:15  MCMCSampler               INFO     Updating proposal covariance.
+[000733.14] [0/4] 11-19 11:15  MCMCSampler               INFO     1028 steps, acceptance rate 0.083.
+[000763.24] [0/4] 11-19 11:16  MCMCSampler               INFO     2075 steps, acceptance rate 0.076.
+[000793.53] [0/4] 11-19 11:16  MCMCSampler               INFO     3011 steps, acceptance rate 0.084.
+[000806.99] [0/4] 11-19 11:16  Chain                     INFO     Saving /global/cfs/cdirs/desicollab/users/prakharb/folpsD_paper_chains/y1_chains/base/correct_measurements/MCMC-fs_klim_0-0.02-0.301_2-0.02-0.301-all-GCcomb_schoneberg2024-bbn_planck2018-ns10_physical-prior_LCDM_folpsD_Ano_tight_eft_b3_free.
+[000808.02] [0/4] 11-19 11:16  MCMCSampler               INFO     Diagnostics:
+[000808.20] [0/4] 11-19 11:16  Diagnostics               INFO     - max eigen Gelman-Rubin - 1 is 7.93; not < 0.05.
+[000808.39] [0/4] 11-19 11:16  Diagnostics               INFO     - max diag Gelman-Rubin - 1 is 2.86.
+[000809.24] [0/4] 11-19 11:16  Diagnostics               INFO     - max diag Gelman-Rubin - 1 at 1.0 sigmas is 6.37.
+[000809.36] [0/4] 11-19 11:16  Diagnostics               INFO     - max Geweke is 1.81.
+[000809.36] [0/4] 11-19 11:16  Diagnostics               INFO     - Geweke p-value is 2.54e-11.
+[000809.61] [0/4] 11-19 11:16  Diagnostics               INFO     - effective sample size = (71850 iterations / integrated autocorrelation time) is 11.
+[000809.61] [0/4] 11-19 11:16  Diagnostics               INFO     - max variation of integrated autocorrelation time is 0.0555.
+[000809.61] [0/4] 11-19 11:16  Diagnostics               INFO     - current mean acceptance rate is 0.0874.
+[000809.61] [0/4] 11-19 11:16  Diagnostics               INFO     - total mean acceptance rate is 0.105.
+[000809.87] [0/4] 11-19 11:16  MCMCSampler               INFO     Updating proposal covariance.
+[000841.81] [0/4] 11-19 11:17  MCMCSampler               INFO     1041 steps, acceptance rate 0.097.
+[000871.91] [0/4] 11-19 11:17  MCMCSampler               INFO     2084 steps, acceptance rate 0.095.
+[000902.57] [0/4] 11-19 11:18  MCMCSampler               INFO     3124 steps, acceptance rate 0.093.
+[000905.60] [0/4] 11-19 11:18  Chain                     INFO     Saving /global/cfs/cdirs/desicollab/users/prakharb/folpsD_paper_chains/y1_chains/base/correct_measurements/MCMC-fs_klim_0-0.02-0.301_2-0.02-0.301-all-GCcomb_schoneberg2024-bbn_planck2018-ns10_physical-prior_LCDM_folpsD_Ano_tight_eft_b3_free.
+[000908.94] [0/4] 11-19 11:18  MCMCSampler               INFO     Diagnostics:
+[000909.13] [0/4] 11-19 11:18  Diagnostics               INFO     - max eigen Gelman-Rubin - 1 is 7.67; not < 0.05.
+[000909.31] [0/4] 11-19 11:18  Diagnostics               INFO     - max diag Gelman-Rubin - 1 is 2.8.
+[000910.16] [0/4] 11-19 11:18  Diagnostics               INFO     - max diag Gelman-Rubin - 1 at 1.0 sigmas is 6.26.
+[000910.28] [0/4] 11-19 11:18  Diagnostics               INFO     - max Geweke is 1.57.
+[000910.28] [0/4] 11-19 11:18  Diagnostics               INFO     - Geweke p-value is 8.69e-09.
+[000910.54] [0/4] 11-19 11:18  Diagnostics               INFO     - effective sample size = (72000 iterations / integrated autocorrelation time) is 11.
+[000910.54] [0/4] 11-19 11:18  Diagnostics               INFO     - max variation of integrated autocorrelation time is 0.0169.
+[000910.54] [0/4] 11-19 11:18  Diagnostics               INFO     - current mean acceptance rate is 0.0933.
+[000910.54] [0/4] 11-19 11:18  Diagnostics               INFO     - total mean acceptance rate is 0.105.
+[000910.80] [0/4] 11-19 11:18  MCMCSampler               INFO     Updating proposal covariance.
+[000941.52] [0/4] 11-19 11:19  MCMCSampler               INFO     1067 steps, acceptance rate 0.086.
+[000971.66] [0/4] 11-19 11:19  MCMCSampler               INFO     2119 steps, acceptance rate 0.077.
+[001002.07] [0/4] 11-19 11:20  MCMCSampler               INFO     3128 steps, acceptance rate 0.080.
+[001020.36] [0/4] 11-19 11:20  Chain                     INFO     Saving /global/cfs/cdirs/desicollab/users/prakharb/folpsD_paper_chains/y1_chains/base/correct_measurements/MCMC-fs_klim_0-0.02-0.301_2-0.02-0.301-all-GCcomb_schoneberg2024-bbn_planck2018-ns10_physical-prior_LCDM_folpsD_Ano_tight_eft_b3_free.
+[001021.28] [0/4] 11-19 11:20  MCMCSampler               INFO     Diagnostics:
+[001021.47] [0/4] 11-19 11:20  Diagnostics               INFO     - max eigen Gelman-Rubin - 1 is 7.56; not < 0.05.
+[001021.65] [0/4] 11-19 11:20  Diagnostics               INFO     - max diag Gelman-Rubin - 1 is 2.76.
+[001022.50] [0/4] 11-19 11:20  Diagnostics               INFO     - max diag Gelman-Rubin - 1 at 1.0 sigmas is 6.18.
+[001022.63] [0/4] 11-19 11:20  Diagnostics               INFO     - max Geweke is 1.56.
+[001022.63] [0/4] 11-19 11:20  Diagnostics               INFO     - Geweke p-value is 1.59e-07.
+[001022.88] [0/4] 11-19 11:20  Diagnostics               INFO     - effective sample size = (72150 iterations / integrated autocorrelation time) is 11.
+[001022.88] [0/4] 11-19 11:20  Diagnostics               INFO     - max variation of integrated autocorrelation time is 0.0289.
+[001022.88] [0/4] 11-19 11:20  Diagnostics               INFO     - current mean acceptance rate is 0.0795.
+[001022.88] [0/4] 11-19 11:20  Diagnostics               INFO     - total mean acceptance rate is 0.105.
+[001023.13] [0/4] 11-19 11:20  MCMCSampler               INFO     Updating proposal covariance.
+[001053.38] [0/4] 11-19 11:20  MCMCSampler               INFO     988 steps, acceptance rate 0.092.
+[001083.45] [0/4] 11-19 11:21  MCMCSampler               INFO     2097 steps, acceptance rate 0.080.
+[001114.15] [0/4] 11-19 11:21  MCMCSampler               INFO     3104 steps, acceptance rate 0.087.
+[001127.48] [0/4] 11-19 11:22  Chain                     INFO     Saving /global/cfs/cdirs/desicollab/users/prakharb/folpsD_paper_chains/y1_chains/base/correct_measurements/MCMC-fs_klim_0-0.02-0.301_2-0.02-0.301-all-GCcomb_schoneberg2024-bbn_planck2018-ns10_physical-prior_LCDM_folpsD_Ano_tight_eft_b3_free.
+[001130.72] [0/4] 11-19 11:22  MCMCSampler               INFO     Diagnostics:
+[001130.91] [0/4] 11-19 11:22  Diagnostics               INFO     - max eigen Gelman-Rubin - 1 is 7.44; not < 0.05.
+[001131.09] [0/4] 11-19 11:22  Diagnostics               INFO     - max diag Gelman-Rubin - 1 is 2.75.
+[001131.95] [0/4] 11-19 11:22  Diagnostics               INFO     - max diag Gelman-Rubin - 1 at 1.0 sigmas is 6.17.
+[001132.07] [0/4] 11-19 11:22  Diagnostics               INFO     - max Geweke is 1.61.
+[001132.07] [0/4] 11-19 11:22  Diagnostics               INFO     - Geweke p-value is 3.97e-08.
+[001132.34] [0/4] 11-19 11:22  Diagnostics               INFO     - effective sample size = (72300 iterations / integrated autocorrelation time) is 11.
+[001132.34] [0/4] 11-19 11:22  Diagnostics               INFO     - max variation of integrated autocorrelation time is 0.0238.
+[001132.34] [0/4] 11-19 11:22  Diagnostics               INFO     - current mean acceptance rate is 0.0834.
+[001132.35] [0/4] 11-19 11:22  Diagnostics               INFO     - total mean acceptance rate is 0.105.
+[001132.61] [0/4] 11-19 11:22  MCMCSampler               INFO     Updating proposal covariance.
+[001162.62] [0/4] 11-19 11:22  MCMCSampler               INFO     1006 steps, acceptance rate 0.082.
+[001192.90] [0/4] 11-19 11:23  MCMCSampler               INFO     2058 steps, acceptance rate 0.085.
+[001224.18] [0/4] 11-19 11:23  MCMCSampler               INFO     3123 steps, acceptance rate 0.085.
+[001234.93] [0/4] 11-19 11:23  Chain                     INFO     Saving /global/cfs/cdirs/desicollab/users/prakharb/folpsD_paper_chains/y1_chains/base/correct_measurements/MCMC-fs_klim_0-0.02-0.301_2-0.02-0.301-all-GCcomb_schoneberg2024-bbn_planck2018-ns10_physical-prior_LCDM_folpsD_Ano_tight_eft_b3_free.
+[001235.93] [0/4] 11-19 11:23  MCMCSampler               INFO     Diagnostics:
+[001236.12] [0/4] 11-19 11:23  Diagnostics               INFO     - max eigen Gelman-Rubin - 1 is 7.35; not < 0.05.
+[001236.30] [0/4] 11-19 11:23  Diagnostics               INFO     - max diag Gelman-Rubin - 1 is 2.75.
+[001237.16] [0/4] 11-19 11:23  Diagnostics               INFO     - max diag Gelman-Rubin - 1 at 1.0 sigmas is 6.14.
+[001237.28] [0/4] 11-19 11:23  Diagnostics               INFO     - max Geweke is 1.67.
+[001237.28] [0/4] 11-19 11:23  Diagnostics               INFO     - Geweke p-value is 2.4e-07.
+[001237.54] [0/4] 11-19 11:23  Diagnostics               INFO     - effective sample size = (72450 iterations / integrated autocorrelation time) is 11.
+[001237.54] [0/4] 11-19 11:23  Diagnostics               INFO     - max variation of integrated autocorrelation time is 0.0416.
+[001237.54] [0/4] 11-19 11:23  Diagnostics               INFO     - current mean acceptance rate is 0.0857.
+[001237.54] [0/4] 11-19 11:23  Diagnostics               INFO     - total mean acceptance rate is 0.104.
+[001237.79] [0/4] 11-19 11:23  MCMCSampler               INFO     Updating proposal covariance.
+[001268.04] [0/4] 11-19 11:24  MCMCSampler               INFO     1084 steps, acceptance rate 0.072.
+[001298.72] [0/4] 11-19 11:25  MCMCSampler               INFO     2119 steps, acceptance rate 0.081.
+[001329.02] [0/4] 11-19 11:25  MCMCSampler               INFO     3164 steps, acceptance rate 0.085.
+[001337.87] [0/4] 11-19 11:25  Chain                     INFO     Saving /global/cfs/cdirs/desicollab/users/prakharb/folpsD_paper_chains/y1_chains/base/correct_measurements/MCMC-fs_klim_0-0.02-0.301_2-0.02-0.301-all-GCcomb_schoneberg2024-bbn_planck2018-ns10_physical-prior_LCDM_folpsD_Ano_tight_eft_b3_free.
+[001341.19] [0/4] 11-19 11:25  MCMCSampler               INFO     Diagnostics:
+[001341.38] [0/4] 11-19 11:25  Diagnostics               INFO     - max eigen Gelman-Rubin - 1 is 7.13; not < 0.05.
+[001341.56] [0/4] 11-19 11:25  Diagnostics               INFO     - max diag Gelman-Rubin - 1 is 2.75.
+[001342.42] [0/4] 11-19 11:25  Diagnostics               INFO     - max diag Gelman-Rubin - 1 at 1.0 sigmas is 6.86.
+[001342.54] [0/4] 11-19 11:25  Diagnostics               INFO     - max Geweke is 1.79.
+[001342.54] [0/4] 11-19 11:25  Diagnostics               INFO     - Geweke p-value is 4.41e-09.
+[001342.81] [0/4] 11-19 11:25  Diagnostics               INFO     - effective sample size = (72600 iterations / integrated autocorrelation time) is 11.
+[001342.81] [0/4] 11-19 11:25  Diagnostics               INFO     - max variation of integrated autocorrelation time is 0.0395.
+[001342.81] [0/4] 11-19 11:25  Diagnostics               INFO     - current mean acceptance rate is 0.0868.
+[001342.81] [0/4] 11-19 11:25  Diagnostics               INFO     - total mean acceptance rate is 0.104.
+[001343.07] [0/4] 11-19 11:25  MCMCSampler               INFO     Updating proposal covariance.
+[001373.17] [0/4] 11-19 11:26  MCMCSampler               INFO     1105 steps, acceptance rate 0.071.
+[001404.13] [0/4] 11-19 11:26  MCMCSampler               INFO     2210 steps, acceptance rate 0.077.
+[001434.29] [0/4] 11-19 11:27  MCMCSampler               INFO     3300 steps, acceptance rate 0.072.
+[001457.04] [0/4] 11-19 11:27  Chain                     INFO     Saving /global/cfs/cdirs/desicollab/users/prakharb/folpsD_paper_chains/y1_chains/base/correct_measurements/MCMC-fs_klim_0-0.02-0.301_2-0.02-0.301-all-GCcomb_schoneberg2024-bbn_planck2018-ns10_physical-prior_LCDM_folpsD_Ano_tight_eft_b3_free.
+[001458.11] [0/4] 11-19 11:27  MCMCSampler               INFO     Diagnostics:
+[001458.30] [0/4] 11-19 11:27  Diagnostics               INFO     - max eigen Gelman-Rubin - 1 is 6.92; not < 0.05.
+[001458.49] [0/4] 11-19 11:27  Diagnostics               INFO     - max diag Gelman-Rubin - 1 is 2.74.
+[001459.34] [0/4] 11-19 11:27  Diagnostics               INFO     - max diag Gelman-Rubin - 1 at 1.0 sigmas is 6.91.
+[001459.46] [0/4] 11-19 11:27  Diagnostics               INFO     - max Geweke is 1.72.
+[001459.46] [0/4] 11-19 11:27  Diagnostics               INFO     - Geweke p-value is 3.58e-10.
+[001459.72] [0/4] 11-19 11:27  Diagnostics               INFO     - effective sample size = (72750 iterations / integrated autocorrelation time) is 11.
+[001459.72] [0/4] 11-19 11:27  Diagnostics               INFO     - max variation of integrated autocorrelation time is 0.0303.
+[001459.73] [0/4] 11-19 11:27  Diagnostics               INFO     - current mean acceptance rate is 0.0739.
+[001459.73] [0/4] 11-19 11:27  Diagnostics               INFO     - total mean acceptance rate is 0.104.
+[001459.99] [0/4] 11-19 11:27  MCMCSampler               INFO     Updating proposal covariance.
+[001490.12] [0/4] 11-19 11:28  MCMCSampler               INFO     1053 steps, acceptance rate 0.067.
+[001520.37] [0/4] 11-19 11:28  MCMCSampler               INFO     2149 steps, acceptance rate 0.074.
+[001550.82] [0/4] 11-19 11:29  MCMCSampler               INFO     3210 steps, acceptance rate 0.076.
+[001572.45] [0/4] 11-19 11:29  Chain                     INFO     Saving /global/cfs/cdirs/desicollab/users/prakharb/folpsD_paper_chains/y1_chains/base/correct_measurements/MCMC-fs_klim_0-0.02-0.301_2-0.02-0.301-all-GCcomb_schoneberg2024-bbn_planck2018-ns10_physical-prior_LCDM_folpsD_Ano_tight_eft_b3_free.
+[001576.01] [0/4] 11-19 11:29  MCMCSampler               INFO     Diagnostics:
+[001576.20] [0/4] 11-19 11:29  Diagnostics               INFO     - max eigen Gelman-Rubin - 1 is 6.72; not < 0.05.
+[001576.39] [0/4] 11-19 11:29  Diagnostics               INFO     - max diag Gelman-Rubin - 1 is 2.73.
+[001577.24] [0/4] 11-19 11:29  Diagnostics               INFO     - max diag Gelman-Rubin - 1 at 1.0 sigmas is 6.75.
+[001577.36] [0/4] 11-19 11:29  Diagnostics               INFO     - max Geweke is 1.69.
+[001577.36] [0/4] 11-19 11:29  Diagnostics               INFO     - Geweke p-value is 8.39e-10.
+[001577.62] [0/4] 11-19 11:29  Diagnostics               INFO     - effective sample size = (72900 iterations / integrated autocorrelation time) is 11.
+[001577.62] [0/4] 11-19 11:29  Diagnostics               INFO     - max variation of integrated autocorrelation time is 0.0388.
+[001577.62] [0/4] 11-19 11:29  Diagnostics               INFO     - current mean acceptance rate is 0.0749.
+[001577.62] [0/4] 11-19 11:29  Diagnostics               INFO     - total mean acceptance rate is 0.104.
+[001577.89] [0/4] 11-19 11:29  MCMCSampler               INFO     Updating proposal covariance.
+[001607.92] [0/4] 11-19 11:30  MCMCSampler               INFO     1065 steps, acceptance rate 0.089.
+[001638.51] [0/4] 11-19 11:30  MCMCSampler               INFO     2203 steps, acceptance rate 0.085.
+[001668.60] [0/4] 11-19 11:31  MCMCSampler               INFO     3191 steps, acceptance rate 0.088.
+[001677.37] [0/4] 11-19 11:31  Chain                     INFO     Saving /global/cfs/cdirs/desicollab/users/prakharb/folpsD_paper_chains/y1_chains/base/correct_measurements/MCMC-fs_klim_0-0.02-0.301_2-0.02-0.301-all-GCcomb_schoneberg2024-bbn_planck2018-ns10_physical-prior_LCDM_folpsD_Ano_tight_eft_b3_free.
+[001678.43] [0/4] 11-19 11:31  MCMCSampler               INFO     Diagnostics:
+[001678.61] [0/4] 11-19 11:31  Diagnostics               INFO     - max eigen Gelman-Rubin - 1 is 6.55; not < 0.05.
+[001678.80] [0/4] 11-19 11:31  Diagnostics               INFO     - max diag Gelman-Rubin - 1 is 2.68.
+[001679.66] [0/4] 11-19 11:31  Diagnostics               INFO     - max diag Gelman-Rubin - 1 at 1.0 sigmas is 6.63.
+[001679.78] [0/4] 11-19 11:31  Diagnostics               INFO     - max Geweke is 1.77.
+[001679.78] [0/4] 11-19 11:31  Diagnostics               INFO     - Geweke p-value is 3.12e-12.
+[001680.27] [0/4] 11-19 11:31  Diagnostics               INFO     - effective sample size = (73050 iterations / integrated autocorrelation time) is 11.
+[001680.27] [0/4] 11-19 11:31  Diagnostics               INFO     - max variation of integrated autocorrelation time is 0.0611.
+[001680.27] [0/4] 11-19 11:31  Diagnostics               INFO     - current mean acceptance rate is 0.0862.
+[001680.27] [0/4] 11-19 11:31  Diagnostics               INFO     - total mean acceptance rate is 0.104.
+[001680.53] [0/4] 11-19 11:31  MCMCSampler               INFO     Updating proposal covariance.
+[001710.59] [0/4] 11-19 11:31  MCMCSampler               INFO     1017 steps, acceptance rate 0.096.
+[001740.79] [0/4] 11-19 11:32  MCMCSampler               INFO     2040 steps, acceptance rate 0.095.
+[001770.86] [0/4] 11-19 11:32  MCMCSampler               INFO     3037 steps, acceptance rate 0.092.
+[001777.17] [0/4] 11-19 11:32  Chain                     INFO     Saving /global/cfs/cdirs/desicollab/users/prakharb/folpsD_paper_chains/y1_chains/base/correct_measurements/MCMC-fs_klim_0-0.02-0.301_2-0.02-0.301-all-GCcomb_schoneberg2024-bbn_planck2018-ns10_physical-prior_LCDM_folpsD_Ano_tight_eft_b3_free.
+[001780.50] [0/4] 11-19 11:33  MCMCSampler               INFO     Diagnostics:
+[001780.69] [0/4] 11-19 11:33  Diagnostics               INFO     - max eigen Gelman-Rubin - 1 is 6.2; not < 0.05.
+[001780.88] [0/4] 11-19 11:33  Diagnostics               INFO     - max diag Gelman-Rubin - 1 is 2.63.
+[001781.74] [0/4] 11-19 11:33  Diagnostics               INFO     - max diag Gelman-Rubin - 1 at 1.0 sigmas is 6.4.
+[001781.86] [0/4] 11-19 11:33  Diagnostics               INFO     - max Geweke is 1.65.
+[001781.86] [0/4] 11-19 11:33  Diagnostics               INFO     - Geweke p-value is 5.98e-12.
+[001782.13] [0/4] 11-19 11:33  Diagnostics               INFO     - effective sample size = (73200 iterations / integrated autocorrelation time) is 11.
+[001782.13] [0/4] 11-19 11:33  Diagnostics               INFO     - max variation of integrated autocorrelation time is 0.0219.
+[001782.13] [0/4] 11-19 11:33  Diagnostics               INFO     - current mean acceptance rate is 0.0929.
+[001782.13] [0/4] 11-19 11:33  Diagnostics               INFO     - total mean acceptance rate is 0.104.
+[001782.39] [0/4] 11-19 11:33  MCMCSampler               INFO     Updating proposal covariance.
+[001812.60] [0/4] 11-19 11:33  MCMCSampler               INFO     984 steps, acceptance rate 0.105.
+[001842.76] [0/4] 11-19 11:34  MCMCSampler               INFO     1992 steps, acceptance rate 0.110.
+[001869.29] [0/4] 11-19 11:34  Chain                     INFO     Saving /global/cfs/cdirs/desicollab/users/prakharb/folpsD_paper_chains/y1_chains/base/correct_measurements/MCMC-fs_klim_0-0.02-0.301_2-0.02-0.301-all-GCcomb_schoneberg2024-bbn_planck2018-ns10_physical-prior_LCDM_folpsD_Ano_tight_eft_b3_free.
+[001870.24] [0/4] 11-19 11:34  MCMCSampler               INFO     Diagnostics:
+[001870.43] [0/4] 11-19 11:34  Diagnostics               INFO     - max eigen Gelman-Rubin - 1 is 5.78; not < 0.05.
+[001870.61] [0/4] 11-19 11:34  Diagnostics               INFO     - max diag Gelman-Rubin - 1 is 2.54.
+[001871.47] [0/4] 11-19 11:34  Diagnostics               INFO     - max diag Gelman-Rubin - 1 at 1.0 sigmas is 6.07.
+[001871.59] [0/4] 11-19 11:34  Diagnostics               INFO     - max Geweke is 1.66.
+[001871.59] [0/4] 11-19 11:34  Diagnostics               INFO     - Geweke p-value is 6.7e-14.
+[001871.86] [0/4] 11-19 11:34  Diagnostics               INFO     - effective sample size = (73350 iterations / integrated autocorrelation time) is 11.1.
+[001871.86] [0/4] 11-19 11:34  Diagnostics               INFO     - max variation of integrated autocorrelation time is 0.0117.
+[001871.86] [0/4] 11-19 11:34  Diagnostics               INFO     - current mean acceptance rate is 0.104.
+[001871.86] [0/4] 11-19 11:34  Diagnostics               INFO     - total mean acceptance rate is 0.104.
+[001872.11] [0/4] 11-19 11:34  MCMCSampler               INFO     Updating proposal covariance.
+[001902.57] [0/4] 11-19 11:35  MCMCSampler               INFO     1112 steps, acceptance rate 0.085.
+[001932.85] [0/4] 11-19 11:35  MCMCSampler               INFO     2142 steps, acceptance rate 0.082.
+[001963.83] [0/4] 11-19 11:36  MCMCSampler               INFO     3270 steps, acceptance rate 0.077.
+[001979.36] [0/4] 11-19 11:36  Chain                     INFO     Saving /global/cfs/cdirs/desicollab/users/prakharb/folpsD_paper_chains/y1_chains/base/correct_measurements/MCMC-fs_klim_0-0.02-0.301_2-0.02-0.301-all-GCcomb_schoneberg2024-bbn_planck2018-ns10_physical-prior_LCDM_folpsD_Ano_tight_eft_b3_free.
+[001982.78] [0/4] 11-19 11:36  MCMCSampler               INFO     Diagnostics:
+[001982.97] [0/4] 11-19 11:36  Diagnostics               INFO     - max eigen Gelman-Rubin - 1 is 5.55; not < 0.05.
+[001983.15] [0/4] 11-19 11:36  Diagnostics               INFO     - max diag Gelman-Rubin - 1 is 2.49.
+[001984.01] [0/4] 11-19 11:36  Diagnostics               INFO     - max diag Gelman-Rubin - 1 at 1.0 sigmas is 5.75.
+[001984.13] [0/4] 11-19 11:36  Diagnostics               INFO     - max Geweke is 1.67.
+[001984.13] [0/4] 11-19 11:36  Diagnostics               INFO     - Geweke p-value is 6.38e-16.
+[001984.39] [0/4] 11-19 11:36  Diagnostics               INFO     - effective sample size = (73500 iterations / integrated autocorrelation time) is 11.1.
+[001984.39] [0/4] 11-19 11:36  Diagnostics               INFO     - max variation of integrated autocorrelation time is 0.0251.
+[001984.39] [0/4] 11-19 11:36  Diagnostics               INFO     - current mean acceptance rate is 0.0796.
+[001984.39] [0/4] 11-19 11:36  Diagnostics               INFO     - total mean acceptance rate is 0.104.
+[001984.65] [0/4] 11-19 11:36  MCMCSampler               INFO     Updating proposal covariance.
+[002015.62] [0/4] 11-19 11:36  MCMCSampler               INFO     1147 steps, acceptance rate 0.071.
+[002045.79] [0/4] 11-19 11:37  MCMCSampler               INFO     2183 steps, acceptance rate 0.072.
+[002076.22] [0/4] 11-19 11:37  MCMCSampler               INFO     3266 steps, acceptance rate 0.076.
+[002094.13] [0/4] 11-19 11:38  Chain                     INFO     Saving /global/cfs/cdirs/desicollab/users/prakharb/folpsD_paper_chains/y1_chains/base/correct_measurements/MCMC-fs_klim_0-0.02-0.301_2-0.02-0.301-all-GCcomb_schoneberg2024-bbn_planck2018-ns10_physical-prior_LCDM_folpsD_Ano_tight_eft_b3_free.
+[002095.17] [0/4] 11-19 11:38  MCMCSampler               INFO     Diagnostics:
+[002095.36] [0/4] 11-19 11:38  Diagnostics               INFO     - max eigen Gelman-Rubin - 1 is 5.51; not < 0.05.
+[002095.55] [0/4] 11-19 11:38  Diagnostics               INFO     - max diag Gelman-Rubin - 1 is 2.46.
+[002096.41] [0/4] 11-19 11:38  Diagnostics               INFO     - max diag Gelman-Rubin - 1 at 1.0 sigmas is 5.36.
+[002096.52] [0/4] 11-19 11:38  Diagnostics               INFO     - max Geweke is 1.56.
+[002096.53] [0/4] 11-19 11:38  Diagnostics               INFO     - Geweke p-value is 9.07e-15.
+[002096.80] [0/4] 11-19 11:38  Diagnostics               INFO     - effective sample size = (73650 iterations / integrated autocorrelation time) is 11.1.
+[002096.80] [0/4] 11-19 11:38  Diagnostics               INFO     - max variation of integrated autocorrelation time is 0.0284.
+[002096.80] [0/4] 11-19 11:38  Diagnostics               INFO     - current mean acceptance rate is 0.0775.
+[002096.80] [0/4] 11-19 11:38  Diagnostics               INFO     - total mean acceptance rate is 0.104.
+[002097.06] [0/4] 11-19 11:38  MCMCSampler               INFO     Updating proposal covariance.
+[002127.41] [0/4] 11-19 11:38  MCMCSampler               INFO     1028 steps, acceptance rate 0.083.
+[002157.99] [0/4] 11-19 11:39  MCMCSampler               INFO     2076 steps, acceptance rate 0.079.
+[002188.04] [0/4] 11-19 11:39  MCMCSampler               INFO     3092 steps, acceptance rate 0.081.
+[002209.92] [0/4] 11-19 11:40  Chain                     INFO     Saving /global/cfs/cdirs/desicollab/users/prakharb/folpsD_paper_chains/y1_chains/base/correct_measurements/MCMC-fs_klim_0-0.02-0.301_2-0.02-0.301-all-GCcomb_schoneberg2024-bbn_planck2018-ns10_physical-prior_LCDM_folpsD_Ano_tight_eft_b3_free.
+[002213.23] [0/4] 11-19 11:40  MCMCSampler               INFO     Diagnostics:
+[002213.42] [0/4] 11-19 11:40  Diagnostics               INFO     - max eigen Gelman-Rubin - 1 is 5.41; not < 0.05.
+[002213.61] [0/4] 11-19 11:40  Diagnostics               INFO     - max diag Gelman-Rubin - 1 is 2.46.
+[002214.46] [0/4] 11-19 11:40  Diagnostics               INFO     - max diag Gelman-Rubin - 1 at 1.0 sigmas is 5.22.
+[002214.59] [0/4] 11-19 11:40  Diagnostics               INFO     - max Geweke is 1.57.
+[002214.59] [0/4] 11-19 11:40  Diagnostics               INFO     - Geweke p-value is 3.47e-13.
+[002214.85] [0/4] 11-19 11:40  Diagnostics               INFO     - effective sample size = (73800 iterations / integrated autocorrelation time) is 11.1.
+[002214.85] [0/4] 11-19 11:40  Diagnostics               INFO     - max variation of integrated autocorrelation time is 0.045.
+[002214.85] [0/4] 11-19 11:40  Diagnostics               INFO     - current mean acceptance rate is 0.0766.
+[002214.85] [0/4] 11-19 11:40  Diagnostics               INFO     - total mean acceptance rate is 0.104.
+[002215.12] [0/4] 11-19 11:40  MCMCSampler               INFO     Updating proposal covariance.
+[002245.39] [0/4] 11-19 11:40  MCMCSampler               INFO     1057 steps, acceptance rate 0.099.
+[002275.59] [0/4] 11-19 11:41  MCMCSampler               INFO     2104 steps, acceptance rate 0.093.
+[002305.77] [0/4] 11-19 11:41  MCMCSampler               INFO     3181 steps, acceptance rate 0.083.
+[002319.68] [0/4] 11-19 11:42  Chain                     INFO     Saving /global/cfs/cdirs/desicollab/users/prakharb/folpsD_paper_chains/y1_chains/base/correct_measurements/MCMC-fs_klim_0-0.02-0.301_2-0.02-0.301-all-GCcomb_schoneberg2024-bbn_planck2018-ns10_physical-prior_LCDM_folpsD_Ano_tight_eft_b3_free.
+[002320.87] [0/4] 11-19 11:42  MCMCSampler               INFO     Diagnostics:
+[002321.06] [0/4] 11-19 11:42  Diagnostics               INFO     - max eigen Gelman-Rubin - 1 is 5.35; not < 0.05.
+[002321.24] [0/4] 11-19 11:42  Diagnostics               INFO     - max diag Gelman-Rubin - 1 is 2.44.
+[002322.10] [0/4] 11-19 11:42  Diagnostics               INFO     - max diag Gelman-Rubin - 1 at 1.0 sigmas is 5.04.
+[002322.22] [0/4] 11-19 11:42  Diagnostics               INFO     - max Geweke is 1.56.
+[002322.23] [0/4] 11-19 11:42  Diagnostics               INFO     - Geweke p-value is 9.94e-11.
+[002322.49] [0/4] 11-19 11:42  Diagnostics               INFO     - effective sample size = (73950 iterations / integrated autocorrelation time) is 11.1.
+[002322.49] [0/4] 11-19 11:42  Diagnostics               INFO     - max variation of integrated autocorrelation time is 0.0483.
+[002322.49] [0/4] 11-19 11:42  Diagnostics               INFO     - current mean acceptance rate is 0.0815.
+[002322.49] [0/4] 11-19 11:42  Diagnostics               INFO     - total mean acceptance rate is 0.104.
+[002322.75] [0/4] 11-19 11:42  MCMCSampler               INFO     Updating proposal covariance.
+[002352.95] [0/4] 11-19 11:42  MCMCSampler               INFO     1097 steps, acceptance rate 0.088.
+[002384.09] [0/4] 11-19 11:43  MCMCSampler               INFO     2164 steps, acceptance rate 0.080.
+[002414.27] [0/4] 11-19 11:43  MCMCSampler               INFO     3226 steps, acceptance rate 0.077.
+[002431.12] [0/4] 11-19 11:43  Chain                     INFO     Saving /global/cfs/cdirs/desicollab/users/prakharb/folpsD_paper_chains/y1_chains/base/correct_measurements/MCMC-fs_klim_0-0.02-0.301_2-0.02-0.301-all-GCcomb_schoneberg2024-bbn_planck2018-ns10_physical-prior_LCDM_folpsD_Ano_tight_eft_b3_free.
+[002434.58] [0/4] 11-19 11:43  MCMCSampler               INFO     Diagnostics:
+[002434.77] [0/4] 11-19 11:43  Diagnostics               INFO     - max eigen Gelman-Rubin - 1 is 5.36; not < 0.05.
+[002434.96] [0/4] 11-19 11:43  Diagnostics               INFO     - max diag Gelman-Rubin - 1 is 2.44.
+[002435.82] [0/4] 11-19 11:43  Diagnostics               INFO     - max diag Gelman-Rubin - 1 at 1.0 sigmas is 4.85.
+[002435.94] [0/4] 11-19 11:43  Diagnostics               INFO     - max Geweke is 1.54.
+[002435.94] [0/4] 11-19 11:43  Diagnostics               INFO     - Geweke p-value is 1.06e-09.
+[002436.21] [0/4] 11-19 11:43  Diagnostics               INFO     - effective sample size = (74100 iterations / integrated autocorrelation time) is 11.1.
+[002436.21] [0/4] 11-19 11:43  Diagnostics               INFO     - max variation of integrated autocorrelation time is 0.0531.
+[002436.21] [0/4] 11-19 11:43  Diagnostics               INFO     - current mean acceptance rate is 0.0798.
+[002436.21] [0/4] 11-19 11:43  Diagnostics               INFO     - total mean acceptance rate is 0.104.
+[002436.47] [0/4] 11-19 11:43  MCMCSampler               INFO     Updating proposal covariance.
+[002466.50] [0/4] 11-19 11:44  MCMCSampler               INFO     1000 steps, acceptance rate 0.083.
+[002497.16] [0/4] 11-19 11:44  MCMCSampler               INFO     2043 steps, acceptance rate 0.083.
+[002528.06] [0/4] 11-19 11:45  MCMCSampler               INFO     3107 steps, acceptance rate 0.077.
+[002552.07] [0/4] 11-19 11:45  Chain                     INFO     Saving /global/cfs/cdirs/desicollab/users/prakharb/folpsD_paper_chains/y1_chains/base/correct_measurements/MCMC-fs_klim_0-0.02-0.301_2-0.02-0.301-all-GCcomb_schoneberg2024-bbn_planck2018-ns10_physical-prior_LCDM_folpsD_Ano_tight_eft_b3_free.
+[002553.11] [0/4] 11-19 11:45  MCMCSampler               INFO     Diagnostics:
+[002553.30] [0/4] 11-19 11:45  Diagnostics               INFO     - max eigen Gelman-Rubin - 1 is 5.19; not < 0.05.
+[002553.49] [0/4] 11-19 11:45  Diagnostics               INFO     - max diag Gelman-Rubin - 1 is 2.39.
+[002554.35] [0/4] 11-19 11:45  Diagnostics               INFO     - max diag Gelman-Rubin - 1 at 1.0 sigmas is 4.73.
+[002554.47] [0/4] 11-19 11:45  Diagnostics               INFO     - max Geweke is 1.54.
+[002554.47] [0/4] 11-19 11:45  Diagnostics               INFO     - Geweke p-value is 2.15e-09.
+[002554.73] [0/4] 11-19 11:45  Diagnostics               INFO     - effective sample size = (74250 iterations / integrated autocorrelation time) is 11.1.
+[002554.73] [0/4] 11-19 11:45  Diagnostics               INFO     - max variation of integrated autocorrelation time is 0.0422.
+[002554.73] [0/4] 11-19 11:45  Diagnostics               INFO     - current mean acceptance rate is 0.0754.
+[002554.73] [0/4] 11-19 11:45  Diagnostics               INFO     - total mean acceptance rate is 0.104.
+[002554.99] [0/4] 11-19 11:45  MCMCSampler               INFO     Updating proposal covariance.
+[002585.33] [0/4] 11-19 11:46  MCMCSampler               INFO     1116 steps, acceptance rate 0.070.
+[002615.64] [0/4] 11-19 11:46  MCMCSampler               INFO     2238 steps, acceptance rate 0.071.
+[002645.67] [0/4] 11-19 11:47  MCMCSampler               INFO     3331 steps, acceptance rate 0.073.
+[002668.78] [0/4] 11-19 11:47  Chain                     INFO     Saving /global/cfs/cdirs/desicollab/users/prakharb/folpsD_paper_chains/y1_chains/base/correct_measurements/MCMC-fs_klim_0-0.02-0.301_2-0.02-0.301-all-GCcomb_schoneberg2024-bbn_planck2018-ns10_physical-prior_LCDM_folpsD_Ano_tight_eft_b3_free.
+[002672.05] [0/4] 11-19 11:47  MCMCSampler               INFO     Diagnostics:
+[002672.24] [0/4] 11-19 11:47  Diagnostics               INFO     - max eigen Gelman-Rubin - 1 is 4.94; not < 0.05.
+[002672.43] [0/4] 11-19 11:47  Diagnostics               INFO     - max diag Gelman-Rubin - 1 is 2.28.
+[002673.29] [0/4] 11-19 11:47  Diagnostics               INFO     - max diag Gelman-Rubin - 1 at 1.0 sigmas is 4.52.
+[002673.41] [0/4] 11-19 11:47  Diagnostics               INFO     - max Geweke is 1.63.
+[002673.41] [0/4] 11-19 11:47  Diagnostics               INFO     - Geweke p-value is 6.21e-10.
+[002673.69] [0/4] 11-19 11:47  Diagnostics               INFO     - effective sample size = (74400 iterations / integrated autocorrelation time) is 11.1.
+[002673.69] [0/4] 11-19 11:47  Diagnostics               INFO     - max variation of integrated autocorrelation time is 0.0351.
+[002673.69] [0/4] 11-19 11:47  Diagnostics               INFO     - current mean acceptance rate is 0.0725.
+[002673.69] [0/4] 11-19 11:47  Diagnostics               INFO     - total mean acceptance rate is 0.104.
+[002673.95] [0/4] 11-19 11:47  MCMCSampler               INFO     Updating proposal covariance.
+[002704.11] [0/4] 11-19 11:48  MCMCSampler               INFO     1110 steps, acceptance rate 0.062.
+[002735.07] [0/4] 11-19 11:48  MCMCSampler               INFO     2203 steps, acceptance rate 0.072.
+[002765.26] [0/4] 11-19 11:49  MCMCSampler               INFO     3234 steps, acceptance rate 0.077.
+[002783.04] [0/4] 11-19 11:49  Chain                     INFO     Saving /global/cfs/cdirs/desicollab/users/prakharb/folpsD_paper_chains/y1_chains/base/correct_measurements/MCMC-fs_klim_0-0.02-0.301_2-0.02-0.301-all-GCcomb_schoneberg2024-bbn_planck2018-ns10_physical-prior_LCDM_folpsD_Ano_tight_eft_b3_free.
+[002784.10] [0/4] 11-19 11:49  MCMCSampler               INFO     Diagnostics:
+[002784.29] [0/4] 11-19 11:49  Diagnostics               INFO     - max eigen Gelman-Rubin - 1 is 4.74; not < 0.05.
+[002784.48] [0/4] 11-19 11:49  Diagnostics               INFO     - max diag Gelman-Rubin - 1 is 2.19.
+[002785.34] [0/4] 11-19 11:49  Diagnostics               INFO     - max diag Gelman-Rubin - 1 at 1.0 sigmas is 4.57.
+[002785.46] [0/4] 11-19 11:49  Diagnostics               INFO     - max Geweke is 1.69.
+[002785.46] [0/4] 11-19 11:49  Diagnostics               INFO     - Geweke p-value is 7.43e-09.
+[002785.73] [0/4] 11-19 11:49  Diagnostics               INFO     - effective sample size = (74550 iterations / integrated autocorrelation time) is 11.1.
+[002785.73] [0/4] 11-19 11:49  Diagnostics               INFO     - max variation of integrated autocorrelation time is 0.0192.
+[002785.73] [0/4] 11-19 11:49  Diagnostics               INFO     - current mean acceptance rate is 0.0777.
+[002785.73] [0/4] 11-19 11:49  Diagnostics               INFO     - total mean acceptance rate is 0.104.
+[002785.99] [0/4] 11-19 11:49  MCMCSampler               INFO     Updating proposal covariance.
+[002816.33] [0/4] 11-19 11:50  MCMCSampler               INFO     1028 steps, acceptance rate 0.092.
+[002847.99] [0/4] 11-19 11:50  MCMCSampler               INFO     2169 steps, acceptance rate 0.081.
+[002878.03] [0/4] 11-19 11:51  MCMCSampler               INFO     3153 steps, acceptance rate 0.085.
+[002888.06] [0/4] 11-19 11:51  Chain                     INFO     Saving /global/cfs/cdirs/desicollab/users/prakharb/folpsD_paper_chains/y1_chains/base/correct_measurements/MCMC-fs_klim_0-0.02-0.301_2-0.02-0.301-all-GCcomb_schoneberg2024-bbn_planck2018-ns10_physical-prior_LCDM_folpsD_Ano_tight_eft_b3_free.
+[002891.41] [0/4] 11-19 11:51  MCMCSampler               INFO     Diagnostics:
+[002891.60] [0/4] 11-19 11:51  Diagnostics               INFO     - max eigen Gelman-Rubin - 1 is 4.59; not < 0.05.
+[002891.78] [0/4] 11-19 11:51  Diagnostics               INFO     - max diag Gelman-Rubin - 1 is 2.12.
+[002892.64] [0/4] 11-19 11:51  Diagnostics               INFO     - max diag Gelman-Rubin - 1 at 1.0 sigmas is 4.43.
+[002892.77] [0/4] 11-19 11:51  Diagnostics               INFO     - max Geweke is 2.4.
+[002892.77] [0/4] 11-19 11:51  Diagnostics               INFO     - Geweke p-value is 3.64e-17.
+[002893.03] [0/4] 11-19 11:51  Diagnostics               INFO     - effective sample size = (74700 iterations / integrated autocorrelation time) is 11.1.
+[002893.03] [0/4] 11-19 11:51  Diagnostics               INFO     - max variation of integrated autocorrelation time is 0.0346.
+[002893.03] [0/4] 11-19 11:51  Diagnostics               INFO     - current mean acceptance rate is 0.0863.
+[002893.03] [0/4] 11-19 11:51  Diagnostics               INFO     - total mean acceptance rate is 0.104.
+[002893.29] [0/4] 11-19 11:51  MCMCSampler               INFO     Updating proposal covariance.
+[002923.37] [0/4] 11-19 11:52  MCMCSampler               INFO     983 steps, acceptance rate 0.078.
+[002954.10] [0/4] 11-19 11:52  MCMCSampler               INFO     2107 steps, acceptance rate 0.073.
+[002984.35] [0/4] 11-19 11:53  MCMCSampler               INFO     3150 steps, acceptance rate 0.076.
+[003005.15] [0/4] 11-19 11:53  Chain                     INFO     Saving /global/cfs/cdirs/desicollab/users/prakharb/folpsD_paper_chains/y1_chains/base/correct_measurements/MCMC-fs_klim_0-0.02-0.301_2-0.02-0.301-all-GCcomb_schoneberg2024-bbn_planck2018-ns10_physical-prior_LCDM_folpsD_Ano_tight_eft_b3_free.
+[003006.13] [0/4] 11-19 11:53  MCMCSampler               INFO     Diagnostics:
+[003006.32] [0/4] 11-19 11:53  Diagnostics               INFO     - max eigen Gelman-Rubin - 1 is 4.44; not < 0.05.
+[003006.51] [0/4] 11-19 11:53  Diagnostics               INFO     - max diag Gelman-Rubin - 1 is 2.04.
+[003007.37] [0/4] 11-19 11:53  Diagnostics               INFO     - max diag Gelman-Rubin - 1 at 1.0 sigmas is 4.29.
+[003007.50] [0/4] 11-19 11:53  Diagnostics               INFO     - max Geweke is 3.08.
+[003007.50] [0/4] 11-19 11:53  Diagnostics               INFO     - Geweke p-value is 1.03e-26.
+[003007.76] [0/4] 11-19 11:53  Diagnostics               INFO     - effective sample size = (74850 iterations / integrated autocorrelation time) is 11.2.
+[003007.76] [0/4] 11-19 11:53  Diagnostics               INFO     - max variation of integrated autocorrelation time is 0.0186.
+[003007.76] [0/4] 11-19 11:53  Diagnostics               INFO     - current mean acceptance rate is 0.0772.
+[003007.76] [0/4] 11-19 11:53  Diagnostics               INFO     - total mean acceptance rate is 0.104.
+[003008.01] [0/4] 11-19 11:53  MCMCSampler               INFO     Updating proposal covariance.
+[003038.35] [0/4] 11-19 11:54  MCMCSampler               INFO     1030 steps, acceptance rate 0.084.
+[003068.52] [0/4] 11-19 11:54  MCMCSampler               INFO     2051 steps, acceptance rate 0.081.
+[003098.56] [0/4] 11-19 11:55  MCMCSampler               INFO     3065 steps, acceptance rate 0.081.
+[003119.85] [0/4] 11-19 11:55  Chain                     INFO     Saving /global/cfs/cdirs/desicollab/users/prakharb/folpsD_paper_chains/y1_chains/base/correct_measurements/MCMC-fs_klim_0-0.02-0.301_2-0.02-0.301-all-GCcomb_schoneberg2024-bbn_planck2018-ns10_physical-prior_LCDM_folpsD_Ano_tight_eft_b3_free.
+[003123.50] [0/4] 11-19 11:55  MCMCSampler               INFO     Diagnostics:
+[003123.69] [0/4] 11-19 11:55  Diagnostics               INFO     - max eigen Gelman-Rubin - 1 is 4.31; not < 0.05.
+[003123.87] [0/4] 11-19 11:55  Diagnostics               INFO     - max diag Gelman-Rubin - 1 is 1.95.
+[003124.74] [0/4] 11-19 11:55  Diagnostics               INFO     - max diag Gelman-Rubin - 1 at 1.0 sigmas is 4.12.
+[003124.86] [0/4] 11-19 11:55  Diagnostics               INFO     - max Geweke is 3.37.
+[003124.86] [0/4] 11-19 11:55  Diagnostics               INFO     - Geweke p-value is 2.13e-28.
+[003125.12] [0/4] 11-19 11:55  Diagnostics               INFO     - effective sample size = (75000 iterations / integrated autocorrelation time) is 11.2.
+[003125.12] [0/4] 11-19 11:55  Diagnostics               INFO     - max variation of integrated autocorrelation time is 0.0197.
+[003125.12] [0/4] 11-19 11:55  Diagnostics               INFO     - current mean acceptance rate is 0.0797.
+[003125.12] [0/4] 11-19 11:55  Diagnostics               INFO     - total mean acceptance rate is 0.103.
+[003125.39] [0/4] 11-19 11:55  MCMCSampler               INFO     Updating proposal covariance.
+[003155.46] [0/4] 11-19 11:55  MCMCSampler               INFO     1003 steps, acceptance rate 0.084.
+[003185.52] [0/4] 11-19 11:56  MCMCSampler               INFO     2017 steps, acceptance rate 0.082.
+[003216.43] [0/4] 11-19 11:56  MCMCSampler               INFO     3065 steps, acceptance rate 0.083.
+[003242.48] [0/4] 11-19 11:57  Chain                     INFO     Saving /global/cfs/cdirs/desicollab/users/prakharb/folpsD_paper_chains/y1_chains/base/correct_measurements/MCMC-fs_klim_0-0.02-0.301_2-0.02-0.301-all-GCcomb_schoneberg2024-bbn_planck2018-ns10_physical-prior_LCDM_folpsD_Ano_tight_eft_b3_free.
+[003243.59] [0/4] 11-19 11:57  MCMCSampler               INFO     Diagnostics:
+[003243.78] [0/4] 11-19 11:57  Diagnostics               INFO     - max eigen Gelman-Rubin - 1 is 4.3; not < 0.05.
+[003243.97] [0/4] 11-19 11:57  Diagnostics               INFO     - max diag Gelman-Rubin - 1 is 1.9.
+[003244.83] [0/4] 11-19 11:57  Diagnostics               INFO     - max diag Gelman-Rubin - 1 at 1.0 sigmas is 4.02.
+[003244.95] [0/4] 11-19 11:57  Diagnostics               INFO     - max Geweke is 3.58.
+[003244.95] [0/4] 11-19 11:57  Diagnostics               INFO     - Geweke p-value is 2.52e-29.
+[003245.21] [0/4] 11-19 11:57  Diagnostics               INFO     - effective sample size = (75150 iterations / integrated autocorrelation time) is 11.2.
+[003245.21] [0/4] 11-19 11:57  Diagnostics               INFO     - max variation of integrated autocorrelation time is 0.022.
+[003245.21] [0/4] 11-19 11:57  Diagnostics               INFO     - current mean acceptance rate is 0.0752.
+[003245.21] [0/4] 11-19 11:57  Diagnostics               INFO     - total mean acceptance rate is 0.103.
+[003245.47] [0/4] 11-19 11:57  MCMCSampler               INFO     Updating proposal covariance.
+[003275.66] [0/4] 11-19 11:57  MCMCSampler               INFO     1067 steps, acceptance rate 0.066.
+[003305.76] [0/4] 11-19 11:58  MCMCSampler               INFO     2099 steps, acceptance rate 0.074.
+[003336.07] [0/4] 11-19 11:58  MCMCSampler               INFO     3099 steps, acceptance rate 0.079.
+[003356.21] [0/4] 11-19 11:59  Chain                     INFO     Saving /global/cfs/cdirs/desicollab/users/prakharb/folpsD_paper_chains/y1_chains/base/correct_measurements/MCMC-fs_klim_0-0.02-0.301_2-0.02-0.301-all-GCcomb_schoneberg2024-bbn_planck2018-ns10_physical-prior_LCDM_folpsD_Ano_tight_eft_b3_free.
+[003359.68] [0/4] 11-19 11:59  MCMCSampler               INFO     Diagnostics:
+[003359.87] [0/4] 11-19 11:59  Diagnostics               INFO     - max eigen Gelman-Rubin - 1 is 4.36; not < 0.05.
+[003360.06] [0/4] 11-19 11:59  Diagnostics               INFO     - max diag Gelman-Rubin - 1 is 1.88.
+[003360.92] [0/4] 11-19 11:59  Diagnostics               INFO     - max diag Gelman-Rubin - 1 at 1.0 sigmas is 3.98.
+[003361.04] [0/4] 11-19 11:59  Diagnostics               INFO     - max Geweke is 3.76.
+[003361.05] [0/4] 11-19 11:59  Diagnostics               INFO     - Geweke p-value is 7.12e-31.
+[003361.30] [0/4] 11-19 11:59  Diagnostics               INFO     - effective sample size = (75300 iterations / integrated autocorrelation time) is 11.2.
+[003361.30] [0/4] 11-19 11:59  Diagnostics               INFO     - max variation of integrated autocorrelation time is 0.114.
+[003361.30] [0/4] 11-19 11:59  Diagnostics               INFO     - current mean acceptance rate is 0.0795.
+[003361.30] [0/4] 11-19 11:59  Diagnostics               INFO     - total mean acceptance rate is 0.103.
+[003361.57] [0/4] 11-19 11:59  MCMCSampler               INFO     Updating proposal covariance.
+[003391.99] [0/4] 11-19 11:59  MCMCSampler               INFO     1028 steps, acceptance rate 0.078.
+[003422.21] [0/4] 11-19 12:00  MCMCSampler               INFO     2100 steps, acceptance rate 0.074.
+[003452.42] [0/4] 11-19 12:00  MCMCSampler               INFO     3172 steps, acceptance rate 0.076.
+[003475.70] [0/4] 11-19 12:01  Chain                     INFO     Saving /global/cfs/cdirs/desicollab/users/prakharb/folpsD_paper_chains/y1_chains/base/correct_measurements/MCMC-fs_klim_0-0.02-0.301_2-0.02-0.301-all-GCcomb_schoneberg2024-bbn_planck2018-ns10_physical-prior_LCDM_folpsD_Ano_tight_eft_b3_free.
+[003476.84] [0/4] 11-19 12:01  MCMCSampler               INFO     Diagnostics:
+[003477.02] [0/4] 11-19 12:01  Diagnostics               INFO     - max eigen Gelman-Rubin - 1 is 4.37; not < 0.05.
+[003477.21] [0/4] 11-19 12:01  Diagnostics               INFO     - max diag Gelman-Rubin - 1 is 1.85.
+[003478.08] [0/4] 11-19 12:01  Diagnostics               INFO     - max diag Gelman-Rubin - 1 at 1.0 sigmas is 3.98.
+[003478.20] [0/4] 11-19 12:01  Diagnostics               INFO     - max Geweke is 3.8.
+[003478.20] [0/4] 11-19 12:01  Diagnostics               INFO     - Geweke p-value is 2.8e-31.
+[003478.46] [0/4] 11-19 12:01  Diagnostics               INFO     - effective sample size = (75450 iterations / integrated autocorrelation time) is 11.2.
+[003478.46] [0/4] 11-19 12:01  Diagnostics               INFO     - max variation of integrated autocorrelation time is 0.0702.
+[003478.46] [0/4] 11-19 12:01  Diagnostics               INFO     - current mean acceptance rate is 0.0757.
+[003478.46] [0/4] 11-19 12:01  Diagnostics               INFO     - total mean acceptance rate is 0.103.
+[003478.72] [0/4] 11-19 12:01  MCMCSampler               INFO     Updating proposal covariance.
+[003509.09] [0/4] 11-19 12:01  MCMCSampler               INFO     974 steps, acceptance rate 0.090.
+[003539.27] [0/4] 11-19 12:02  MCMCSampler               INFO     2017 steps, acceptance rate 0.083.
+[003569.58] [0/4] 11-19 12:02  MCMCSampler               INFO     3050 steps, acceptance rate 0.083.
+[003588.11] [0/4] 11-19 12:03  Chain                     INFO     Saving /global/cfs/cdirs/desicollab/users/prakharb/folpsD_paper_chains/y1_chains/base/correct_measurements/MCMC-fs_klim_0-0.02-0.301_2-0.02-0.301-all-GCcomb_schoneberg2024-bbn_planck2018-ns10_physical-prior_LCDM_folpsD_Ano_tight_eft_b3_free.
+[003591.43] [0/4] 11-19 12:03  MCMCSampler               INFO     Diagnostics:
+[003591.62] [0/4] 11-19 12:03  Diagnostics               INFO     - max eigen Gelman-Rubin - 1 is 4.41; not < 0.05.
+[003591.81] [0/4] 11-19 12:03  Diagnostics               INFO     - max diag Gelman-Rubin - 1 is 1.84.
+[003592.67] [0/4] 11-19 12:03  Diagnostics               INFO     - max diag Gelman-Rubin - 1 at 1.0 sigmas is 3.95.
+[003592.79] [0/4] 11-19 12:03  Diagnostics               INFO     - max Geweke is 3.82.
+[003592.79] [0/4] 11-19 12:03  Diagnostics               INFO     - Geweke p-value is 8.75e-31.
+[003593.05] [0/4] 11-19 12:03  Diagnostics               INFO     - effective sample size = (75600 iterations / integrated autocorrelation time) is 11.3.
+[003593.05] [0/4] 11-19 12:03  Diagnostics               INFO     - max variation of integrated autocorrelation time is 0.029.
+[003593.05] [0/4] 11-19 12:03  Diagnostics               INFO     - current mean acceptance rate is 0.0814.
+[003593.05] [0/4] 11-19 12:03  Diagnostics               INFO     - total mean acceptance rate is 0.103.
+[003593.32] [0/4] 11-19 12:03  MCMCSampler               INFO     Updating proposal covariance.
+[003623.44] [0/4] 11-19 12:03  MCMCSampler               INFO     1024 steps, acceptance rate 0.081.
+[003653.64] [0/4] 11-19 12:04  MCMCSampler               INFO     2104 steps, acceptance rate 0.085.
+[003684.16] [0/4] 11-19 12:04  MCMCSampler               INFO     3184 steps, acceptance rate 0.086.
+[003693.46] [0/4] 11-19 12:04  Chain                     INFO     Saving /global/cfs/cdirs/desicollab/users/prakharb/folpsD_paper_chains/y1_chains/base/correct_measurements/MCMC-fs_klim_0-0.02-0.301_2-0.02-0.301-all-GCcomb_schoneberg2024-bbn_planck2018-ns10_physical-prior_LCDM_folpsD_Ano_tight_eft_b3_free.
+[003694.49] [0/4] 11-19 12:04  MCMCSampler               INFO     Diagnostics:
+[003694.68] [0/4] 11-19 12:04  Diagnostics               INFO     - max eigen Gelman-Rubin - 1 is 4.4; not < 0.05.
+[003694.86] [0/4] 11-19 12:04  Diagnostics               INFO     - max diag Gelman-Rubin - 1 is 1.81.
+[003695.73] [0/4] 11-19 12:04  Diagnostics               INFO     - max diag Gelman-Rubin - 1 at 1.0 sigmas is 3.9.
+[003695.85] [0/4] 11-19 12:04  Diagnostics               INFO     - max Geweke is 3.91.
+[003695.85] [0/4] 11-19 12:04  Diagnostics               INFO     - Geweke p-value is 2.23e-31.
+[003696.10] [0/4] 11-19 12:04  Diagnostics               INFO     - effective sample size = (75750 iterations / integrated autocorrelation time) is 11.3.
+[003696.10] [0/4] 11-19 12:04  Diagnostics               INFO     - max variation of integrated autocorrelation time is 0.0454.
+[003696.10] [0/4] 11-19 12:04  Diagnostics               INFO     - current mean acceptance rate is 0.0859.
+[003696.10] [0/4] 11-19 12:04  Diagnostics               INFO     - total mean acceptance rate is 0.103.
+[003696.37] [0/4] 11-19 12:04  MCMCSampler               INFO     Updating proposal covariance.
+[003726.45] [0/4] 11-19 12:05  MCMCSampler               INFO     1028 steps, acceptance rate 0.093.
+[003756.63] [0/4] 11-19 12:05  MCMCSampler               INFO     2082 steps, acceptance rate 0.088.
+[003787.73] [0/4] 11-19 12:06  MCMCSampler               INFO     3099 steps, acceptance rate 0.086.
+[003801.55] [0/4] 11-19 12:06  Chain                     INFO     Saving /global/cfs/cdirs/desicollab/users/prakharb/folpsD_paper_chains/y1_chains/base/correct_measurements/MCMC-fs_klim_0-0.02-0.301_2-0.02-0.301-all-GCcomb_schoneberg2024-bbn_planck2018-ns10_physical-prior_LCDM_folpsD_Ano_tight_eft_b3_free.
+[003804.89] [0/4] 11-19 12:06  MCMCSampler               INFO     Diagnostics:
+[003805.08] [0/4] 11-19 12:06  Diagnostics               INFO     - max eigen Gelman-Rubin - 1 is 4.46; not < 0.05.
+[003805.27] [0/4] 11-19 12:06  Diagnostics               INFO     - max diag Gelman-Rubin - 1 is 1.81.
+[003806.14] [0/4] 11-19 12:06  Diagnostics               INFO     - max diag Gelman-Rubin - 1 at 1.0 sigmas is 3.89.
+[003806.26] [0/4] 11-19 12:06  Diagnostics               INFO     - max Geweke is 3.93.
+[003806.26] [0/4] 11-19 12:06  Diagnostics               INFO     - Geweke p-value is 5.52e-30.
+[003806.52] [0/4] 11-19 12:06  Diagnostics               INFO     - effective sample size = (75900 iterations / integrated autocorrelation time) is 11.3.
+[003806.52] [0/4] 11-19 12:06  Diagnostics               INFO     - max variation of integrated autocorrelation time is 0.0407.
+[003806.52] [0/4] 11-19 12:06  Diagnostics               INFO     - current mean acceptance rate is 0.0844.
+[003806.52] [0/4] 11-19 12:06  Diagnostics               INFO     - total mean acceptance rate is 0.103.
+[003806.79] [0/4] 11-19 12:06  MCMCSampler               INFO     Updating proposal covariance.
+[003837.23] [0/4] 11-19 12:07  MCMCSampler               INFO     1014 steps, acceptance rate 0.079.
+[003867.59] [0/4] 11-19 12:07  MCMCSampler               INFO     2081 steps, acceptance rate 0.077.
+[003897.95] [0/4] 11-19 12:08  MCMCSampler               INFO     3154 steps, acceptance rate 0.079.
+[003916.13] [0/4] 11-19 12:08  Chain                     INFO     Saving /global/cfs/cdirs/desicollab/users/prakharb/folpsD_paper_chains/y1_chains/base/correct_measurements/MCMC-fs_klim_0-0.02-0.301_2-0.02-0.301-all-GCcomb_schoneberg2024-bbn_planck2018-ns10_physical-prior_LCDM_folpsD_Ano_tight_eft_b3_free.
+[003917.17] [0/4] 11-19 12:08  MCMCSampler               INFO     Diagnostics:
+[003917.36] [0/4] 11-19 12:08  Diagnostics               INFO     - max eigen Gelman-Rubin - 1 is 4.5; not < 0.05.
+[003917.54] [0/4] 11-19 12:08  Diagnostics               INFO     - max diag Gelman-Rubin - 1 is 1.81.
+[003918.41] [0/4] 11-19 12:08  Diagnostics               INFO     - max diag Gelman-Rubin - 1 at 1.0 sigmas is 3.93.
+[003918.53] [0/4] 11-19 12:08  Diagnostics               INFO     - max Geweke is 3.94.
+[003918.53] [0/4] 11-19 12:08  Diagnostics               INFO     - Geweke p-value is 7.61e-30.
+[003918.80] [0/4] 11-19 12:08  Diagnostics               INFO     - effective sample size = (76050 iterations / integrated autocorrelation time) is 11.3.
+[003918.80] [0/4] 11-19 12:08  Diagnostics               INFO     - max variation of integrated autocorrelation time is 0.0529.
+[003918.80] [0/4] 11-19 12:08  Diagnostics               INFO     - current mean acceptance rate is 0.0795.
+[003918.80] [0/4] 11-19 12:08  Diagnostics               INFO     - total mean acceptance rate is 0.103.
+[003919.06] [0/4] 11-19 12:08  MCMCSampler               INFO     Updating proposal covariance.
+[003949.32] [0/4] 11-19 12:09  MCMCSampler               INFO     1026 steps, acceptance rate 0.091.
+[003979.52] [0/4] 11-19 12:09  MCMCSampler               INFO     2099 steps, acceptance rate 0.083.
+[004009.77] [0/4] 11-19 12:10  MCMCSampler               INFO     3185 steps, acceptance rate 0.082.
+[004023.83] [0/4] 11-19 12:10  Chain                     INFO     Saving /global/cfs/cdirs/desicollab/users/prakharb/folpsD_paper_chains/y1_chains/base/correct_measurements/MCMC-fs_klim_0-0.02-0.301_2-0.02-0.301-all-GCcomb_schoneberg2024-bbn_planck2018-ns10_physical-prior_LCDM_folpsD_Ano_tight_eft_b3_free.
+[004027.21] [0/4] 11-19 12:10  MCMCSampler               INFO     Diagnostics:
+[004027.40] [0/4] 11-19 12:10  Diagnostics               INFO     - max eigen Gelman-Rubin - 1 is 4.47; not < 0.05.
+[004027.59] [0/4] 11-19 12:10  Diagnostics               INFO     - max diag Gelman-Rubin - 1 is 1.84.
+[004028.46] [0/4] 11-19 12:10  Diagnostics               INFO     - max diag Gelman-Rubin - 1 at 1.0 sigmas is 4.03.
+[004028.58] [0/4] 11-19 12:10  Diagnostics               INFO     - max Geweke is 3.86.
+[004028.58] [0/4] 11-19 12:10  Diagnostics               INFO     - Geweke p-value is 4.17e-29.
+[004028.85] [0/4] 11-19 12:10  Diagnostics               INFO     - effective sample size = (76200 iterations / integrated autocorrelation time) is 11.3.
+[004028.85] [0/4] 11-19 12:10  Diagnostics               INFO     - max variation of integrated autocorrelation time is 0.0558.
+[004028.85] [0/4] 11-19 12:10  Diagnostics               INFO     - current mean acceptance rate is 0.0826.
+[004028.85] [0/4] 11-19 12:10  Diagnostics               INFO     - total mean acceptance rate is 0.103.
+[004029.12] [0/4] 11-19 12:10  MCMCSampler               INFO     Updating proposal covariance.
+[004059.78] [0/4] 11-19 12:11  MCMCSampler               INFO     1007 steps, acceptance rate 0.100.
+[004090.40] [0/4] 11-19 12:11  MCMCSampler               INFO     2085 steps, acceptance rate 0.095.
+[004120.89] [0/4] 11-19 12:12  MCMCSampler               INFO     3172 steps, acceptance rate 0.089.
+[004128.39] [0/4] 11-19 12:12  Chain                     INFO     Saving /global/cfs/cdirs/desicollab/users/prakharb/folpsD_paper_chains/y1_chains/base/correct_measurements/MCMC-fs_klim_0-0.02-0.301_2-0.02-0.301-all-GCcomb_schoneberg2024-bbn_planck2018-ns10_physical-prior_LCDM_folpsD_Ano_tight_eft_b3_free.
+[004129.42] [0/4] 11-19 12:12  MCMCSampler               INFO     Diagnostics:
+[004129.61] [0/4] 11-19 12:12  Diagnostics               INFO     - max eigen Gelman-Rubin - 1 is 4.51; not < 0.05.
+[004129.79] [0/4] 11-19 12:12  Diagnostics               INFO     - max diag Gelman-Rubin - 1 is 1.87.
+[004130.66] [0/4] 11-19 12:12  Diagnostics               INFO     - max diag Gelman-Rubin - 1 at 1.0 sigmas is 4.06.
+[004130.78] [0/4] 11-19 12:12  Diagnostics               INFO     - max Geweke is 3.71.
+[004130.78] [0/4] 11-19 12:12  Diagnostics               INFO     - Geweke p-value is 6.16e-29.
+[004131.05] [0/4] 11-19 12:12  Diagnostics               INFO     - effective sample size = (76350 iterations / integrated autocorrelation time) is 11.3.
+[004131.05] [0/4] 11-19 12:12  Diagnostics               INFO     - max variation of integrated autocorrelation time is 0.0491.
+[004131.05] [0/4] 11-19 12:12  Diagnostics               INFO     - current mean acceptance rate is 0.0873.
+[004131.05] [0/4] 11-19 12:12  Diagnostics               INFO     - total mean acceptance rate is 0.103.
+[004131.31] [0/4] 11-19 12:12  MCMCSampler               INFO     Updating proposal covariance.
+[004161.54] [0/4] 11-19 12:12  MCMCSampler               INFO     1056 steps, acceptance rate 0.079.
+[004191.56] [0/4] 11-19 12:13  MCMCSampler               INFO     2047 steps, acceptance rate 0.091.
+[004221.67] [0/4] 11-19 12:13  MCMCSampler               INFO     3123 steps, acceptance rate 0.092.
+[004227.69] [0/4] 11-19 12:13  Chain                     INFO     Saving /global/cfs/cdirs/desicollab/users/prakharb/folpsD_paper_chains/y1_chains/base/correct_measurements/MCMC-fs_klim_0-0.02-0.301_2-0.02-0.301-all-GCcomb_schoneberg2024-bbn_planck2018-ns10_physical-prior_LCDM_folpsD_Ano_tight_eft_b3_free.
+[004231.19] [0/4] 11-19 12:13  MCMCSampler               INFO     Diagnostics:
+[004231.38] [0/4] 11-19 12:13  Diagnostics               INFO     - max eigen Gelman-Rubin - 1 is 4.55; not < 0.05.
+[004231.57] [0/4] 11-19 12:13  Diagnostics               INFO     - max diag Gelman-Rubin - 1 is 1.89.
+[004232.44] [0/4] 11-19 12:13  Diagnostics               INFO     - max diag Gelman-Rubin - 1 at 1.0 sigmas is 4.09.
+[004232.57] [0/4] 11-19 12:13  Diagnostics               INFO     - max Geweke is 3.42.
+[004232.57] [0/4] 11-19 12:13  Diagnostics               INFO     - Geweke p-value is 4.51e-27.
+[004232.83] [0/4] 11-19 12:13  Diagnostics               INFO     - effective sample size = (76500 iterations / integrated autocorrelation time) is 11.3.
+[004232.83] [0/4] 11-19 12:13  Diagnostics               INFO     - max variation of integrated autocorrelation time is 0.0271.
+[004232.83] [0/4] 11-19 12:13  Diagnostics               INFO     - current mean acceptance rate is 0.0901.
+[004232.83] [0/4] 11-19 12:13  Diagnostics               INFO     - total mean acceptance rate is 0.103.
+[004233.10] [0/4] 11-19 12:13  MCMCSampler               INFO     Updating proposal covariance.
+[004263.65] [0/4] 11-19 12:14  MCMCSampler               INFO     1092 steps, acceptance rate 0.090.
+[004293.69] [0/4] 11-19 12:14  MCMCSampler               INFO     2219 steps, acceptance rate 0.075.
+[004323.75] [0/4] 11-19 12:15  MCMCSampler               INFO     3285 steps, acceptance rate 0.072.
+[004349.12] [0/4] 11-19 12:15  Chain                     INFO     Saving /global/cfs/cdirs/desicollab/users/prakharb/folpsD_paper_chains/y1_chains/base/correct_measurements/MCMC-fs_klim_0-0.02-0.301_2-0.02-0.301-all-GCcomb_schoneberg2024-bbn_planck2018-ns10_physical-prior_LCDM_folpsD_Ano_tight_eft_b3_free.
+[004350.27] [0/4] 11-19 12:15  MCMCSampler               INFO     Diagnostics:
+[004350.46] [0/4] 11-19 12:15  Diagnostics               INFO     - max eigen Gelman-Rubin - 1 is 4.51; not < 0.05.
+[004350.65] [0/4] 11-19 12:15  Diagnostics               INFO     - max diag Gelman-Rubin - 1 is 1.87.
+[004351.52] [0/4] 11-19 12:15  Diagnostics               INFO     - max diag Gelman-Rubin - 1 at 1.0 sigmas is 3.99.
+[004351.64] [0/4] 11-19 12:15  Diagnostics               INFO     - max Geweke is 3.51.
+[004351.65] [0/4] 11-19 12:15  Diagnostics               INFO     - Geweke p-value is 6.01e-31.
+[004351.91] [0/4] 11-19 12:15  Diagnostics               INFO     - effective sample size = (76650 iterations / integrated autocorrelation time) is 11.3.
+[004351.91] [0/4] 11-19 12:15  Diagnostics               INFO     - max variation of integrated autocorrelation time is 0.0387.
+[004351.91] [0/4] 11-19 12:15  Diagnostics               INFO     - current mean acceptance rate is 0.072.
+[004351.91] [0/4] 11-19 12:15  Diagnostics               INFO     - total mean acceptance rate is 0.103.
+[004352.17] [0/4] 11-19 12:15  MCMCSampler               INFO     Updating proposal covariance.
+[004382.23] [0/4] 11-19 12:16  MCMCSampler               INFO     1063 steps, acceptance rate 0.076.
+[004412.45] [0/4] 11-19 12:16  MCMCSampler               INFO     2084 steps, acceptance rate 0.083.
+[004442.52] [0/4] 11-19 12:17  MCMCSampler               INFO     3112 steps, acceptance rate 0.081.
+[004459.77] [0/4] 11-19 12:17  Chain                     INFO     Saving /global/cfs/cdirs/desicollab/users/prakharb/folpsD_paper_chains/y1_chains/base/correct_measurements/MCMC-fs_klim_0-0.02-0.301_2-0.02-0.301-all-GCcomb_schoneberg2024-bbn_planck2018-ns10_physical-prior_LCDM_folpsD_Ano_tight_eft_b3_free.
+[004462.24] [0/4] 11-19 12:17  MCMCSampler               INFO     Diagnostics:
+[004462.44] [0/4] 11-19 12:17  Diagnostics               INFO     - max eigen Gelman-Rubin - 1 is 4.55; not < 0.05.
+[004462.63] [0/4] 11-19 12:17  Diagnostics               INFO     - max diag Gelman-Rubin - 1 is 1.85.
+[004463.50] [0/4] 11-19 12:17  Diagnostics               INFO     - max diag Gelman-Rubin - 1 at 1.0 sigmas is 3.97.
+[004463.62] [0/4] 11-19 12:17  Diagnostics               INFO     - max Geweke is 3.46.
+[004463.62] [0/4] 11-19 12:17  Diagnostics               INFO     - Geweke p-value is 2.22e-33.
+[004463.89] [0/4] 11-19 12:17  Diagnostics               INFO     - effective sample size = (76800 iterations / integrated autocorrelation time) is 11.3.
+[004463.89] [0/4] 11-19 12:17  Diagnostics               INFO     - max variation of integrated autocorrelation time is 0.0265.
+[004463.89] [0/4] 11-19 12:17  Diagnostics               INFO     - current mean acceptance rate is 0.0813.
+[004463.89] [0/4] 11-19 12:17  Diagnostics               INFO     - total mean acceptance rate is 0.103.
+[004464.16] [0/4] 11-19 12:17  MCMCSampler               INFO     Updating proposal covariance.
+[004494.49] [0/4] 11-19 12:18  MCMCSampler               INFO     1013 steps, acceptance rate 0.079.
+[004524.60] [0/4] 11-19 12:18  MCMCSampler               INFO     2029 steps, acceptance rate 0.088.
+[004554.70] [0/4] 11-19 12:19  MCMCSampler               INFO     3020 steps, acceptance rate 0.085.
+[004571.12] [0/4] 11-19 12:19  Chain                     INFO     Saving /global/cfs/cdirs/desicollab/users/prakharb/folpsD_paper_chains/y1_chains/base/correct_measurements/MCMC-fs_klim_0-0.02-0.301_2-0.02-0.301-all-GCcomb_schoneberg2024-bbn_planck2018-ns10_physical-prior_LCDM_folpsD_Ano_tight_eft_b3_free.
+[004572.23] [0/4] 11-19 12:19  MCMCSampler               INFO     Diagnostics:
+[004572.42] [0/4] 11-19 12:19  Diagnostics               INFO     - max eigen Gelman-Rubin - 1 is 4.62; not < 0.05.
+[004572.61] [0/4] 11-19 12:19  Diagnostics               INFO     - max diag Gelman-Rubin - 1 is 1.83.
+[004573.49] [0/4] 11-19 12:19  Diagnostics               INFO     - max diag Gelman-Rubin - 1 at 1.0 sigmas is 3.99.
+[004573.60] [0/4] 11-19 12:19  Diagnostics               INFO     - max Geweke is 3.46.
+[004573.61] [0/4] 11-19 12:19  Diagnostics               INFO     - Geweke p-value is 7.31e-35.
+[004573.87] [0/4] 11-19 12:19  Diagnostics               INFO     - effective sample size = (76950 iterations / integrated autocorrelation time) is 11.3.
+[004573.87] [0/4] 11-19 12:19  Diagnostics               INFO     - max variation of integrated autocorrelation time is 0.0289.
+[004573.87] [0/4] 11-19 12:19  Diagnostics               INFO     - current mean acceptance rate is 0.0839.
+[004573.87] [0/4] 11-19 12:19  Diagnostics               INFO     - total mean acceptance rate is 0.103.
+[004574.13] [0/4] 11-19 12:19  MCMCSampler               INFO     Updating proposal covariance.
+[004605.00] [0/4] 11-19 12:20  MCMCSampler               INFO     1009 steps, acceptance rate 0.086.
+[004636.62] [0/4] 11-19 12:20  MCMCSampler               INFO     2134 steps, acceptance rate 0.070.
+[004666.93] [0/4] 11-19 12:21  MCMCSampler               INFO     3189 steps, acceptance rate 0.069.
+[004694.99] [0/4] 11-19 12:21  Chain                     INFO     Saving /global/cfs/cdirs/desicollab/users/prakharb/folpsD_paper_chains/y1_chains/base/correct_measurements/MCMC-fs_klim_0-0.02-0.301_2-0.02-0.301-all-GCcomb_schoneberg2024-bbn_planck2018-ns10_physical-prior_LCDM_folpsD_Ano_tight_eft_b3_free.
+[004696.10] [0/4] 11-19 12:21  MCMCSampler               INFO     Diagnostics:
+[004696.29] [0/4] 11-19 12:21  Diagnostics               INFO     - max eigen Gelman-Rubin - 1 is 4.73; not < 0.05.
+[004696.48] [0/4] 11-19 12:21  Diagnostics               INFO     - max diag Gelman-Rubin - 1 is 1.81.
+[004697.35] [0/4] 11-19 12:21  Diagnostics               INFO     - max diag Gelman-Rubin - 1 at 1.0 sigmas is 3.94.
+[004697.48] [0/4] 11-19 12:21  Diagnostics               INFO     - max Geweke is 3.45.
+[004697.48] [0/4] 11-19 12:21  Diagnostics               INFO     - Geweke p-value is 1.3e-35.
+[004697.73] [0/4] 11-19 12:21  Diagnostics               INFO     - effective sample size = (77100 iterations / integrated autocorrelation time) is 11.3.
+[004697.73] [0/4] 11-19 12:21  Diagnostics               INFO     - max variation of integrated autocorrelation time is 0.0283.
+[004697.74] [0/4] 11-19 12:21  Diagnostics               INFO     - current mean acceptance rate is 0.0729.
+[004697.74] [0/4] 11-19 12:21  Diagnostics               INFO     - total mean acceptance rate is 0.103.
+[004698.00] [0/4] 11-19 12:21  MCMCSampler               INFO     Updating proposal covariance.
+[004728.36] [0/4] 11-19 12:22  MCMCSampler               INFO     980 steps, acceptance rate 0.090.
+[004758.50] [0/4] 11-19 12:22  MCMCSampler               INFO     2022 steps, acceptance rate 0.091.
+[004788.57] [0/4] 11-19 12:23  MCMCSampler               INFO     2957 steps, acceptance rate 0.094.
+[004795.98] [0/4] 11-19 12:23  Chain                     INFO     Saving /global/cfs/cdirs/desicollab/users/prakharb/folpsD_paper_chains/y1_chains/base/correct_measurements/MCMC-fs_klim_0-0.02-0.301_2-0.02-0.301-all-GCcomb_schoneberg2024-bbn_planck2018-ns10_physical-prior_LCDM_folpsD_Ano_tight_eft_b3_free.
+[004797.06] [0/4] 11-19 12:23  MCMCSampler               INFO     Diagnostics:
+[004797.25] [0/4] 11-19 12:23  Diagnostics               INFO     - max eigen Gelman-Rubin - 1 is 4.86; not < 0.05.
+[004797.44] [0/4] 11-19 12:23  Diagnostics               INFO     - max diag Gelman-Rubin - 1 is 1.81.
+[004798.31] [0/4] 11-19 12:23  Diagnostics               INFO     - max diag Gelman-Rubin - 1 at 1.0 sigmas is 3.92.
+[004798.43] [0/4] 11-19 12:23  Diagnostics               INFO     - max Geweke is 3.5.
+[004798.43] [0/4] 11-19 12:23  Diagnostics               INFO     - Geweke p-value is 7.57e-36.
+[004798.69] [0/4] 11-19 12:23  Diagnostics               INFO     - effective sample size = (77250 iterations / integrated autocorrelation time) is 11.3.
+[004798.69] [0/4] 11-19 12:23  Diagnostics               INFO     - max variation of integrated autocorrelation time is 0.0223.
+[004798.69] [0/4] 11-19 12:23  Diagnostics               INFO     - current mean acceptance rate is 0.0937.
+[004798.69] [0/4] 11-19 12:23  Diagnostics               INFO     - total mean acceptance rate is 0.103.
+[004798.96] [0/4] 11-19 12:23  MCMCSampler               INFO     Updating proposal covariance.
+[004829.54] [0/4] 11-19 12:23  MCMCSampler               INFO     1017 steps, acceptance rate 0.090.
+[004859.56] [0/4] 11-19 12:24  MCMCSampler               INFO     2026 steps, acceptance rate 0.087.
+[004889.69] [0/4] 11-19 12:24  MCMCSampler               INFO     2996 steps, acceptance rate 0.090.
+[004900.97] [0/4] 11-19 12:25  Chain                     INFO     Saving /global/cfs/cdirs/desicollab/users/prakharb/folpsD_paper_chains/y1_chains/base/correct_measurements/MCMC-fs_klim_0-0.02-0.301_2-0.02-0.301-all-GCcomb_schoneberg2024-bbn_planck2018-ns10_physical-prior_LCDM_folpsD_Ano_tight_eft_b3_free.
+[004902.02] [0/4] 11-19 12:25  MCMCSampler               INFO     Diagnostics:
+[004902.21] [0/4] 11-19 12:25  Diagnostics               INFO     - max eigen Gelman-Rubin - 1 is 4.93; not < 0.05.
+[004902.40] [0/4] 11-19 12:25  Diagnostics               INFO     - max diag Gelman-Rubin - 1 is 1.79.
+[004903.27] [0/4] 11-19 12:25  Diagnostics               INFO     - max diag Gelman-Rubin - 1 at 1.0 sigmas is 3.88.
+[004903.39] [0/4] 11-19 12:25  Diagnostics               INFO     - max Geweke is 3.67.
+[004903.40] [0/4] 11-19 12:25  Diagnostics               INFO     - Geweke p-value is 1.18e-38.
+[004903.65] [0/4] 11-19 12:25  Diagnostics               INFO     - effective sample size = (77400 iterations / integrated autocorrelation time) is 11.4.
+[004903.65] [0/4] 11-19 12:25  Diagnostics               INFO     - max variation of integrated autocorrelation time is 0.0247.
+[004903.65] [0/4] 11-19 12:25  Diagnostics               INFO     - current mean acceptance rate is 0.089.
+[004903.65] [0/4] 11-19 12:25  Diagnostics               INFO     - total mean acceptance rate is 0.103.
+[004903.92] [0/4] 11-19 12:25  MCMCSampler               INFO     Updating proposal covariance.
+[004934.36] [0/4] 11-19 12:25  MCMCSampler               INFO     943 steps, acceptance rate 0.098.
+[004964.99] [0/4] 11-19 12:26  MCMCSampler               INFO     1938 steps, acceptance rate 0.092.
+[004995.97] [0/4] 11-19 12:26  MCMCSampler               INFO     2945 steps, acceptance rate 0.095.
+[005002.65] [0/4] 11-19 12:26  Chain                     INFO     Saving /global/cfs/cdirs/desicollab/users/prakharb/folpsD_paper_chains/y1_chains/base/correct_measurements/MCMC-fs_klim_0-0.02-0.301_2-0.02-0.301-all-GCcomb_schoneberg2024-bbn_planck2018-ns10_physical-prior_LCDM_folpsD_Ano_tight_eft_b3_free.
+[005003.75] [0/4] 11-19 12:26  MCMCSampler               INFO     Diagnostics:
+[005003.94] [0/4] 11-19 12:26  Diagnostics               INFO     - max eigen Gelman-Rubin - 1 is 5.01; not < 0.05.
+[005004.13] [0/4] 11-19 12:26  Diagnostics               INFO     - max diag Gelman-Rubin - 1 is 1.78.
+[005005.00] [0/4] 11-19 12:26  Diagnostics               INFO     - max diag Gelman-Rubin - 1 at 1.0 sigmas is 3.83.
+[005005.12] [0/4] 11-19 12:26  Diagnostics               INFO     - max Geweke is 3.75.
+[005005.12] [0/4] 11-19 12:26  Diagnostics               INFO     - Geweke p-value is 2.21e-38.
+[005005.37] [0/4] 11-19 12:26  Diagnostics               INFO     - effective sample size = (77550 iterations / integrated autocorrelation time) is 11.4.
+[005005.37] [0/4] 11-19 12:26  Diagnostics               INFO     - max variation of integrated autocorrelation time is 0.0273.
+[005005.37] [0/4] 11-19 12:26  Diagnostics               INFO     - current mean acceptance rate is 0.0947.
+[005005.38] [0/4] 11-19 12:26  Diagnostics               INFO     - total mean acceptance rate is 0.103.
+[005005.64] [0/4] 11-19 12:26  MCMCSampler               INFO     Updating proposal covariance.
+[005035.79] [0/4] 11-19 12:27  MCMCSampler               INFO     949 steps, acceptance rate 0.103.
+[005065.97] [0/4] 11-19 12:27  MCMCSampler               INFO     1968 steps, acceptance rate 0.090.
+[005096.01] [0/4] 11-19 12:28  MCMCSampler               INFO     2955 steps, acceptance rate 0.089.
+[005107.77] [0/4] 11-19 12:28  Chain                     INFO     Saving /global/cfs/cdirs/desicollab/users/prakharb/folpsD_paper_chains/y1_chains/base/correct_measurements/MCMC-fs_klim_0-0.02-0.301_2-0.02-0.301-all-GCcomb_schoneberg2024-bbn_planck2018-ns10_physical-prior_LCDM_folpsD_Ano_tight_eft_b3_free.
+[005110.10] [0/4] 11-19 12:28  MCMCSampler               INFO     Diagnostics:
+[005110.29] [0/4] 11-19 12:28  Diagnostics               INFO     - max eigen Gelman-Rubin - 1 is 5.17; not < 0.05.
+[005110.48] [0/4] 11-19 12:28  Diagnostics               INFO     - max diag Gelman-Rubin - 1 is 1.79.
+[005111.35] [0/4] 11-19 12:28  Diagnostics               INFO     - max diag Gelman-Rubin - 1 at 1.0 sigmas is 3.85.
+[005111.48] [0/4] 11-19 12:28  Diagnostics               INFO     - max Geweke is 3.79.
+[005111.48] [0/4] 11-19 12:28  Diagnostics               INFO     - Geweke p-value is 3.1e-36.
+[005111.75] [0/4] 11-19 12:28  Diagnostics               INFO     - effective sample size = (77700 iterations / integrated autocorrelation time) is 11.5.
+[005111.75] [0/4] 11-19 12:28  Diagnostics               INFO     - max variation of integrated autocorrelation time is 0.0235.
+[005111.75] [0/4] 11-19 12:28  Diagnostics               INFO     - current mean acceptance rate is 0.0895.
+[005111.75] [0/4] 11-19 12:28  Diagnostics               INFO     - total mean acceptance rate is 0.103.
+[005112.02] [0/4] 11-19 12:28  MCMCSampler               INFO     Updating proposal covariance.
+[005142.28] [0/4] 11-19 12:29  MCMCSampler               INFO     993 steps, acceptance rate 0.100.
+[005172.51] [0/4] 11-19 12:29  MCMCSampler               INFO     2094 steps, acceptance rate 0.088.
+[005202.88] [0/4] 11-19 12:30  MCMCSampler               INFO     3054 steps, acceptance rate 0.090.
+[005210.48] [0/4] 11-19 12:30  Chain                     INFO     Saving /global/cfs/cdirs/desicollab/users/prakharb/folpsD_paper_chains/y1_chains/base/correct_measurements/MCMC-fs_klim_0-0.02-0.301_2-0.02-0.301-all-GCcomb_schoneberg2024-bbn_planck2018-ns10_physical-prior_LCDM_folpsD_Ano_tight_eft_b3_free.
+[005211.54] [0/4] 11-19 12:30  MCMCSampler               INFO     Diagnostics:
+[005211.74] [0/4] 11-19 12:30  Diagnostics               INFO     - max eigen Gelman-Rubin - 1 is 5.42; not < 0.05.
+[005211.92] [0/4] 11-19 12:30  Diagnostics               INFO     - max diag Gelman-Rubin - 1 is 1.83.
+[005212.80] [0/4] 11-19 12:30  Diagnostics               INFO     - max diag Gelman-Rubin - 1 at 1.0 sigmas is 3.88.
+[005212.92] [0/4] 11-19 12:30  Diagnostics               INFO     - max Geweke is 3.72.
+[005212.92] [0/4] 11-19 12:30  Diagnostics               INFO     - Geweke p-value is 1.51e-34.
+[005213.19] [0/4] 11-19 12:30  Diagnostics               INFO     - effective sample size = (77850 iterations / integrated autocorrelation time) is 11.5.
+[005213.19] [0/4] 11-19 12:30  Diagnostics               INFO     - max variation of integrated autocorrelation time is 0.0362.
+[005213.19] [0/4] 11-19 12:30  Diagnostics               INFO     - current mean acceptance rate is 0.0913.
+[005213.19] [0/4] 11-19 12:30  Diagnostics               INFO     - total mean acceptance rate is 0.103.
+[005213.46] [0/4] 11-19 12:30  MCMCSampler               INFO     Updating proposal covariance.
+[005243.88] [0/4] 11-19 12:30  MCMCSampler               INFO     1028 steps, acceptance rate 0.102.
+[005273.90] [0/4] 11-19 12:31  MCMCSampler               INFO     2051 steps, acceptance rate 0.098.
+[005304.08] [0/4] 11-19 12:31  MCMCSampler               INFO     3067 steps, acceptance rate 0.094.
+[005307.43] [0/4] 11-19 12:31  Chain                     INFO     Saving /global/cfs/cdirs/desicollab/users/prakharb/folpsD_paper_chains/y1_chains/base/correct_measurements/MCMC-fs_klim_0-0.02-0.301_2-0.02-0.301-all-GCcomb_schoneberg2024-bbn_planck2018-ns10_physical-prior_LCDM_folpsD_Ano_tight_eft_b3_free.
+[005309.68] [0/4] 11-19 12:31  MCMCSampler               INFO     Diagnostics:
+[005309.87] [0/4] 11-19 12:31  Diagnostics               INFO     - max eigen Gelman-Rubin - 1 is 5.39; not < 0.05.
+[005310.06] [0/4] 11-19 12:31  Diagnostics               INFO     - max diag Gelman-Rubin - 1 is 1.83.
+[005310.93] [0/4] 11-19 12:31  Diagnostics               INFO     - max diag Gelman-Rubin - 1 at 1.0 sigmas is 3.87.
+[005311.05] [0/4] 11-19 12:31  Diagnostics               INFO     - max Geweke is 3.7.
+[005311.05] [0/4] 11-19 12:31  Diagnostics               INFO     - Geweke p-value is 2.81e-32.
+[005311.32] [0/4] 11-19 12:31  Diagnostics               INFO     - effective sample size = (78000 iterations / integrated autocorrelation time) is 11.6.
+[005311.32] [0/4] 11-19 12:31  Diagnostics               INFO     - max variation of integrated autocorrelation time is 0.0332.
+[005311.32] [0/4] 11-19 12:31  Diagnostics               INFO     - current mean acceptance rate is 0.0949.
+[005311.32] [0/4] 11-19 12:31  Diagnostics               INFO     - total mean acceptance rate is 0.103.
+[005311.60] [0/4] 11-19 12:31  MCMCSampler               INFO     Updating proposal covariance.
+[005342.00] [0/4] 11-19 12:32  MCMCSampler               INFO     995 steps, acceptance rate 0.091.
+[005372.44] [0/4] 11-19 12:32  MCMCSampler               INFO     1995 steps, acceptance rate 0.099.
+[005402.54] [0/4] 11-19 12:33  MCMCSampler               INFO     3032 steps, acceptance rate 0.093.
+[005408.04] [0/4] 11-19 12:33  Chain                     INFO     Saving /global/cfs/cdirs/desicollab/users/prakharb/folpsD_paper_chains/y1_chains/base/correct_measurements/MCMC-fs_klim_0-0.02-0.301_2-0.02-0.301-all-GCcomb_schoneberg2024-bbn_planck2018-ns10_physical-prior_LCDM_folpsD_Ano_tight_eft_b3_free.
+[005409.23] [0/4] 11-19 12:33  MCMCSampler               INFO     Diagnostics:
+[005409.43] [0/4] 11-19 12:33  Diagnostics               INFO     - max eigen Gelman-Rubin - 1 is 5.06; not < 0.05.
+[005409.61] [0/4] 11-19 12:33  Diagnostics               INFO     - max diag Gelman-Rubin - 1 is 1.78.
+[005410.49] [0/4] 11-19 12:33  Diagnostics               INFO     - max diag Gelman-Rubin - 1 at 1.0 sigmas is 3.82.
+[005410.61] [0/4] 11-19 12:33  Diagnostics               INFO     - max Geweke is 3.67.
+[005410.61] [0/4] 11-19 12:33  Diagnostics               INFO     - Geweke p-value is 4.06e-29.
+[005410.86] [0/4] 11-19 12:33  Diagnostics               INFO     - effective sample size = (78150 iterations / integrated autocorrelation time) is 11.8.
+[005410.86] [0/4] 11-19 12:33  Diagnostics               INFO     - max variation of integrated autocorrelation time is 0.0366.
+[005410.87] [0/4] 11-19 12:33  Diagnostics               INFO     - current mean acceptance rate is 0.0935.
+[005410.87] [0/4] 11-19 12:33  Diagnostics               INFO     - total mean acceptance rate is 0.102.
+[005411.14] [0/4] 11-19 12:33  MCMCSampler               INFO     Updating proposal covariance.
+[005441.25] [0/4] 11-19 12:34  MCMCSampler               INFO     1057 steps, acceptance rate 0.100.
+[005471.85] [0/4] 11-19 12:34  MCMCSampler               INFO     2077 steps, acceptance rate 0.100.
+[005501.86] [0/4] 11-19 12:35  Chain                     INFO     Saving /global/cfs/cdirs/desicollab/users/prakharb/folpsD_paper_chains/y1_chains/base/correct_measurements/MCMC-fs_klim_0-0.02-0.301_2-0.02-0.301-all-GCcomb_schoneberg2024-bbn_planck2018-ns10_physical-prior_LCDM_folpsD_Ano_tight_eft_b3_free.
+[005502.94] [0/4] 11-19 12:35  MCMCSampler               INFO     Diagnostics:
+[005503.13] [0/4] 11-19 12:35  Diagnostics               INFO     - max eigen Gelman-Rubin - 1 is 4.86; not < 0.05.
+[005503.32] [0/4] 11-19 12:35  Diagnostics               INFO     - max diag Gelman-Rubin - 1 is 1.73.
+[005504.20] [0/4] 11-19 12:35  Diagnostics               INFO     - max diag Gelman-Rubin - 1 at 1.0 sigmas is 3.75.
+[005504.32] [0/4] 11-19 12:35  Diagnostics               INFO     - max Geweke is 3.73.
+[005504.32] [0/4] 11-19 12:35  Diagnostics               INFO     - Geweke p-value is 1.71e-29.
+[005504.59] [0/4] 11-19 12:35  Diagnostics               INFO     - effective sample size = (78300 iterations / integrated autocorrelation time) is 11.9.
+[005504.59] [0/4] 11-19 12:35  Diagnostics               INFO     - max variation of integrated autocorrelation time is 0.0174.
+[005504.59] [0/4] 11-19 12:35  Diagnostics               INFO     - current mean acceptance rate is 0.0971.
+[005504.59] [0/4] 11-19 12:35  Diagnostics               INFO     - total mean acceptance rate is 0.102.
+[005504.87] [0/4] 11-19 12:35  MCMCSampler               INFO     Updating proposal covariance.
+[005535.03] [0/4] 11-19 12:35  MCMCSampler               INFO     1070 steps, acceptance rate 0.077.
+[005565.14] [0/4] 11-19 12:36  MCMCSampler               INFO     2008 steps, acceptance rate 0.088.
+[005595.19] [0/4] 11-19 12:36  MCMCSampler               INFO     2999 steps, acceptance rate 0.089.
+[005605.63] [0/4] 11-19 12:36  Chain                     INFO     Saving /global/cfs/cdirs/desicollab/users/prakharb/folpsD_paper_chains/y1_chains/base/correct_measurements/MCMC-fs_klim_0-0.02-0.301_2-0.02-0.301-all-GCcomb_schoneberg2024-bbn_planck2018-ns10_physical-prior_LCDM_folpsD_Ano_tight_eft_b3_free.
+[005606.62] [0/4] 11-19 12:36  MCMCSampler               INFO     Diagnostics:
+[005606.81] [0/4] 11-19 12:36  Diagnostics               INFO     - max eigen Gelman-Rubin - 1 is 4.73; not < 0.05.
+[005607.00] [0/4] 11-19 12:36  Diagnostics               INFO     - max diag Gelman-Rubin - 1 is 1.72.
+[005607.88] [0/4] 11-19 12:36  Diagnostics               INFO     - max diag Gelman-Rubin - 1 at 1.0 sigmas is 3.76.
+[005608.00] [0/4] 11-19 12:36  Diagnostics               INFO     - max Geweke is 3.73.
+[005608.00] [0/4] 11-19 12:36  Diagnostics               INFO     - Geweke p-value is 1.19e-29.
+[005608.25] [0/4] 11-19 12:36  Diagnostics               INFO     - effective sample size = (78450 iterations / integrated autocorrelation time) is 12.
+[005608.25] [0/4] 11-19 12:36  Diagnostics               INFO     - max variation of integrated autocorrelation time is 0.0385.
+[005608.26] [0/4] 11-19 12:36  Diagnostics               INFO     - current mean acceptance rate is 0.0901.
+[005608.26] [0/4] 11-19 12:36  Diagnostics               INFO     - total mean acceptance rate is 0.102.
+[005608.52] [0/4] 11-19 12:36  MCMCSampler               INFO     Updating proposal covariance.
+[005639.62] [0/4] 11-19 12:37  MCMCSampler               INFO     1011 steps, acceptance rate 0.092.
+[005670.11] [0/4] 11-19 12:37  MCMCSampler               INFO     2036 steps, acceptance rate 0.088.
+[005700.27] [0/4] 11-19 12:38  MCMCSampler               INFO     3059 steps, acceptance rate 0.088.
+[005709.59] [0/4] 11-19 12:38  Chain                     INFO     Saving /global/cfs/cdirs/desicollab/users/prakharb/folpsD_paper_chains/y1_chains/base/correct_measurements/MCMC-fs_klim_0-0.02-0.301_2-0.02-0.301-all-GCcomb_schoneberg2024-bbn_planck2018-ns10_physical-prior_LCDM_folpsD_Ano_tight_eft_b3_free.
+[005710.64] [0/4] 11-19 12:38  MCMCSampler               INFO     Diagnostics:
+[005710.83] [0/4] 11-19 12:38  Diagnostics               INFO     - max eigen Gelman-Rubin - 1 is 4.55; not < 0.05.
+[005711.02] [0/4] 11-19 12:38  Diagnostics               INFO     - max diag Gelman-Rubin - 1 is 1.73.
+[005711.90] [0/4] 11-19 12:38  Diagnostics               INFO     - max diag Gelman-Rubin - 1 at 1.0 sigmas is 3.77.
+[005712.02] [0/4] 11-19 12:38  Diagnostics               INFO     - max Geweke is 3.75.
+[005712.02] [0/4] 11-19 12:38  Diagnostics               INFO     - Geweke p-value is 1.63e-30.
+[005712.28] [0/4] 11-19 12:38  Diagnostics               INFO     - effective sample size = (78600 iterations / integrated autocorrelation time) is 12.1.
+[005712.28] [0/4] 11-19 12:38  Diagnostics               INFO     - max variation of integrated autocorrelation time is 0.0323.
+[005712.28] [0/4] 11-19 12:38  Diagnostics               INFO     - current mean acceptance rate is 0.0894.
+[005712.28] [0/4] 11-19 12:38  Diagnostics               INFO     - total mean acceptance rate is 0.102.
+[005712.56] [0/4] 11-19 12:38  MCMCSampler               INFO     Updating proposal covariance.
+[005743.00] [0/4] 11-19 12:39  MCMCSampler               INFO     1059 steps, acceptance rate 0.066.
+[005773.29] [0/4] 11-19 12:39  MCMCSampler               INFO     2068 steps, acceptance rate 0.082.
+[005803.41] [0/4] 11-19 12:40  MCMCSampler               INFO     3042 steps, acceptance rate 0.087.
+[005812.76] [0/4] 11-19 12:40  Chain                     INFO     Saving /global/cfs/cdirs/desicollab/users/prakharb/folpsD_paper_chains/y1_chains/base/correct_measurements/MCMC-fs_klim_0-0.02-0.301_2-0.02-0.301-all-GCcomb_schoneberg2024-bbn_planck2018-ns10_physical-prior_LCDM_folpsD_Ano_tight_eft_b3_free.
+[005813.89] [0/4] 11-19 12:40  MCMCSampler               INFO     Diagnostics:
+[005814.08] [0/4] 11-19 12:40  Diagnostics               INFO     - max eigen Gelman-Rubin - 1 is 4.42; not < 0.05.
+[005814.27] [0/4] 11-19 12:40  Diagnostics               INFO     - max diag Gelman-Rubin - 1 is 1.76.
+[005815.14] [0/4] 11-19 12:40  Diagnostics               INFO     - max diag Gelman-Rubin - 1 at 1.0 sigmas is 4.22.
+[005815.26] [0/4] 11-19 12:40  Diagnostics               INFO     - max Geweke is 3.7.
+[005815.26] [0/4] 11-19 12:40  Diagnostics               INFO     - Geweke p-value is 2.27e-30.
+[005815.51] [0/4] 11-19 12:40  Diagnostics               INFO     - effective sample size = (78750 iterations / integrated autocorrelation time) is 12.1.
+[005815.51] [0/4] 11-19 12:40  Diagnostics               INFO     - max variation of integrated autocorrelation time is 0.0201.
+[005815.52] [0/4] 11-19 12:40  Diagnostics               INFO     - current mean acceptance rate is 0.0898.
+[005815.52] [0/4] 11-19 12:40  Diagnostics               INFO     - total mean acceptance rate is 0.102.
+[005815.79] [0/4] 11-19 12:40  MCMCSampler               INFO     Updating proposal covariance.
+[005846.07] [0/4] 11-19 12:40  MCMCSampler               INFO     1070 steps, acceptance rate 0.076.
+[005876.16] [0/4] 11-19 12:41  MCMCSampler               INFO     2041 steps, acceptance rate 0.086.
+[005906.17] [0/4] 11-19 12:41  MCMCSampler               INFO     3027 steps, acceptance rate 0.088.
+[005915.01] [0/4] 11-19 12:41  Chain                     INFO     Saving /global/cfs/cdirs/desicollab/users/prakharb/folpsD_paper_chains/y1_chains/base/correct_measurements/MCMC-fs_klim_0-0.02-0.301_2-0.02-0.301-all-GCcomb_schoneberg2024-bbn_planck2018-ns10_physical-prior_LCDM_folpsD_Ano_tight_eft_b3_free.
+[005917.28] [0/4] 11-19 12:41  MCMCSampler               INFO     Diagnostics:
+[005917.47] [0/4] 11-19 12:41  Diagnostics               INFO     - max eigen Gelman-Rubin - 1 is 4.36; not < 0.05.
+[005917.66] [0/4] 11-19 12:41  Diagnostics               INFO     - max diag Gelman-Rubin - 1 is 1.8.
+[005918.53] [0/4] 11-19 12:42  Diagnostics               INFO     - max diag Gelman-Rubin - 1 at 1.0 sigmas is 4.27.
+[005918.65] [0/4] 11-19 12:42  Diagnostics               INFO     - max Geweke is 3.58.
+[005918.66] [0/4] 11-19 12:42  Diagnostics               INFO     - Geweke p-value is 3.87e-29.
+[005918.91] [0/4] 11-19 12:42  Diagnostics               INFO     - effective sample size = (78900 iterations / integrated autocorrelation time) is 12.1.
+[005918.91] [0/4] 11-19 12:42  Diagnostics               INFO     - max variation of integrated autocorrelation time is 0.0288.
+[005918.92] [0/4] 11-19 12:42  Diagnostics               INFO     - current mean acceptance rate is 0.0906.
+[005918.92] [0/4] 11-19 12:42  Diagnostics               INFO     - total mean acceptance rate is 0.102.
+[005919.19] [0/4] 11-19 12:42  MCMCSampler               INFO     Updating proposal covariance.
+[005949.58] [0/4] 11-19 12:42  MCMCSampler               INFO     1022 steps, acceptance rate 0.097.
+[005979.58] [0/4] 11-19 12:43  MCMCSampler               INFO     2035 steps, acceptance rate 0.091.
+[006010.14] [0/4] 11-19 12:43  MCMCSampler               INFO     3099 steps, acceptance rate 0.086.
+[006022.20] [0/4] 11-19 12:43  Chain                     INFO     Saving /global/cfs/cdirs/desicollab/users/prakharb/folpsD_paper_chains/y1_chains/base/correct_measurements/MCMC-fs_klim_0-0.02-0.301_2-0.02-0.301-all-GCcomb_schoneberg2024-bbn_planck2018-ns10_physical-prior_LCDM_folpsD_Ano_tight_eft_b3_free.
+[006023.31] [0/4] 11-19 12:43  MCMCSampler               INFO     Diagnostics:
+[006023.50] [0/4] 11-19 12:43  Diagnostics               INFO     - max eigen Gelman-Rubin - 1 is 4.42; not < 0.05.
+[006023.69] [0/4] 11-19 12:43  Diagnostics               INFO     - max diag Gelman-Rubin - 1 is 1.86.
+[006024.57] [0/4] 11-19 12:43  Diagnostics               INFO     - max diag Gelman-Rubin - 1 at 1.0 sigmas is 4.32.
+[006024.70] [0/4] 11-19 12:43  Diagnostics               INFO     - max Geweke is 3.42.
+[006024.70] [0/4] 11-19 12:43  Diagnostics               INFO     - Geweke p-value is 5.8e-29.
+[006024.96] [0/4] 11-19 12:43  Diagnostics               INFO     - effective sample size = (79050 iterations / integrated autocorrelation time) is 12.2.
+[006024.96] [0/4] 11-19 12:43  Diagnostics               INFO     - max variation of integrated autocorrelation time is 0.0315.
+[006024.96] [0/4] 11-19 12:43  Diagnostics               INFO     - current mean acceptance rate is 0.0858.
+[006024.96] [0/4] 11-19 12:43  Diagnostics               INFO     - total mean acceptance rate is 0.102.
+[006025.23] [0/4] 11-19 12:43  MCMCSampler               INFO     Updating proposal covariance.
+[006055.27] [0/4] 11-19 12:44  MCMCSampler               INFO     1073 steps, acceptance rate 0.077.

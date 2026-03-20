@@ -9,6 +9,66 @@ import hashlib
 from jax import config; config.update('jax_enable_x64', True)
 
 
+def roots_legendre(n):
+    """
+    Compute Gauss-Legendre quadrature roots and weights using JAX.
+    
+    This is a JAX-native implementation that computes the roots of the Legendre
+    polynomial of degree n and their corresponding weights for Gauss-Legendre
+    quadrature on the interval [-1, 1].
+    
+    Parameters
+    ----------
+    n : int
+        The degree of the Legendre polynomial (number of quadrature points).
+    
+    Returns
+    -------
+    roots : ndarray, shape(n,)
+        The roots of the Legendre polynomial of degree n.
+    weights : ndarray, shape(n,)
+        The weights for Gauss-Legendre quadrature.
+    
+    Notes
+    -----
+    This implementation uses Newton-Raphson iteration to find the roots of
+    Legendre polynomials using JAX operations, making it compatible with
+    JAX transformations (jit, grad, etc.).
+    
+    Reference
+    ---------
+    - Golub & Welsch (1969), "Calculation of Gauss Quadrature Rules"
+    - Press et al., "Numerical Recipes"
+    """
+    # Initial guesses for roots using Chebyshev approximation
+    i = jnp.arange(1, n + 1)
+    theta = jnp.pi * (4 * i - 1) / (4 * n + 2)
+    x = jnp.cos(theta)
+    
+    # Newton-Raphson iteration to refine roots
+    for _ in range(10):  # Usually converges in 3-5 iterations
+        # Compute Legendre polynomial and its derivative using recurrence relations
+        P = jnp.ones_like(x)
+        P_prev = jnp.zeros_like(x)
+        
+        for k in range(1, n + 1):
+            P_next = ((2 * k - 1) * x * P - (k - 1) * P_prev) / k
+            P_prev = P
+            P = P_next
+        
+        # Derivative: P'_n(x) = n * (x * P_n(x) - P_{n-1}(x)) / (x^2 - 1)
+        P_deriv = n * (x * P - P_prev) / (x**2 - 1)
+        
+        # Newton-Raphson update
+        x = x - P / P_deriv
+    
+    # Compute weights: w_i = 2 / ((1 - x_i^2) * [P'_n(x_i)]^2)
+    P_deriv_final = n * (x * P - P_prev) / (x**2 - 1)
+    weights = 2.0 / ((1.0 - x**2) * P_deriv_final**2)
+    
+    return x, weights
+
+
 def legendre(ell):
     """
     Return Legendre polynomial of given order.
@@ -86,7 +146,117 @@ def interp(xq, x, f, method='cubic'):
     return interpax.interp1d(xq.reshape(-1), x, f, method=method, extrap=True).reshape(shape + f.shape[1:])
 
 
+
+def interp2d(xq, yq, x, y, grid, method='cubic'):
+    """
+    2D interpolation on a regular tensor-product grid using separable 1D interpolation.
+
+    Parameters
+    ----------
+    xq : (Nxq,) query points along first axis
+    yq : (Nyq,) query points along second axis
+    x  : (Nx,) grid coordinates along first axis (k_ev1)
+    y  : (Ny,) grid coordinates along second axis (k_ev2)
+    grid : (Nx, Ny) function values f(x_i, y_j)
+    method : interpolation method (passed to interp)
+
+    Returns
+    -------
+    (Nxq, Nyq) interpolated grid
+    """
+
+    # Step 1: interpolate along x for each fixed y
+    # grid shape: (Nx, Ny)
+    # result: (Nxq, Ny)
+    interp_x = jax.vmap(
+        lambda col: interp(xq, x, col, method=method),
+        in_axes=1,
+        out_axes=1
+    )(grid)
+
+    # Step 2: interpolate along y for each interpolated xq row
+    # result: (Nxq, Nyq)
+    interp_xy = jax.vmap(
+        lambda row: interp(yq, y, row, method=method),
+        in_axes=0,
+        out_axes=0
+    )(interp_x)
+
+    return interp_xy
+
+
+
+
+
+
+
+
+
+
+
+import jax
+import desilike.jax 
+from functools import partial
+# Following https://github.com/MikeSWang/Triumvirate/blob/b9d48be7e71f21d892e1d774012c760493641170/src/triumvirate/_arrayops.py#L742C1-L820C1
+# @partial(jax.jit, static_argnames=('nbins','shape'))
+# @desilike.jax.jit(static_argnames=('nbins','shape'))
+# import numpy as np
+# import jax.numpy as jnp
+
+def reshape_threept_datatab_jax(paired_coords, flat_multipole, shape='triu'):
+
+    flat_len = flat_multipole.shape[0]  # static!
+
+    if shape == 'triu':
+
+        nbins = int((np.sqrt(8 * flat_len + 1) - 1) / 2)
+
+        common_coords = paired_coords[:nbins, 1]
+
+        i, j = jnp.triu_indices(nbins)
+
+        multipole = jnp.zeros((nbins, nbins), flat_multipole.dtype)
+        multipole = multipole.at[i, j].set(flat_multipole)
+        multipole = multipole.at[j, i].set(flat_multipole)
+
+    elif shape == 'full':
+
+        nbins = int(np.sqrt(flat_len))
+
+        common_coords = paired_coords[:nbins, 1]
+        multipole = flat_multipole.reshape((nbins, nbins))
+
+    else:
+        raise ValueError("shape must be 'triu' or 'full'")
+
+    return common_coords, multipole
+
+def interp_at_kmin(x, f):
+    """
+    Interpolate at k→0 using linear extrapolation from the first two points.
+    This provides more stable and accurate results for very small k values
+    compared to cubic extrapolation, matching the behavior of scipy.
+    
+    Parameters
+    ----------
+    x : ndarray, shape(Nx,)
+        coordinates of known function values ("knots")
+    f : ndarray, shape(Nx,...)
+        function values to interpolate
+    
+    Returns
+    -------
+    f0 : float or ndarray
+        extrapolated function value at k→0
+    """
+    # Use linear extrapolation from first two points: f(0) ≈ f[0] - x[0] * (f[1]-f[0])/(x[1]-x[0])
+    # This is more stable than cubic extrapolation for k→0
+    slope = (f[1] - f[0]) / (x[1] - x[0])
+    return f[0] - x[0] * slope
+
+
 _NoValue = None
+
 
 
 def tupleset(t, i, value):
@@ -483,7 +653,7 @@ def extrapolate_pklin(k, pk, extrap=(10**(-7), 200), lim=None):
     return knew, pknew
 
     
-import jax
+
 @jax.jit
 def get_pknow(k, pk, h):
     """
