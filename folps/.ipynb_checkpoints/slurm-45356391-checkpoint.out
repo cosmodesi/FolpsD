@@ -1,0 +1,322 @@
+/var/spool/slurmd/job45356391/slurm_script: line 11: cd: global/homes/p/prakharb/FOLPS_JAX/folps/: No such file or directory
+
+Lmod is automatically replacing "cray-mpich/8.1.30" with "openmpi/5.0.7".
+
+
+Lmod is automatically replacing "openmpi/5.0.7" with "cray-mpich/8.1.30".
+
+
+The following have been reloaded with a version change:
+  1) cudatoolkit/12.4 => cudatoolkit/12.2     2) gcc-native/13.2 => gcc-native/12.3
+
+2025-11-18 19:01:33.249959: E external/xla/xla/stream_executor/cuda/cuda_driver.cc:282] failed call to cuInit: CUDA_ERROR_NO_DEVICE: no CUDA-capable device is detected
+2025-11-18 19:01:33.252293: E external/xla/xla/stream_executor/cuda/cuda_driver.cc:282] failed call to cuInit: CUDA_ERROR_NO_DEVICE: no CUDA-capable device is detected
+2025-11-18 19:01:33.253000: E external/xla/xla/stream_executor/cuda/cuda_driver.cc:282] failed call to cuInit: CUDA_ERROR_NO_DEVICE: no CUDA-capable device is detected
+2025-11-18 19:01:33.253865: E external/xla/xla/stream_executor/cuda/cuda_driver.cc:282] failed call to cuInit: CUDA_ERROR_NO_DEVICE: no CUDA-capable device is detected
+/global/common/software/desi/users/adematti/perlmutter/cosmodesiconda/20240118-1.0.0/code/cosmoprimo/main/lib/python3.10/site-packages/cosmoprimo/eisenstein_hu.py:25: UserWarning: EisensteinHuNoWiggleEngine cannot cope with massive neutrinos
+  warnings.warn('{} cannot cope with massive neutrinos'.format(self.__class__.__name__))
+/global/common/software/desi/users/adematti/perlmutter/cosmodesiconda/20240118-1.0.0/code/cosmoprimo/main/lib/python3.10/site-packages/cosmoprimo/eisenstein_hu.py:25: UserWarning: EisensteinHuNoWiggleEngine cannot cope with massive neutrinos
+  warnings.warn('{} cannot cope with massive neutrinos'.format(self.__class__.__name__))
+/global/common/software/desi/users/adematti/perlmutter/cosmodesiconda/20240118-1.0.0/code/cosmoprimo/main/lib/python3.10/site-packages/cosmoprimo/eisenstein_hu.py:25: UserWarning: EisensteinHuNoWiggleEngine cannot cope with massive neutrinos
+  warnings.warn('{} cannot cope with massive neutrinos'.format(self.__class__.__name__))
+/global/common/software/desi/users/adematti/perlmutter/cosmodesiconda/20240118-1.0.0/code/cosmoprimo/main/lib/python3.10/site-packages/cosmoprimo/eisenstein_hu.py:25: UserWarning: EisensteinHuNoWiggleEngine cannot cope with massive neutrinos
+  warnings.warn('{} cannot cope with massive neutrinos'.format(self.__class__.__name__))
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/__init__.py
+⚠️ No GPU found. Using JAX with CPU.
+   If you have an NVIDIA GPU, install: pip install -U 'jax[cuda12]'
+/global/u1/p/prakharb/FOLPS_JAX/folps/folps.py
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/__init__.py
+Loading matrices from matrices_nfftlog128_Afull_False_remove-DeltaP_False.npy
+Loading matrices from matrices_nfftlog128_Afull_False_remove-DeltaP_False.npy
+h : uniform[0.5, 0.9]({})
+omega_cdm : uniform[0.05, 0.2]({})
+omega_b : norm({'loc': 0.02218, 'scale': 0.00055})
+logA : uniform[2.0, 4.0]({})
+n_s : norm({'loc': 0.9649, 'scale': 0.042})
+tau_reio : uniform[0.01, 0.8]({})
+m_ncdm : uniform[0.0, 5.0]({})
+N_eff : uniform[0.01, 10.0]({})
+w0_fld : uniform[-3.0, 1.0]({})
+wa_fld : uniform[-3.0, 2.0]({})
+Omega_k : uniform[-0.3, 0.3]({})
+H0 : uniform({})
+Omega_m : uniform({})
+sigma8_m : uniform({})
+b1p : uniform[1e-05, 10]({})
+b2p : uniform[-50, 50]({})
+bsp : norm({'loc': 0.0, 'scale': 40.0})
+b3p : norm({'loc': 0.10158730158730159, 'scale': 0.20317460317460317})
+alpha0p : norm({'loc': 0.0, 'scale': 12.5})
+alpha2p : norm({'loc': 0.0, 'scale': 12.5})
+alpha4p : norm({'loc': 0.0, 'scale': 12.5})
+ctp : uniform({})
+sn0p : norm({'loc': 0.0, 'scale': 2.0})
+sn2p : norm({'loc': 0.0, 'scale': 5.0})
+X_FoG_pp : uniform({})
+FS emulator 0 already exists, loading it now
+FS emulator 1 already exists, loading it now
+FS emulator 2 already exists, loading it now
+FS emulator 3 already exists, loading it now
+FS emulator 4 already exists, loading it now
+FS emulator 5 already exists, loading it now
+FS theories have been emulated successfully
+[000000.15] [0/4] 11-18 19:01  TracerPowerSpectrumMultipolesObservable INFO     Loading 1 file ['/global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/corrected/pkpoles_corrected_BGS_BRIGHT-21.5_GCcomb_z0.1-0.4_thetacut0.05.npy'].
+[000000.46] [0/4] 11-18 19:01  MeshFFTWindow             INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_BGS_BRIGHT-21.5_GCcomb_z0.1-0.4_thetacut0.05.npy.
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/__init__.py
+⚠️ No GPU found. Using JAX with CPU.
+   If you have an NVIDIA GPU, install: pip install -U 'jax[cuda12]'
+/global/u1/p/prakharb/FOLPS_JAX/folps/folps.py
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/__init__.py
+Loading matrices from matrices_nfftlog128_Afull_False_remove-DeltaP_False.npy
+Loading matrices from matrices_nfftlog128_Afull_False_remove-DeltaP_False.npy
+h : uniform[0.5, 0.9]({})
+omega_cdm : uniform[0.05, 0.2]({})
+omega_b : norm({'loc': 0.02218, 'scale': 0.00055})
+logA : uniform[2.0, 4.0]({})
+n_s : norm({'loc': 0.9649, 'scale': 0.042})
+tau_reio : uniform[0.01, 0.8]({})
+m_ncdm : uniform[0.0, 5.0]({})
+N_eff : uniform[0.01, 10.0]({})
+w0_fld : uniform[-3.0, 1.0]({})
+wa_fld : uniform[-3.0, 2.0]({})
+Omega_k : uniform[-0.3, 0.3]({})
+H0 : uniform({})
+Omega_m : uniform({})
+sigma8_m : uniform({})
+b1p : uniform[1e-05, 10]({})
+b2p : uniform[-50, 50]({})
+bsp : norm({'loc': 0.0, 'scale': 40.0})
+b3p : norm({'loc': 0.10158730158730159, 'scale': 0.20317460317460317})
+alpha0p : norm({'loc': 0.0, 'scale': 12.5})
+alpha2p : norm({'loc': 0.0, 'scale': 12.5})
+alpha4p : norm({'loc': 0.0, 'scale': 12.5})
+ctp : uniform({})
+sn0p : norm({'loc': 0.0, 'scale': 2.0})
+sn2p : norm({'loc': 0.0, 'scale': 5.0})
+X_FoG_pp : uniform({})
+FS emulator 0 already exists, loading it now
+FS emulator 1 already exists, loading it now
+FS emulator 2 already exists, loading it now
+FS emulator 3 already exists, loading it now
+FS emulator 4 already exists, loading it now
+FS emulator 5 already exists, loading it now
+FS theories have been emulated successfully
+[000000.55] [1/4] 11-18 19:01  MeshFFTWindow             INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_BGS_BRIGHT-21.5_GCcomb_z0.1-0.4_thetacut0.05.npy.
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/__init__.py
+⚠️ No GPU found. Using JAX with CPU.
+   If you have an NVIDIA GPU, install: pip install -U 'jax[cuda12]'
+/global/u1/p/prakharb/FOLPS_JAX/folps/folps.py
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/__init__.py
+Loading matrices from matrices_nfftlog128_Afull_False_remove-DeltaP_False.npy
+Loading matrices from matrices_nfftlog128_Afull_False_remove-DeltaP_False.npy
+h : uniform[0.5, 0.9]({})
+omega_cdm : uniform[0.05, 0.2]({})
+omega_b : norm({'loc': 0.02218, 'scale': 0.00055})
+logA : uniform[2.0, 4.0]({})
+n_s : norm({'loc': 0.9649, 'scale': 0.042})
+tau_reio : uniform[0.01, 0.8]({})
+m_ncdm : uniform[0.0, 5.0]({})
+N_eff : uniform[0.01, 10.0]({})
+w0_fld : uniform[-3.0, 1.0]({})
+wa_fld : uniform[-3.0, 2.0]({})
+Omega_k : uniform[-0.3, 0.3]({})
+H0 : uniform({})
+Omega_m : uniform({})
+sigma8_m : uniform({})
+b1p : uniform[1e-05, 10]({})
+b2p : uniform[-50, 50]({})
+bsp : norm({'loc': 0.0, 'scale': 40.0})
+b3p : norm({'loc': 0.10158730158730159, 'scale': 0.20317460317460317})
+alpha0p : norm({'loc': 0.0, 'scale': 12.5})
+alpha2p : norm({'loc': 0.0, 'scale': 12.5})
+alpha4p : norm({'loc': 0.0, 'scale': 12.5})
+ctp : uniform({})
+sn0p : norm({'loc': 0.0, 'scale': 2.0})
+sn2p : norm({'loc': 0.0, 'scale': 5.0})
+X_FoG_pp : uniform({})
+FS emulator 0 already exists, loading it now
+FS emulator 1 already exists, loading it now
+FS emulator 2 already exists, loading it now
+FS emulator 3 already exists, loading it now
+FS emulator 4 already exists, loading it now
+FS emulator 5 already exists, loading it now
+FS theories have been emulated successfully
+[000000.55] [2/4] 11-18 19:01  MeshFFTWindow             INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_BGS_BRIGHT-21.5_GCcomb_z0.1-0.4_thetacut0.05.npy.
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/__init__.py
+⚠️ No GPU found. Using JAX with CPU.
+   If you have an NVIDIA GPU, install: pip install -U 'jax[cuda12]'
+/global/u1/p/prakharb/FOLPS_JAX/folps/folps.py
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/__init__.py
+Loading matrices from matrices_nfftlog128_Afull_False_remove-DeltaP_False.npy
+Loading matrices from matrices_nfftlog128_Afull_False_remove-DeltaP_False.npy
+h : uniform[0.5, 0.9]({})
+omega_cdm : uniform[0.05, 0.2]({})
+omega_b : norm({'loc': 0.02218, 'scale': 0.00055})
+logA : uniform[2.0, 4.0]({})
+n_s : norm({'loc': 0.9649, 'scale': 0.042})
+tau_reio : uniform[0.01, 0.8]({})
+m_ncdm : uniform[0.0, 5.0]({})
+N_eff : uniform[0.01, 10.0]({})
+w0_fld : uniform[-3.0, 1.0]({})
+wa_fld : uniform[-3.0, 2.0]({})
+Omega_k : uniform[-0.3, 0.3]({})
+H0 : uniform({})
+Omega_m : uniform({})
+sigma8_m : uniform({})
+b1p : uniform[1e-05, 10]({})
+b2p : uniform[-50, 50]({})
+bsp : norm({'loc': 0.0, 'scale': 40.0})
+b3p : norm({'loc': 0.10158730158730159, 'scale': 0.20317460317460317})
+alpha0p : norm({'loc': 0.0, 'scale': 12.5})
+alpha2p : norm({'loc': 0.0, 'scale': 12.5})
+alpha4p : norm({'loc': 0.0, 'scale': 12.5})
+ctp : uniform({})
+sn0p : norm({'loc': 0.0, 'scale': 2.0})
+sn2p : norm({'loc': 0.0, 'scale': 5.0})
+X_FoG_pp : uniform({})
+FS emulator 0 already exists, loading it now
+FS emulator 1 already exists, loading it now
+FS emulator 2 already exists, loading it now
+FS emulator 3 already exists, loading it now
+FS emulator 4 already exists, loading it now
+FS emulator 5 already exists, loading it now
+FS theories have been emulated successfully
+[000000.55] [3/4] 11-18 19:01  MeshFFTWindow             INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_BGS_BRIGHT-21.5_GCcomb_z0.1-0.4_thetacut0.05.npy.
+[000000.94] [0/4] 11-18 19:01  BaseMatrix                INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_BGS_BRIGHT-21.5_GCcomb_z0.1-0.4_thetacut0.05.npy.
+[000001.02] [1/4] 11-18 19:01  BaseMatrix                INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_BGS_BRIGHT-21.5_GCcomb_z0.1-0.4_thetacut0.05.npy.
+[000001.03] [2/4] 11-18 19:01  BaseMatrix                INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_BGS_BRIGHT-21.5_GCcomb_z0.1-0.4_thetacut0.05.npy.
+[000001.03] [3/4] 11-18 19:01  BaseMatrix                INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_BGS_BRIGHT-21.5_GCcomb_z0.1-0.4_thetacut0.05.npy.
+[000006.18] [0/4] 11-18 19:02  ObservablesGaussianLikelihood INFO     Covariance matrix with 72 points built from 1000 observations.
+[000006.18] [0/4] 11-18 19:02  ObservablesGaussianLikelihood INFO     ...resulting in a Hartlap 2007 factor of 0.9269.
+[000006.26] [0/4] 11-18 19:02  TracerPowerSpectrumMultipolesObservable INFO     Loading 1 file ['/global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/corrected/pkpoles_corrected_LRG_GCcomb_z0.4-0.6_thetacut0.05.npy'].
+[000006.34] [0/4] 11-18 19:02  MeshFFTWindow             INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_LRG_GCcomb_z0.4-0.6_thetacut0.05.npy.
+[000006.34] [3/4] 11-18 19:02  MeshFFTWindow             INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_LRG_GCcomb_z0.4-0.6_thetacut0.05.npy.
+[000006.34] [2/4] 11-18 19:02  MeshFFTWindow             INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_LRG_GCcomb_z0.4-0.6_thetacut0.05.npy.
+[000006.34] [1/4] 11-18 19:02  MeshFFTWindow             INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_LRG_GCcomb_z0.4-0.6_thetacut0.05.npy.
+[000006.85] [1/4] 11-18 19:02  BaseMatrix                INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_LRG_GCcomb_z0.4-0.6_thetacut0.05.npy.
+[000006.88] [0/4] 11-18 19:02  BaseMatrix                INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_LRG_GCcomb_z0.4-0.6_thetacut0.05.npy.
+[000006.88] [2/4] 11-18 19:02  BaseMatrix                INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_LRG_GCcomb_z0.4-0.6_thetacut0.05.npy.
+[000006.88] [3/4] 11-18 19:02  BaseMatrix                INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_LRG_GCcomb_z0.4-0.6_thetacut0.05.npy.
+[000011.93] [0/4] 11-18 19:02  ObservablesGaussianLikelihood INFO     Covariance matrix with 72 points built from 1000 observations.
+[000011.93] [0/4] 11-18 19:02  ObservablesGaussianLikelihood INFO     ...resulting in a Hartlap 2007 factor of 0.9269.
+[000011.99] [0/4] 11-18 19:02  TracerPowerSpectrumMultipolesObservable INFO     Loading 1 file ['/global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/corrected/pkpoles_corrected_LRG_GCcomb_z0.6-0.8_thetacut0.05.npy'].
+[000012.07] [0/4] 11-18 19:02  MeshFFTWindow             INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_LRG_GCcomb_z0.6-0.8_thetacut0.05.npy.
+[000012.07] [1/4] 11-18 19:02  MeshFFTWindow             INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_LRG_GCcomb_z0.6-0.8_thetacut0.05.npy.
+[000012.07] [2/4] 11-18 19:02  MeshFFTWindow             INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_LRG_GCcomb_z0.6-0.8_thetacut0.05.npy.
+[000012.07] [3/4] 11-18 19:02  MeshFFTWindow             INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_LRG_GCcomb_z0.6-0.8_thetacut0.05.npy.
+[000012.57] [1/4] 11-18 19:02  BaseMatrix                INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_LRG_GCcomb_z0.6-0.8_thetacut0.05.npy.
+[000012.57] [2/4] 11-18 19:02  BaseMatrix                INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_LRG_GCcomb_z0.6-0.8_thetacut0.05.npy.
+[000012.59] [3/4] 11-18 19:02  BaseMatrix                INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_LRG_GCcomb_z0.6-0.8_thetacut0.05.npy.
+[000012.59] [0/4] 11-18 19:02  BaseMatrix                INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_LRG_GCcomb_z0.6-0.8_thetacut0.05.npy.
+[000017.66] [0/4] 11-18 19:02  ObservablesGaussianLikelihood INFO     Covariance matrix with 72 points built from 1000 observations.
+[000017.66] [0/4] 11-18 19:02  ObservablesGaussianLikelihood INFO     ...resulting in a Hartlap 2007 factor of 0.9269.
+[000017.72] [0/4] 11-18 19:02  TracerPowerSpectrumMultipolesObservable INFO     Loading 1 file ['/global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/corrected/pkpoles_corrected_LRG_GCcomb_z0.8-1.1_thetacut0.05.npy'].
+[000017.81] [0/4] 11-18 19:02  MeshFFTWindow             INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_LRG_GCcomb_z0.8-1.1_thetacut0.05.npy.
+[000017.81] [1/4] 11-18 19:02  MeshFFTWindow             INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_LRG_GCcomb_z0.8-1.1_thetacut0.05.npy.
+[000017.80] [2/4] 11-18 19:02  MeshFFTWindow             INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_LRG_GCcomb_z0.8-1.1_thetacut0.05.npy.
+[000017.80] [3/4] 11-18 19:02  MeshFFTWindow             INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_LRG_GCcomb_z0.8-1.1_thetacut0.05.npy.
+[000018.27] [0/4] 11-18 19:02  BaseMatrix                INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_LRG_GCcomb_z0.8-1.1_thetacut0.05.npy.
+[000018.27] [2/4] 11-18 19:02  BaseMatrix                INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_LRG_GCcomb_z0.8-1.1_thetacut0.05.npy.
+[000018.27] [1/4] 11-18 19:02  BaseMatrix                INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_LRG_GCcomb_z0.8-1.1_thetacut0.05.npy.
+[000018.28] [3/4] 11-18 19:02  BaseMatrix                INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_LRG_GCcomb_z0.8-1.1_thetacut0.05.npy.
+[000023.35] [0/4] 11-18 19:02  ObservablesGaussianLikelihood INFO     Covariance matrix with 72 points built from 1000 observations.
+[000023.35] [0/4] 11-18 19:02  ObservablesGaussianLikelihood INFO     ...resulting in a Hartlap 2007 factor of 0.9269.
+[000023.42] [0/4] 11-18 19:02  TracerPowerSpectrumMultipolesObservable INFO     Loading 1 file ['/global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/corrected/pkpoles_corrected_ELG_LOPnotqso_GCcomb_z1.1-1.6_thetacut0.05.npy'].
+[000023.52] [2/4] 11-18 19:02  MeshFFTWindow             INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_ELG_LOPnotqso_GCcomb_z1.1-1.6_thetacut0.05.npy.
+[000023.52] [3/4] 11-18 19:02  MeshFFTWindow             INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_ELG_LOPnotqso_GCcomb_z1.1-1.6_thetacut0.05.npy.
+[000023.52] [0/4] 11-18 19:02  MeshFFTWindow             INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_ELG_LOPnotqso_GCcomb_z1.1-1.6_thetacut0.05.npy.
+[000023.52] [1/4] 11-18 19:02  MeshFFTWindow             INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_ELG_LOPnotqso_GCcomb_z1.1-1.6_thetacut0.05.npy.
+[000024.02] [0/4] 11-18 19:02  BaseMatrix                INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_ELG_LOPnotqso_GCcomb_z1.1-1.6_thetacut0.05.npy.
+[000024.03] [2/4] 11-18 19:02  BaseMatrix                INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_ELG_LOPnotqso_GCcomb_z1.1-1.6_thetacut0.05.npy.
+[000024.05] [1/4] 11-18 19:02  BaseMatrix                INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_ELG_LOPnotqso_GCcomb_z1.1-1.6_thetacut0.05.npy.
+[000024.05] [3/4] 11-18 19:02  BaseMatrix                INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_ELG_LOPnotqso_GCcomb_z1.1-1.6_thetacut0.05.npy.
+[000029.26] [0/4] 11-18 19:02  ObservablesGaussianLikelihood INFO     Covariance matrix with 72 points built from 1000 observations.
+[000029.26] [0/4] 11-18 19:02  ObservablesGaussianLikelihood INFO     ...resulting in a Hartlap 2007 factor of 0.9269.
+[000029.33] [0/4] 11-18 19:02  TracerPowerSpectrumMultipolesObservable INFO     Loading 1 file ['/global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/corrected/pkpoles_corrected_QSO_GCcomb_z0.8-2.1_thetacut0.05.npy'].
+[000029.43] [2/4] 11-18 19:02  MeshFFTWindow             INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_QSO_GCcomb_z0.8-2.1_thetacut0.05.npy.
+[000029.43] [0/4] 11-18 19:02  MeshFFTWindow             INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_QSO_GCcomb_z0.8-2.1_thetacut0.05.npy.
+[000029.43] [3/4] 11-18 19:02  MeshFFTWindow             INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_QSO_GCcomb_z0.8-2.1_thetacut0.05.npy.
+[000029.43] [1/4] 11-18 19:02  MeshFFTWindow             INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_QSO_GCcomb_z0.8-2.1_thetacut0.05.npy.
+[000029.96] [2/4] 11-18 19:02  BaseMatrix                INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_QSO_GCcomb_z0.8-2.1_thetacut0.05.npy.
+[000029.96] [3/4] 11-18 19:02  BaseMatrix                INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_QSO_GCcomb_z0.8-2.1_thetacut0.05.npy.
+[000029.98] [1/4] 11-18 19:02  BaseMatrix                INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_QSO_GCcomb_z0.8-2.1_thetacut0.05.npy.
+[000030.00] [0/4] 11-18 19:02  BaseMatrix                INFO     Loading /global/cfs/cdirs/desi/survey/catalogs/Y1/LSS/iron/LSScats/v1.5/unblinded/desipipe/baseline_2pt/pk/wmatrix_smooth_QSO_GCcomb_z0.8-2.1_thetacut0.05.npy.
+[000035.14] [0/4] 11-18 19:02  ObservablesGaussianLikelihood INFO     Covariance matrix with 72 points built from 1000 observations.
+[000035.14] [0/4] 11-18 19:02  ObservablesGaussianLikelihood INFO     ...resulting in a Hartlap 2007 factor of 0.9269.
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/base.py:447: UserWarning: Derived parameter H0 of <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7fdb747e9630> is already derived in <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7fdb7460beb0>.
+  if self.mpicomm.rank == 0: warnings.warn(msg)
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/base.py:447: UserWarning: Derived parameter Omega_m of <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7fdb747e9630> is already derived in <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7fdb7460beb0>.
+  if self.mpicomm.rank == 0: warnings.warn(msg)
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/base.py:447: UserWarning: Derived parameter sigma8_m of <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7fdb747e9630> is already derived in <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7fdb7460beb0>.
+  if self.mpicomm.rank == 0: warnings.warn(msg)
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/base.py:447: UserWarning: Derived parameter loglikelihood of <desilike.likelihoods.base.ObservablesGaussianLikelihood object at 0x7fdb74644fa0> is already derived in <desilike.likelihoods.base.ObservablesGaussianLikelihood object at 0x7fdb746456f0>.
+  if self.mpicomm.rank == 0: warnings.warn(msg)
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/base.py:447: UserWarning: Derived parameter logprior of <desilike.likelihoods.base.ObservablesGaussianLikelihood object at 0x7fdb74644fa0> is already derived in <desilike.likelihoods.base.ObservablesGaussianLikelihood object at 0x7fdb746456f0>.
+  if self.mpicomm.rank == 0: warnings.warn(msg)
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/base.py:447: UserWarning: Derived parameter H0 of <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7fdb747a2da0> is already derived in <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7fdb747e9630>.
+  if self.mpicomm.rank == 0: warnings.warn(msg)
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/base.py:447: UserWarning: Derived parameter Omega_m of <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7fdb747a2da0> is already derived in <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7fdb747e9630>.
+  if self.mpicomm.rank == 0: warnings.warn(msg)
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/base.py:447: UserWarning: Derived parameter sigma8_m of <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7fdb747a2da0> is already derived in <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7fdb747e9630>.
+  if self.mpicomm.rank == 0: warnings.warn(msg)
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/base.py:447: UserWarning: Derived parameter loglikelihood of <desilike.likelihoods.base.ObservablesGaussianLikelihood object at 0x7fdb74644850> is already derived in <desilike.likelihoods.base.ObservablesGaussianLikelihood object at 0x7fdb74644fa0>.
+  if self.mpicomm.rank == 0: warnings.warn(msg)
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/base.py:447: UserWarning: Derived parameter logprior of <desilike.likelihoods.base.ObservablesGaussianLikelihood object at 0x7fdb74644850> is already derived in <desilike.likelihoods.base.ObservablesGaussianLikelihood object at 0x7fdb74644fa0>.
+  if self.mpicomm.rank == 0: warnings.warn(msg)
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/base.py:447: UserWarning: Derived parameter H0 of <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7fdb74784550> is already derived in <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7fdb747a2da0>.
+  if self.mpicomm.rank == 0: warnings.warn(msg)
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/base.py:447: UserWarning: Derived parameter Omega_m of <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7fdb74784550> is already derived in <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7fdb747a2da0>.
+  if self.mpicomm.rank == 0: warnings.warn(msg)
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/base.py:447: UserWarning: Derived parameter sigma8_m of <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7fdb74784550> is already derived in <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7fdb747a2da0>.
+  if self.mpicomm.rank == 0: warnings.warn(msg)
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/base.py:447: UserWarning: Derived parameter loglikelihood of <desilike.likelihoods.base.ObservablesGaussianLikelihood object at 0x7fdb7463c280> is already derived in <desilike.likelihoods.base.ObservablesGaussianLikelihood object at 0x7fdb74644850>.
+  if self.mpicomm.rank == 0: warnings.warn(msg)
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/base.py:447: UserWarning: Derived parameter logprior of <desilike.likelihoods.base.ObservablesGaussianLikelihood object at 0x7fdb7463c280> is already derived in <desilike.likelihoods.base.ObservablesGaussianLikelihood object at 0x7fdb74644850>.
+  if self.mpicomm.rank == 0: warnings.warn(msg)
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/base.py:447: UserWarning: Derived parameter H0 of <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7fdb74741c90> is already derived in <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7fdb74784550>.
+  if self.mpicomm.rank == 0: warnings.warn(msg)
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/base.py:447: UserWarning: Derived parameter Omega_m of <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7fdb74741c90> is already derived in <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7fdb74784550>.
+  if self.mpicomm.rank == 0: warnings.warn(msg)
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/base.py:447: UserWarning: Derived parameter sigma8_m of <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7fdb74741c90> is already derived in <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7fdb74784550>.
+  if self.mpicomm.rank == 0: warnings.warn(msg)
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/base.py:447: UserWarning: Derived parameter loglikelihood of <desilike.likelihoods.base.ObservablesGaussianLikelihood object at 0x7fdb7462ba30> is already derived in <desilike.likelihoods.base.ObservablesGaussianLikelihood object at 0x7fdb7463c280>.
+  if self.mpicomm.rank == 0: warnings.warn(msg)
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/base.py:447: UserWarning: Derived parameter logprior of <desilike.likelihoods.base.ObservablesGaussianLikelihood object at 0x7fdb7462ba30> is already derived in <desilike.likelihoods.base.ObservablesGaussianLikelihood object at 0x7fdb7463c280>.
+  if self.mpicomm.rank == 0: warnings.warn(msg)
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/base.py:447: UserWarning: Derived parameter H0 of <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7fdb941e7730> is already derived in <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7fdb74741c90>.
+  if self.mpicomm.rank == 0: warnings.warn(msg)
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/base.py:447: UserWarning: Derived parameter Omega_m of <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7fdb941e7730> is already derived in <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7fdb74741c90>.
+  if self.mpicomm.rank == 0: warnings.warn(msg)
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/base.py:447: UserWarning: Derived parameter sigma8_m of <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7fdb941e7730> is already derived in <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7fdb74741c90>.
+  if self.mpicomm.rank == 0: warnings.warn(msg)
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/base.py:447: UserWarning: Derived parameter loglikelihood of <desilike.likelihoods.base.ObservablesGaussianLikelihood object at 0x7fdb7462b640> is already derived in <desilike.likelihoods.base.ObservablesGaussianLikelihood object at 0x7fdb7462ba30>.
+  if self.mpicomm.rank == 0: warnings.warn(msg)
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/base.py:447: UserWarning: Derived parameter logprior of <desilike.likelihoods.base.ObservablesGaussianLikelihood object at 0x7fdb7462b640> is already derived in <desilike.likelihoods.base.ObservablesGaussianLikelihood object at 0x7fdb7462ba30>.
+  if self.mpicomm.rank == 0: warnings.warn(msg)
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/base.py:447: UserWarning: Derived parameter loglikelihood of <desilike.likelihoods.base.SumLikelihood object at 0x7fdb74645e10> is already derived in <desilike.likelihoods.base.ObservablesGaussianLikelihood object at 0x7fdb7462b640>.
+  if self.mpicomm.rank == 0: warnings.warn(msg)
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/base.py:447: UserWarning: Derived parameter logprior of <desilike.likelihoods.base.SumLikelihood object at 0x7fdb74645e10> is already derived in <desilike.likelihoods.base.ObservablesGaussianLikelihood object at 0x7fdb7462b640>.
+  if self.mpicomm.rank == 0: warnings.warn(msg)
+[000035.24] [0/4] 11-18 19:02  ObservablesGaussianLikelihood INFO     Covariance matrix with 72 points built from 1000 observations, varying 14 parameters.
+[000035.24] [0/4] 11-18 19:02  ObservablesGaussianLikelihood INFO     ...resulting in a Percival 2014 factor of 1.0457.
+[000035.24] [0/4] 11-18 19:02  ObservablesGaussianLikelihood INFO     Covariance matrix with 72 points built from 1000 observations, varying 14 parameters.
+[000035.24] [0/4] 11-18 19:02  ObservablesGaussianLikelihood INFO     ...resulting in a Percival 2014 factor of 1.0457.
+[000035.24] [0/4] 11-18 19:02  ObservablesGaussianLikelihood INFO     Covariance matrix with 72 points built from 1000 observations, varying 14 parameters.
+[000035.24] [0/4] 11-18 19:02  ObservablesGaussianLikelihood INFO     ...resulting in a Percival 2014 factor of 1.0457.
+[000035.24] [0/4] 11-18 19:02  ObservablesGaussianLikelihood INFO     Covariance matrix with 72 points built from 1000 observations, varying 14 parameters.
+[000035.24] [0/4] 11-18 19:02  ObservablesGaussianLikelihood INFO     ...resulting in a Percival 2014 factor of 1.0457.
+[000035.24] [0/4] 11-18 19:02  ObservablesGaussianLikelihood INFO     Covariance matrix with 72 points built from 1000 observations, varying 14 parameters.
+[000035.24] [0/4] 11-18 19:02  ObservablesGaussianLikelihood INFO     ...resulting in a Percival 2014 factor of 1.0457.
+[000035.24] [0/4] 11-18 19:02  ObservablesGaussianLikelihood INFO     Covariance matrix with 72 points built from 1000 observations, varying 14 parameters.
+[000035.24] [0/4] 11-18 19:02  ObservablesGaussianLikelihood INFO     ...resulting in a Percival 2014 factor of 1.0457.
+likelihood:  -1061.8229930349019
+Test Successful!
+[000085.52] [0/4] 11-18 19:03  MinuitProfiler            INFO     Varied parameters: ['h', 'omega_cdm', 'omega_b', 'logA', 'n_s', 'QSO.b1p', 'QSO.b2p', 'QSO.bsp', 'QSO.b3p', 'ELG.b1p', 'ELG.b2p', 'ELG.bsp', 'ELG.b3p', 'LRG3.b1p', 'LRG3.b2p', 'LRG3.bsp', 'LRG3.b3p', 'LRG2.b1p', 'LRG2.b2p', 'LRG2.bsp', 'LRG2.b3p', 'LRG1.b1p', 'LRG1.b2p', 'LRG1.bsp', 'LRG1.b3p', 'BGS.b1p', 'BGS.b2p', 'BGS.bsp', 'BGS.b3p'].
+[000174.63] [0/4] 11-18 19:04  MinuitProfiler            INFO     Successfully jit input likelihood.
+[000535.12] [0/4] 11-18 19:10  Profiles                  INFO     Saving /global/cfs/cdirs/desicollab/users/prakharb/folpsD_paper_chains/y1_chains_profiler/base_EFT/Iminuit-fs_klim_0-0.02-0.201_2-0.02-0.201-all-GCcomb_schoneberg2024-bbn_planck2018-ns10_physical-prior_LCDM_EFT_Ano_eft_18_ACPT.
+likelihood:  -1061.8229930349019
+Test Successful!
+likelihood:  -1061.8229930349019
+Test Successful!
+likelihood:  -1061.8229930349019
+Test Successful!

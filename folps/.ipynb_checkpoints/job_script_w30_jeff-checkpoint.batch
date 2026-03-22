@@ -1,0 +1,18 @@
+#!/bin/bash
+#SBATCH -A desi
+#SBATCH -N 1
+#SBATCH -C cpu
+#SBATCH -q regular
+#SBATCH -J fs
+#SBATCH --mail-user=prakharb@umich.edu
+#SBATCH --mail-type=ALL
+#SBATCH -t 20:00:00
+
+cd global/homes/p/prakharb/FOLPS_JAX/folps/
+
+module load python
+module load openmpi
+
+source /global/common/software/desi/users/adematti/cosmodesi_environment.sh main
+
+srun -n 4 python Fit_fs_PS_BS_c002.py --run_chains

@@ -1,0 +1,990 @@
+/var/spool/slurmd/job46354733/slurm_script: line 11: cd: global/homes/p/prakharb/FOLPS_JAX/folps/: No such file or directory
+
+Lmod is automatically replacing "cray-mpich/8.1.30" with "openmpi/5.0.7".
+
+
+Lmod is automatically replacing "openmpi/5.0.7" with "cray-mpich/8.1.30".
+
+2025-12-11 17:30:02.170802: E external/xla/xla/stream_executor/cuda/cuda_driver.cc:282] failed call to cuInit: CUDA_ERROR_NO_DEVICE: no CUDA-capable device is detected
+2025-12-11 17:30:02.176432: E external/xla/xla/stream_executor/cuda/cuda_driver.cc:282] failed call to cuInit: CUDA_ERROR_NO_DEVICE: no CUDA-capable device is detected
+2025-12-11 17:30:02.189840: E external/xla/xla/stream_executor/cuda/cuda_driver.cc:282] failed call to cuInit: CUDA_ERROR_NO_DEVICE: no CUDA-capable device is detected
+2025-12-11 17:30:02.190178: E external/xla/xla/stream_executor/cuda/cuda_driver.cc:282] failed call to cuInit: CUDA_ERROR_NO_DEVICE: no CUDA-capable device is detected
+/global/common/software/desi/users/adematti/perlmutter/cosmodesiconda/20240118-1.0.0/code/cosmoprimo/main/lib/python3.10/site-packages/cosmoprimo/eisenstein_hu.py:25: UserWarning: EisensteinHuNoWiggleEngine cannot cope with massive neutrinos
+  warnings.warn('{} cannot cope with massive neutrinos'.format(self.__class__.__name__))
+/global/common/software/desi/users/adematti/perlmutter/cosmodesiconda/20240118-1.0.0/code/cosmoprimo/main/lib/python3.10/site-packages/cosmoprimo/eisenstein_hu.py:25: UserWarning: EisensteinHuNoWiggleEngine cannot cope with massive neutrinos
+  warnings.warn('{} cannot cope with massive neutrinos'.format(self.__class__.__name__))
+/global/common/software/desi/users/adematti/perlmutter/cosmodesiconda/20240118-1.0.0/code/cosmoprimo/main/lib/python3.10/site-packages/cosmoprimo/eisenstein_hu.py:25: UserWarning: EisensteinHuNoWiggleEngine cannot cope with massive neutrinos
+  warnings.warn('{} cannot cope with massive neutrinos'.format(self.__class__.__name__))
+/global/common/software/desi/users/adematti/perlmutter/cosmodesiconda/20240118-1.0.0/code/cosmoprimo/main/lib/python3.10/site-packages/cosmoprimo/eisenstein_hu.py:25: UserWarning: EisensteinHuNoWiggleEngine cannot cope with massive neutrinos
+  warnings.warn('{} cannot cope with massive neutrinos'.format(self.__class__.__name__))
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/__init__.py
+⚠️ No GPU found. Using JAX with CPU.
+/global/u1/p/prakharb/FOLPS_JAX/folps/folps.py
+/global/cfs/cdirs/desicollab/users/prakharb/folpsD_paper_chains/cxxx_mocks_chains/c002/base/Pk_Bk_bugfixed/LRG2_std_kr0.301_kb0_0.120_kb2_0.080_folpsD_Afull_b3_coev_no_emu
+[True, True, False, True, True]
+32
+(57,)
+EMULATOR NOT ACTIVATED, proceeding without emulation
+Loading matrices from matrices_nfftlog128_Afull_True_remove-DeltaP_False.npy
+Loading matrices from matrices_nfftlog128_Afull_True_remove-DeltaP_False.npy
+h : uniform[0.5, 0.9]({})
+omega_cdm : uniform[0.05, 0.2]({})
+omega_b : norm({'loc': 0.02237, 'scale': 0.00037})
+logA : uniform[2.0, 4.0]({})
+n_s : uniform[0.8, 1.2]({})
+tau_reio : uniform[0.01, 0.8]({})
+m_ncdm : uniform[0.0, 5.0]({})
+N_eff : uniform[0.01, 10.0]({})
+w0_fld : uniform[-3, 1]({})
+wa_fld : uniform[-3, 2]({})
+Omega_k : uniform[-0.3, 0.3]({})
+H0 : uniform({})
+Omega_m : uniform({})
+sigma8_m : uniform({})
+LRG2.b1 : uniform[1e-05, 10]({})
+LRG2.b2 : uniform[-50, 50]({})
+LRG2.bs : uniform[-50, 50]({})
+LRG2.b3 : uniform({})
+LRG2.alpha0 : norm({'loc': 0.0, 'scale': 125.0})
+LRG2.alpha2 : norm({'loc': 0.0, 'scale': 125.0})
+LRG2.alpha4 : norm({'loc': 0.0, 'scale': 125.0})
+LRG2.ct : uniform({})
+LRG2.sn0 : norm({'loc': 0.0, 'scale': 20.0})
+LRG2.sn2 : norm({'loc': 0.0, 'scale': 50.0})
+LRG2.X_FoG_p : uniform[0, 10]({})
+Loading matrices from matrices_nfftlog128_Afull_True_remove-DeltaP_False.npy
+h : uniform[0.5, 0.9]({})
+omega_cdm : uniform[0.05, 0.2]({})
+omega_b : norm({'loc': 0.02237, 'scale': 0.00037})
+logA : uniform[2.0, 4.0]({})
+n_s : uniform[0.8, 1.2]({})
+tau_reio : uniform[0.01, 0.8]({})
+m_ncdm : uniform[0.0, 5.0]({})
+N_eff : uniform[0.01, 10.0]({})
+w0_fld : uniform[-3, 1]({})
+wa_fld : uniform[-3, 2]({})
+Omega_k : uniform[-0.3, 0.3]({})
+H0 : uniform({})
+Omega_m : uniform({})
+sigma8_m : uniform({})
+LRG2.b1 : uniform[1e-05, 10]({})
+LRG2.b2 : uniform[-50, 50]({})
+LRG2.bs : uniform[-50, 50]({})
+LRG2.c1 : norm({'loc': 66.6, 'scale': 266.4})
+LRG2.c2 : norm({'loc': 0.0, 'scale': 4.0})
+LRG2.Pshot : norm({'loc': 0.0, 'scale': 18878.94021181227})
+LRG2.Bshot : norm({'loc': 0.0, 'scale': 18878.94021181227})
+LRG2.X_FoG_b : uniform[0, 15]({})
+[000000.00] [2/4] 12-11 17:32  Chain                     INFO     Loading /global/cfs/cdirs/desicollab/users/prakharb/folpsD_paper_chains/Abacus2gen_chains/base/Pk_Bk/LRG2_std_kr0.301_kb0_0.120_kb2_0.080_folpsD_Ano_b3_coev.npy.
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/__init__.py
+⚠️ No GPU found. Using JAX with CPU.
+/global/u1/p/prakharb/FOLPS_JAX/folps/folps.py
+/global/cfs/cdirs/desicollab/users/prakharb/folpsD_paper_chains/cxxx_mocks_chains/c002/base/Pk_Bk_bugfixed/LRG2_std_kr0.301_kb0_0.120_kb2_0.080_folpsD_Afull_b3_coev_no_emu
+[True, True, False, True, True]
+32
+(57,)
+EMULATOR NOT ACTIVATED, proceeding without emulation
+Loading matrices from matrices_nfftlog128_Afull_True_remove-DeltaP_False.npy
+Loading matrices from matrices_nfftlog128_Afull_True_remove-DeltaP_False.npy
+h : uniform[0.5, 0.9]({})
+omega_cdm : uniform[0.05, 0.2]({})
+omega_b : norm({'loc': 0.02237, 'scale': 0.00037})
+logA : uniform[2.0, 4.0]({})
+n_s : uniform[0.8, 1.2]({})
+tau_reio : uniform[0.01, 0.8]({})
+m_ncdm : uniform[0.0, 5.0]({})
+N_eff : uniform[0.01, 10.0]({})
+w0_fld : uniform[-3, 1]({})
+wa_fld : uniform[-3, 2]({})
+Omega_k : uniform[-0.3, 0.3]({})
+H0 : uniform({})
+Omega_m : uniform({})
+sigma8_m : uniform({})
+LRG2.b1 : uniform[1e-05, 10]({})
+LRG2.b2 : uniform[-50, 50]({})
+LRG2.bs : uniform[-50, 50]({})
+LRG2.b3 : uniform({})
+LRG2.alpha0 : norm({'loc': 0.0, 'scale': 125.0})
+LRG2.alpha2 : norm({'loc': 0.0, 'scale': 125.0})
+LRG2.alpha4 : norm({'loc': 0.0, 'scale': 125.0})
+LRG2.ct : uniform({})
+LRG2.sn0 : norm({'loc': 0.0, 'scale': 20.0})
+LRG2.sn2 : norm({'loc': 0.0, 'scale': 50.0})
+LRG2.X_FoG_p : uniform[0, 10]({})
+Loading matrices from matrices_nfftlog128_Afull_True_remove-DeltaP_False.npy
+h : uniform[0.5, 0.9]({})
+omega_cdm : uniform[0.05, 0.2]({})
+omega_b : norm({'loc': 0.02237, 'scale': 0.00037})
+logA : uniform[2.0, 4.0]({})
+n_s : uniform[0.8, 1.2]({})
+tau_reio : uniform[0.01, 0.8]({})
+m_ncdm : uniform[0.0, 5.0]({})
+N_eff : uniform[0.01, 10.0]({})
+w0_fld : uniform[-3, 1]({})
+wa_fld : uniform[-3, 2]({})
+Omega_k : uniform[-0.3, 0.3]({})
+H0 : uniform({})
+Omega_m : uniform({})
+sigma8_m : uniform({})
+LRG2.b1 : uniform[1e-05, 10]({})
+LRG2.b2 : uniform[-50, 50]({})
+LRG2.bs : uniform[-50, 50]({})
+LRG2.c1 : norm({'loc': 66.6, 'scale': 266.4})
+LRG2.c2 : norm({'loc': 0.0, 'scale': 4.0})
+LRG2.Pshot : norm({'loc': 0.0, 'scale': 18878.94021181227})
+LRG2.Bshot : norm({'loc': 0.0, 'scale': 18878.94021181227})
+LRG2.X_FoG_b : uniform[0, 15]({})
+[000000.00] [0/4] 12-11 17:32  Chain                     INFO     Loading /global/cfs/cdirs/desicollab/users/prakharb/folpsD_paper_chains/Abacus2gen_chains/base/Pk_Bk/LRG2_std_kr0.301_kb0_0.120_kb2_0.080_folpsD_Ano_b3_coev.npy.
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/__init__.py
+⚠️ No GPU found. Using JAX with CPU.
+/global/u1/p/prakharb/FOLPS_JAX/folps/folps.py
+/global/cfs/cdirs/desicollab/users/prakharb/folpsD_paper_chains/cxxx_mocks_chains/c002/base/Pk_Bk_bugfixed/LRG2_std_kr0.301_kb0_0.120_kb2_0.080_folpsD_Afull_b3_coev_no_emu
+[True, True, False, True, True]
+32
+(57,)
+EMULATOR NOT ACTIVATED, proceeding without emulation
+Loading matrices from matrices_nfftlog128_Afull_True_remove-DeltaP_False.npy
+Loading matrices from matrices_nfftlog128_Afull_True_remove-DeltaP_False.npy
+h : uniform[0.5, 0.9]({})
+omega_cdm : uniform[0.05, 0.2]({})
+omega_b : norm({'loc': 0.02237, 'scale': 0.00037})
+logA : uniform[2.0, 4.0]({})
+n_s : uniform[0.8, 1.2]({})
+tau_reio : uniform[0.01, 0.8]({})
+m_ncdm : uniform[0.0, 5.0]({})
+N_eff : uniform[0.01, 10.0]({})
+w0_fld : uniform[-3, 1]({})
+wa_fld : uniform[-3, 2]({})
+Omega_k : uniform[-0.3, 0.3]({})
+H0 : uniform({})
+Omega_m : uniform({})
+sigma8_m : uniform({})
+LRG2.b1 : uniform[1e-05, 10]({})
+LRG2.b2 : uniform[-50, 50]({})
+LRG2.bs : uniform[-50, 50]({})
+LRG2.b3 : uniform({})
+LRG2.alpha0 : norm({'loc': 0.0, 'scale': 125.0})
+LRG2.alpha2 : norm({'loc': 0.0, 'scale': 125.0})
+LRG2.alpha4 : norm({'loc': 0.0, 'scale': 125.0})
+LRG2.ct : uniform({})
+LRG2.sn0 : norm({'loc': 0.0, 'scale': 20.0})
+LRG2.sn2 : norm({'loc': 0.0, 'scale': 50.0})
+LRG2.X_FoG_p : uniform[0, 10]({})
+Loading matrices from matrices_nfftlog128_Afull_True_remove-DeltaP_False.npy
+h : uniform[0.5, 0.9]({})
+omega_cdm : uniform[0.05, 0.2]({})
+omega_b : norm({'loc': 0.02237, 'scale': 0.00037})
+logA : uniform[2.0, 4.0]({})
+n_s : uniform[0.8, 1.2]({})
+tau_reio : uniform[0.01, 0.8]({})
+m_ncdm : uniform[0.0, 5.0]({})
+N_eff : uniform[0.01, 10.0]({})
+w0_fld : uniform[-3, 1]({})
+wa_fld : uniform[-3, 2]({})
+Omega_k : uniform[-0.3, 0.3]({})
+H0 : uniform({})
+Omega_m : uniform({})
+sigma8_m : uniform({})
+LRG2.b1 : uniform[1e-05, 10]({})
+LRG2.b2 : uniform[-50, 50]({})
+LRG2.bs : uniform[-50, 50]({})
+LRG2.c1 : norm({'loc': 66.6, 'scale': 266.4})
+LRG2.c2 : norm({'loc': 0.0, 'scale': 4.0})
+LRG2.Pshot : norm({'loc': 0.0, 'scale': 18878.94021181227})
+LRG2.Bshot : norm({'loc': 0.0, 'scale': 18878.94021181227})
+LRG2.X_FoG_b : uniform[0, 15]({})
+[000000.00] [3/4] 12-11 17:32  Chain                     INFO     Loading /global/cfs/cdirs/desicollab/users/prakharb/folpsD_paper_chains/Abacus2gen_chains/base/Pk_Bk/LRG2_std_kr0.301_kb0_0.120_kb2_0.080_folpsD_Ano_b3_coev.npy.
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/__init__.py
+⚠️ No GPU found. Using JAX with CPU.
+/global/u1/p/prakharb/FOLPS_JAX/folps/folps.py
+/global/cfs/cdirs/desicollab/users/prakharb/folpsD_paper_chains/cxxx_mocks_chains/c002/base/Pk_Bk_bugfixed/LRG2_std_kr0.301_kb0_0.120_kb2_0.080_folpsD_Afull_b3_coev_no_emu
+[True, True, False, True, True]
+32
+(57,)
+EMULATOR NOT ACTIVATED, proceeding without emulation
+Loading matrices from matrices_nfftlog128_Afull_True_remove-DeltaP_False.npy
+Loading matrices from matrices_nfftlog128_Afull_True_remove-DeltaP_False.npy
+h : uniform[0.5, 0.9]({})
+omega_cdm : uniform[0.05, 0.2]({})
+omega_b : norm({'loc': 0.02237, 'scale': 0.00037})
+logA : uniform[2.0, 4.0]({})
+n_s : uniform[0.8, 1.2]({})
+tau_reio : uniform[0.01, 0.8]({})
+m_ncdm : uniform[0.0, 5.0]({})
+N_eff : uniform[0.01, 10.0]({})
+w0_fld : uniform[-3, 1]({})
+wa_fld : uniform[-3, 2]({})
+Omega_k : uniform[-0.3, 0.3]({})
+H0 : uniform({})
+Omega_m : uniform({})
+sigma8_m : uniform({})
+LRG2.b1 : uniform[1e-05, 10]({})
+LRG2.b2 : uniform[-50, 50]({})
+LRG2.bs : uniform[-50, 50]({})
+LRG2.b3 : uniform({})
+LRG2.alpha0 : norm({'loc': 0.0, 'scale': 125.0})
+LRG2.alpha2 : norm({'loc': 0.0, 'scale': 125.0})
+LRG2.alpha4 : norm({'loc': 0.0, 'scale': 125.0})
+LRG2.ct : uniform({})
+LRG2.sn0 : norm({'loc': 0.0, 'scale': 20.0})
+LRG2.sn2 : norm({'loc': 0.0, 'scale': 50.0})
+LRG2.X_FoG_p : uniform[0, 10]({})
+Loading matrices from matrices_nfftlog128_Afull_True_remove-DeltaP_False.npy
+h : uniform[0.5, 0.9]({})
+omega_cdm : uniform[0.05, 0.2]({})
+omega_b : norm({'loc': 0.02237, 'scale': 0.00037})
+logA : uniform[2.0, 4.0]({})
+n_s : uniform[0.8, 1.2]({})
+tau_reio : uniform[0.01, 0.8]({})
+m_ncdm : uniform[0.0, 5.0]({})
+N_eff : uniform[0.01, 10.0]({})
+w0_fld : uniform[-3, 1]({})
+wa_fld : uniform[-3, 2]({})
+Omega_k : uniform[-0.3, 0.3]({})
+H0 : uniform({})
+Omega_m : uniform({})
+sigma8_m : uniform({})
+LRG2.b1 : uniform[1e-05, 10]({})
+LRG2.b2 : uniform[-50, 50]({})
+LRG2.bs : uniform[-50, 50]({})
+LRG2.c1 : norm({'loc': 66.6, 'scale': 266.4})
+LRG2.c2 : norm({'loc': 0.0, 'scale': 4.0})
+LRG2.Pshot : norm({'loc': 0.0, 'scale': 18878.94021181227})
+LRG2.Bshot : norm({'loc': 0.0, 'scale': 18878.94021181227})
+LRG2.X_FoG_b : uniform[0, 15]({})
+[000000.00] [1/4] 12-11 17:32  Chain                     INFO     Loading /global/cfs/cdirs/desicollab/users/prakharb/folpsD_paper_chains/Abacus2gen_chains/base/Pk_Bk/LRG2_std_kr0.301_kb0_0.120_kb2_0.080_folpsD_Ano_b3_coev.npy.
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/base.py:447: UserWarning: Derived parameter loglikelihood of <desilike.likelihoods.base.SumLikelihood object at 0x7f33700d6e60> is already derived in <desilike.likelihoods.base.ObservablesGaussianLikelihood object at 0x7f33703f01c0>.
+  if self.mpicomm.rank == 0: warnings.warn(msg)
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/base.py:447: UserWarning: Derived parameter logprior of <desilike.likelihoods.base.SumLikelihood object at 0x7f33700d6e60> is already derived in <desilike.likelihoods.base.ObservablesGaussianLikelihood object at 0x7f33703f01c0>.
+  if self.mpicomm.rank == 0: warnings.warn(msg)
+chain: Chain(shape=(260400,), params=ParameterCollection(['h', 'omega_cdm', 'omega_b', 'logA', 'LRG2.c1', 'LRG2.c2', 'LRG2.Pshot', 'LRG2.Bshot', 'LRG2.X_FoG_b', 'LRG2.b1', 'LRG2.b2', 'LRG2.bs', 'LRG2.X_FoG_p', 'fweight', 'logposterior', 'n_s', 'tau_reio', 'm_ncdm', 'N_eff', 'w0_fld', 'wa_fld', 'Omega_k', 'LRG2.b3', 'LRG2.ct', 'H0', 'Omega_m', 'sigma8_m', 'loglikelihood', 'logprior', 'LRG2.alpha0', 'LRG2.alpha2', 'LRG2.sn0', 'LRG2.sn2']))
+Loading matrices from matrices_nfftlog128_Afull_True_remove-DeltaP_False.npy
+Loading matrices from matrices_nfftlog128_Afull_True_remove-DeltaP_False.npy
+Loading matrices from matrices_nfftlog128_Afull_True_remove-DeltaP_False.npy
+[000001.42] [0/4] 12-11 17:32  MCMCSampler               INFO     Varied parameters: ['h', 'omega_cdm', 'omega_b', 'logA', 'w0_fld', 'wa_fld', 'LRG2.b1', 'LRG2.b2', 'LRG2.bs', 'LRG2.c1', 'LRG2.c2', 'LRG2.Pshot', 'LRG2.Bshot', 'LRG2.X_FoG_b', 'LRG2.X_FoG_p'].
+/global/common/software/desi/users/adematti/perlmutter/cosmodesiconda/20240118-1.0.0/code/cosmoprimo/main/lib/python3.10/site-packages/cosmoprimo/eisenstein_hu.py:25: UserWarning: EisensteinHuNoWiggleEngine cannot cope with massive neutrinos
+  warnings.warn('{} cannot cope with massive neutrinos'.format(self.__class__.__name__))
+/global/common/software/desi/users/adematti/perlmutter/cosmodesiconda/20240118-1.0.0/code/cosmoprimo/main/lib/python3.10/site-packages/cosmoprimo/eisenstein_hu.py:25: UserWarning: EisensteinHuNoWiggleEngine cannot cope with massive neutrinos
+  warnings.warn('{} cannot cope with massive neutrinos'.format(self.__class__.__name__))
+/global/common/software/desi/users/adematti/perlmutter/cosmodesiconda/20240118-1.0.0/code/cosmoprimo/main/lib/python3.10/site-packages/cosmoprimo/eisenstein_hu.py:25: UserWarning: EisensteinHuNoWiggleEngine cannot cope with massive neutrinos
+  warnings.warn('{} cannot cope with massive neutrinos'.format(self.__class__.__name__))
+/global/common/software/desi/users/adematti/perlmutter/cosmodesiconda/20240118-1.0.0/code/cosmoprimo/main/lib/python3.10/site-packages/cosmoprimo/eisenstein_hu.py:25: UserWarning: EisensteinHuNoWiggleEngine cannot cope with massive neutrinos
+  warnings.warn('{} cannot cope with massive neutrinos'.format(self.__class__.__name__))
+/global/common/software/desi/users/adematti/perlmutter/cosmodesiconda/20240118-1.0.0/code/cosmoprimo/main/lib/python3.10/site-packages/cosmoprimo/eisenstein_hu.py:25: UserWarning: EisensteinHuNoWiggleEngine cannot cope with massive neutrinos
+  warnings.warn('{} cannot cope with massive neutrinos'.format(self.__class__.__name__))
+/global/common/software/desi/users/adematti/perlmutter/cosmodesiconda/20240118-1.0.0/code/cosmoprimo/main/lib/python3.10/site-packages/cosmoprimo/eisenstein_hu.py:29: UserWarning: EisensteinHuNoWiggleEngine cannot cope with non-constant dark energy
+  warnings.warn('{} cannot cope with non-constant dark energy'.format(self.__class__.__name__))
+/global/common/software/desi/users/adematti/perlmutter/cosmodesiconda/20240118-1.0.0/code/cosmoprimo/main/lib/python3.10/site-packages/cosmoprimo/eisenstein_hu.py:25: UserWarning: EisensteinHuNoWiggleEngine cannot cope with massive neutrinos
+  warnings.warn('{} cannot cope with massive neutrinos'.format(self.__class__.__name__))
+/global/common/software/desi/users/adematti/perlmutter/cosmodesiconda/20240118-1.0.0/code/cosmoprimo/main/lib/python3.10/site-packages/cosmoprimo/eisenstein_hu.py:29: UserWarning: EisensteinHuNoWiggleEngine cannot cope with non-constant dark energy
+  warnings.warn('{} cannot cope with non-constant dark energy'.format(self.__class__.__name__))
+/global/common/software/desi/users/adematti/perlmutter/cosmodesiconda/20240118-1.0.0/code/cosmoprimo/main/lib/python3.10/site-packages/cosmoprimo/eisenstein_hu.py:25: UserWarning: EisensteinHuNoWiggleEngine cannot cope with massive neutrinos
+  warnings.warn('{} cannot cope with massive neutrinos'.format(self.__class__.__name__))
+/global/common/software/desi/users/adematti/perlmutter/cosmodesiconda/20240118-1.0.0/code/cosmoprimo/main/lib/python3.10/site-packages/cosmoprimo/eisenstein_hu.py:29: UserWarning: EisensteinHuNoWiggleEngine cannot cope with non-constant dark energy
+  warnings.warn('{} cannot cope with non-constant dark energy'.format(self.__class__.__name__))
+/global/common/software/desi/users/adematti/perlmutter/cosmodesiconda/20240118-1.0.0/code/cosmoprimo/main/lib/python3.10/site-packages/cosmoprimo/eisenstein_hu.py:25: UserWarning: EisensteinHuNoWiggleEngine cannot cope with massive neutrinos
+  warnings.warn('{} cannot cope with massive neutrinos'.format(self.__class__.__name__))
+/global/common/software/desi/users/adematti/perlmutter/cosmodesiconda/20240118-1.0.0/code/cosmoprimo/main/lib/python3.10/site-packages/cosmoprimo/eisenstein_hu.py:29: UserWarning: EisensteinHuNoWiggleEngine cannot cope with non-constant dark energy
+  warnings.warn('{} cannot cope with non-constant dark energy'.format(self.__class__.__name__))
+[000042.24] [0/4] 12-11 17:32  BasePipeline              INFO     Found speeds:
+[000042.24] [0/4] 12-11 17:32  BasePipeline              INFO     - <desilike.theories.primordial_cosmology.Cosmoprimo object at 0x7f337045bb80>: 219.67 iterations / second - 0.005 s / iteration
+[000042.24] [0/4] 12-11 17:32  BasePipeline              INFO     - <desilike.theories.galaxy_clustering.base.APEffect object at 0x7f335065f370>: 29.12 iterations / second - 0.034 s / iteration
+[000042.24] [0/4] 12-11 17:32  BasePipeline              INFO     - <desilike.theories.galaxy_clustering.power_template.DirectPowerSpectrumTemplate object at 0x7f337034ae90>: 0.69 iterations / second - 1.455 s / iteration
+[000042.24] [0/4] 12-11 17:32  BasePipeline              INFO     - <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7f33700e02b0>: 34.44 iterations / second - 0.029 s / iteration
+[000042.24] [0/4] 12-11 17:32  BasePipeline              INFO     - <desilike.theories.galaxy_clustering.full_shape.FOLPSv2TracerBispectrumMultipoles object at 0x7f337039de70>: 59.41 iterations / second - 0.017 s / iteration
+[000042.24] [0/4] 12-11 17:32  BasePipeline              INFO     - <desilike.observables.galaxy_clustering.window.WindowedPowerSpectrumMultipoles object at 0x7f335065c3d0>: 11734.78 iterations / second - 0.000 s / iteration
+[000042.24] [0/4] 12-11 17:32  BasePipeline              INFO     - <desilike.observables.galaxy_clustering.power_spectrum.TracerPowerSpectrumMultipolesObservable object at 0x7f33703f1a80>: 108590.39 iterations / second - 0.000 s / iteration
+[000042.24] [0/4] 12-11 17:32  BasePipeline              INFO     - <desilike.theories.galaxy_clustering.full_shape.FOLPSv2PowerSpectrumMultipoles object at 0x7f335065ce80>: 35.81 iterations / second - 0.028 s / iteration
+[000042.24] [0/4] 12-11 17:32  BasePipeline              INFO     - <desilike.theories.galaxy_clustering.full_shape.FOLPSv2TracerPowerSpectrumMultipoles object at 0x7f337039e650>: 176.83 iterations / second - 0.006 s / iteration
+[000042.24] [0/4] 12-11 17:32  BasePipeline              INFO     - <desilike.observables.galaxy_clustering.window.WindowedPowerSpectrumMultipoles object at 0x7f335063fbe0>: 1476.22 iterations / second - 0.001 s / iteration
+[000042.24] [0/4] 12-11 17:32  BasePipeline              INFO     - <desilike.observables.galaxy_clustering.power_spectrum.TracerPowerSpectrumMultipolesObservable object at 0x7f33703b0520>: 186690.09 iterations / second - 0.000 s / iteration
+[000042.24] [0/4] 12-11 17:32  BasePipeline              INFO     - <desilike.likelihoods.base.ObservablesGaussianLikelihood object at 0x7f33703f01c0>: 670.65 iterations / second - 0.001 s / iteration
+[000042.24] [0/4] 12-11 17:32  BasePipeline              INFO     - <desilike.likelihoods.base.SumLikelihood object at 0x7f33700d6e60>: 2475.76 iterations / second - 0.000 s / iteration
+[000042.24] [0/4] 12-11 17:32  BasePipeline              INFO     - total speed: 0.63 iterations / second - 1.5757 s / iteration
+[000042.25] [0/4] 12-11 17:32  MCMCSampler               INFO     Oversampling with factors:
+[000042.25] [0/4] 12-11 17:32  MCMCSampler               INFO     1: ['h', 'omega_cdm', 'omega_b', 'logA', 'w0_fld', 'wa_fld']
+[000042.25] [0/4] 12-11 17:32  MCMCSampler               INFO     5: ['LRG2.X_FoG_p']
+[000042.25] [0/4] 12-11 17:32  MCMCSampler               INFO     5: ['LRG2.b1', 'LRG2.b2', 'LRG2.bs']
+[000042.25] [0/4] 12-11 17:32  MCMCSampler               INFO     5: ['LRG2.c1', 'LRG2.c2', 'LRG2.Pshot', 'LRG2.Bshot', 'LRG2.X_FoG_b']
+[000042.25] [0/4] 12-11 17:32  MCMCSampler               INFO     Using provided covariance matrix.
+[000042.57] [0/4] 12-11 17:32  MCMCSampler               INFO     Could *not* vmap input likelihood. Set logging level to debug (setup_logging("debug")) to get full stack trace.
+[000042.60] [0/4] 12-11 17:32  MCMCSampler               INFO     Could *not* jit input likelihood.
+/global/common/software/desi/users/adematti/perlmutter/cosmodesiconda/20240118-1.0.0/code/cosmoprimo/main/lib/python3.10/site-packages/cosmoprimo/eisenstein_hu.py:25: UserWarning: EisensteinHuNoWiggleEngine cannot cope with massive neutrinos
+  warnings.warn('{} cannot cope with massive neutrinos'.format(self.__class__.__name__))
+/global/common/software/desi/users/adematti/perlmutter/cosmodesiconda/20240118-1.0.0/code/cosmoprimo/main/lib/python3.10/site-packages/cosmoprimo/eisenstein_hu.py:29: UserWarning: EisensteinHuNoWiggleEngine cannot cope with non-constant dark energy
+  warnings.warn('{} cannot cope with non-constant dark energy'.format(self.__class__.__name__))
+/global/common/software/desi/users/adematti/perlmutter/cosmodesiconda/20240118-1.0.0/code/cosmoprimo/main/lib/python3.10/site-packages/cosmoprimo/eisenstein_hu.py:25: UserWarning: EisensteinHuNoWiggleEngine cannot cope with massive neutrinos
+  warnings.warn('{} cannot cope with massive neutrinos'.format(self.__class__.__name__))
+/global/common/software/desi/users/adematti/perlmutter/cosmodesiconda/20240118-1.0.0/code/cosmoprimo/main/lib/python3.10/site-packages/cosmoprimo/eisenstein_hu.py:29: UserWarning: EisensteinHuNoWiggleEngine cannot cope with non-constant dark energy
+  warnings.warn('{} cannot cope with non-constant dark energy'.format(self.__class__.__name__))
+/global/common/software/desi/users/adematti/perlmutter/cosmodesiconda/20240118-1.0.0/code/cosmoprimo/main/lib/python3.10/site-packages/cosmoprimo/eisenstein_hu.py:25: UserWarning: EisensteinHuNoWiggleEngine cannot cope with massive neutrinos
+  warnings.warn('{} cannot cope with massive neutrinos'.format(self.__class__.__name__))
+/global/common/software/desi/users/adematti/perlmutter/cosmodesiconda/20240118-1.0.0/code/cosmoprimo/main/lib/python3.10/site-packages/cosmoprimo/eisenstein_hu.py:29: UserWarning: EisensteinHuNoWiggleEngine cannot cope with non-constant dark energy
+  warnings.warn('{} cannot cope with non-constant dark energy'.format(self.__class__.__name__))
+/global/common/software/desi/users/adematti/perlmutter/cosmodesiconda/20240118-1.0.0/code/cosmoprimo/main/lib/python3.10/site-packages/cosmoprimo/eisenstein_hu.py:25: UserWarning: EisensteinHuNoWiggleEngine cannot cope with massive neutrinos
+  warnings.warn('{} cannot cope with massive neutrinos'.format(self.__class__.__name__))
+/global/common/software/desi/users/adematti/perlmutter/cosmodesiconda/20240118-1.0.0/code/cosmoprimo/main/lib/python3.10/site-packages/cosmoprimo/eisenstein_hu.py:29: UserWarning: EisensteinHuNoWiggleEngine cannot cope with non-constant dark energy
+  warnings.warn('{} cannot cope with non-constant dark energy'.format(self.__class__.__name__))
+[000076.49] [0/4] 12-11 17:33  MCMCSampler               INFO     68 steps, acceptance rate 0.279.
+[000108.00] [0/4] 12-11 17:34  MCMCSampler               INFO     168 steps, acceptance rate 0.167.
+[000144.47] [0/4] 12-11 17:34  MCMCSampler               INFO     270 steps, acceptance rate 0.148.
+[000184.23] [0/4] 12-11 17:35  MCMCSampler               INFO     401 steps, acceptance rate 0.110.
+[000214.23] [0/4] 12-11 17:35  MCMCSampler               INFO     500 steps, acceptance rate 0.110.
+[000249.92] [0/4] 12-11 17:36  MCMCSampler               INFO     614 steps, acceptance rate 0.101.
+[000289.56] [0/4] 12-11 17:37  MCMCSampler               INFO     735 steps, acceptance rate 0.091.
+[000337.71] [0/4] 12-11 17:37  MCMCSampler               INFO     874 steps, acceptance rate 0.086.
+[000369.35] [0/4] 12-11 17:38  MCMCSampler               INFO     990 steps, acceptance rate 0.082.
+[000409.51] [0/4] 12-11 17:39  MCMCSampler               INFO     1124 steps, acceptance rate 0.078.
+[000441.25] [0/4] 12-11 17:39  MCMCSampler               INFO     1248 steps, acceptance rate 0.075.
+[000472.63] [0/4] 12-11 17:40  MCMCSampler               INFO     1353 steps, acceptance rate 0.074.
+[000503.71] [0/4] 12-11 17:40  MCMCSampler               INFO     1443 steps, acceptance rate 0.073.
+[000543.53] [0/4] 12-11 17:41  MCMCSampler               INFO     1575 steps, acceptance rate 0.070.
+[000578.08] [0/4] 12-11 17:41  MCMCSampler               INFO     1666 steps, acceptance rate 0.071.
+[000611.32] [0/4] 12-11 17:42  MCMCSampler               INFO     1776 steps, acceptance rate 0.072.
+[000649.37] [0/4] 12-11 17:43  MCMCSampler               INFO     1897 steps, acceptance rate 0.071.
+[000681.35] [0/4] 12-11 17:43  MCMCSampler               INFO     2009 steps, acceptance rate 0.069.
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/samplers/base.py:177: UserWarning: Error "CosmologyComputationError()" raised is caught up with -inf loglikelihood. Set logging level to debug (setup_logging("debug")) to get full stack trace.
+  warnings.warn('Error "{}" raised is caught up with -inf loglikelihood. Set logging level to debug (setup_logging("debug")) to get full stack trace.'.format(repr(error[0])))
+[000714.58] [0/4] 12-11 17:44  MCMCSampler               INFO     2103 steps, acceptance rate 0.068.
+[000751.42] [0/4] 12-11 17:44  MCMCSampler               INFO     2224 steps, acceptance rate 0.066.
+[000817.10] [0/4] 12-11 17:45  MCMCSampler               INFO     2459 steps, acceptance rate 0.061.
+[000847.46] [0/4] 12-11 17:46  MCMCSampler               INFO     2528 steps, acceptance rate 0.062.
+[000892.16] [0/4] 12-11 17:47  MCMCSampler               INFO     2672 steps, acceptance rate 0.061.
+[000923.29] [0/4] 12-11 17:47  MCMCSampler               INFO     2771 steps, acceptance rate 0.060.
+[000954.39] [0/4] 12-11 17:48  MCMCSampler               INFO     2868 steps, acceptance rate 0.058.
+[000985.54] [0/4] 12-11 17:48  MCMCSampler               INFO     2971 steps, acceptance rate 0.058.
+[001019.37] [0/4] 12-11 17:49  MCMCSampler               INFO     3076 steps, acceptance rate 0.057.
+[001050.81] [0/4] 12-11 17:49  MCMCSampler               INFO     3176 steps, acceptance rate 0.056.
+[001081.99] [0/4] 12-11 17:50  MCMCSampler               INFO     3275 steps, acceptance rate 0.056.
+[001157.34] [0/4] 12-11 17:51  MCMCSampler               INFO     3521 steps, acceptance rate 0.053.
+[001193.79] [0/4] 12-11 17:52  MCMCSampler               INFO     3628 steps, acceptance rate 0.053.
+[001245.44] [0/4] 12-11 17:52  MCMCSampler               INFO     3805 steps, acceptance rate 0.052.
+[001278.50] [0/4] 12-11 17:53  MCMCSampler               INFO     3896 steps, acceptance rate 0.052.
+[001319.06] [0/4] 12-11 17:54  MCMCSampler               INFO     4024 steps, acceptance rate 0.052.
+[001353.71] [0/4] 12-11 17:54  MCMCSampler               INFO     4120 steps, acceptance rate 0.052.
+[001386.94] [0/4] 12-11 17:55  MCMCSampler               INFO     4225 steps, acceptance rate 0.051.
+[001468.07] [0/4] 12-11 17:56  MCMCSampler               INFO     4478 steps, acceptance rate 0.049.
+[001503.26] [0/4] 12-11 17:57  MCMCSampler               INFO     4597 steps, acceptance rate 0.049.
+[001562.50] [0/4] 12-11 17:58  MCMCSampler               INFO     4789 steps, acceptance rate 0.048.
+[001610.09] [0/4] 12-11 17:59  MCMCSampler               INFO     4916 steps, acceptance rate 0.048.
+[001641.84] [0/4] 12-11 17:59  MCMCSampler               INFO     5023 steps, acceptance rate 0.047.
+[001673.27] [0/4] 12-11 18:00  MCMCSampler               INFO     5128 steps, acceptance rate 0.047.
+[001730.24] [0/4] 12-11 18:01  MCMCSampler               INFO     5323 steps, acceptance rate 0.046.
+[001776.47] [0/4] 12-11 18:01  MCMCSampler               INFO     5475 steps, acceptance rate 0.045.
+[001825.91] [0/4] 12-11 18:02  MCMCSampler               INFO     5627 steps, acceptance rate 0.044.
+[001866.31] [0/4] 12-11 18:03  MCMCSampler               INFO     5752 steps, acceptance rate 0.044.
+[001906.42] [0/4] 12-11 18:04  MCMCSampler               INFO     5870 steps, acceptance rate 0.044.
+[001943.78] [0/4] 12-11 18:04  MCMCSampler               INFO     6009 steps, acceptance rate 0.044.
+[001976.85] [0/4] 12-11 18:05  MCMCSampler               INFO     6117 steps, acceptance rate 0.043.
+[002011.96] [0/4] 12-11 18:05  MCMCSampler               INFO     6227 steps, acceptance rate 0.043.
+[002057.99] [0/4] 12-11 18:06  MCMCSampler               INFO     6385 steps, acceptance rate 0.043.
+[002107.40] [0/4] 12-11 18:07  MCMCSampler               INFO     6537 steps, acceptance rate 0.043.
+[002138.69] [0/4] 12-11 18:07  MCMCSampler               INFO     6633 steps, acceptance rate 0.042.
+[002172.17] [0/4] 12-11 18:08  MCMCSampler               INFO     6748 steps, acceptance rate 0.042.
+[002203.77] [0/4] 12-11 18:08  MCMCSampler               INFO     6842 steps, acceptance rate 0.042.
+[002236.84] [0/4] 12-11 18:09  MCMCSampler               INFO     6933 steps, acceptance rate 0.042.
+[002274.27] [0/4] 12-11 18:10  MCMCSampler               INFO     7060 steps, acceptance rate 0.042.
+[002307.64] [0/4] 12-11 18:10  MCMCSampler               INFO     7163 steps, acceptance rate 0.041.
+[002341.68] [0/4] 12-11 18:11  MCMCSampler               INFO     7297 steps, acceptance rate 0.041.
+[002341.69] [0/4] 12-11 18:11  Chain                     INFO     Saving /global/cfs/cdirs/desicollab/users/prakharb/folpsD_paper_chains/cxxx_mocks_chains/c002/base/Pk_Bk_bugfixed/LRG2_std_kr0.301_kb0_0.120_kb2_0.080_folpsD_Afull_b3_coev_no_emu.
+[002341.78] [0/4] 12-11 18:11  MCMCSampler               INFO     Diagnostics:
+[002341.82] [0/4] 12-11 18:11  Diagnostics               INFO     - max eigen Gelman-Rubin - 1 is 273; not < 0.05.
+[002341.86] [0/4] 12-11 18:11  Diagnostics               INFO     - max diag Gelman-Rubin - 1 is 18.5.
+[002342.01] [0/4] 12-11 18:11  Diagnostics               INFO     - max diag Gelman-Rubin - 1 at 1.0 sigmas is 21.3.
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/samples/diagnostics.py:339: RuntimeWarning: invalid value encountered in scalar divide
+  diff /= (np.cov(value_first, aweights=aweight_first, fweights=fweight_first) + np.cov(value_last, aweights=aweight_last, fweights=fweight_last))**0.5
+[002342.05] [0/4] 12-11 18:11  Diagnostics               INFO     - max Geweke is nan.
+[002342.05] [0/4] 12-11 18:11  Diagnostics               INFO     - Geweke p-value is nan.
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/samples/diagnostics.py:291: RuntimeWarning: invalid value encountered in divide
+  acf /= acf[0]
+[002342.06] [0/4] 12-11 18:11  Diagnostics               INFO     - effective sample size = (150 iterations / integrated autocorrelation time) is nan.
+[002342.06] [0/4] 12-11 18:11  Diagnostics               INFO     - current mean acceptance rate is 0.0411.
+[002342.06] [0/4] 12-11 18:11  Diagnostics               INFO     - total mean acceptance rate is 0.0411.
+[002342.15] [0/4] 12-11 18:11  MCMCSampler               INFO     New proposal covariance is ill-conditioned, skipping update.
+[002377.49] [0/4] 12-11 18:11  MCMCSampler               INFO     79 steps, acceptance rate 0.038.
+[002409.66] [0/4] 12-11 18:12  MCMCSampler               INFO     201 steps, acceptance rate 0.035.
+[002440.70] [0/4] 12-11 18:12  MCMCSampler               INFO     281 steps, acceptance rate 0.046.
+[002475.65] [0/4] 12-11 18:13  MCMCSampler               INFO     377 steps, acceptance rate 0.048.
+[002509.22] [0/4] 12-11 18:14  MCMCSampler               INFO     493 steps, acceptance rate 0.041.
+[002548.21] [0/4] 12-11 18:14  MCMCSampler               INFO     623 steps, acceptance rate 0.035.
+[002591.45] [0/4] 12-11 18:15  MCMCSampler               INFO     788 steps, acceptance rate 0.036.
+[002628.36] [0/4] 12-11 18:16  MCMCSampler               INFO     888 steps, acceptance rate 0.034.
+[002668.79] [0/4] 12-11 18:16  MCMCSampler               INFO     1003 steps, acceptance rate 0.035.
+[002711.33] [0/4] 12-11 18:17  MCMCSampler               INFO     1130 steps, acceptance rate 0.035.
+[002742.47] [0/4] 12-11 18:17  MCMCSampler               INFO     1217 steps, acceptance rate 0.034.
+[002798.15] [0/4] 12-11 18:18  MCMCSampler               INFO     1401 steps, acceptance rate 0.032.
+[002837.07] [0/4] 12-11 18:19  MCMCSampler               INFO     1520 steps, acceptance rate 0.034.
+[002870.47] [0/4] 12-11 18:20  MCMCSampler               INFO     1622 steps, acceptance rate 0.034.
+[002920.61] [0/4] 12-11 18:20  MCMCSampler               INFO     1772 steps, acceptance rate 0.034.
+[002959.54] [0/4] 12-11 18:21  MCMCSampler               INFO     1897 steps, acceptance rate 0.034.
+[002994.72] [0/4] 12-11 18:22  MCMCSampler               INFO     2006 steps, acceptance rate 0.033.
+[003026.26] [0/4] 12-11 18:22  MCMCSampler               INFO     2095 steps, acceptance rate 0.033.
+[003060.15] [0/4] 12-11 18:23  MCMCSampler               INFO     2225 steps, acceptance rate 0.033.
+[003092.13] [0/4] 12-11 18:23  MCMCSampler               INFO     2334 steps, acceptance rate 0.033.
+[003124.10] [0/4] 12-11 18:24  MCMCSampler               INFO     2455 steps, acceptance rate 0.032.
+[003157.56] [0/4] 12-11 18:24  MCMCSampler               INFO     2569 steps, acceptance rate 0.031.
+[003212.57] [0/4] 12-11 18:25  MCMCSampler               INFO     2711 steps, acceptance rate 0.031.
+[003250.24] [0/4] 12-11 18:26  MCMCSampler               INFO     2858 steps, acceptance rate 0.032.
+[003291.15] [0/4] 12-11 18:27  MCMCSampler               INFO     2991 steps, acceptance rate 0.032.
+[003339.55] [0/4] 12-11 18:27  MCMCSampler               INFO     3163 steps, acceptance rate 0.030.
+[003389.84] [0/4] 12-11 18:28  MCMCSampler               INFO     3319 steps, acceptance rate 0.030.
+[003421.28] [0/4] 12-11 18:29  MCMCSampler               INFO     3421 steps, acceptance rate 0.030.
+[003467.69] [0/4] 12-11 18:30  MCMCSampler               INFO     3558 steps, acceptance rate 0.030.
+[003521.33] [0/4] 12-11 18:30  MCMCSampler               INFO     3722 steps, acceptance rate 0.029.
+[003551.38] [0/4] 12-11 18:31  MCMCSampler               INFO     3822 steps, acceptance rate 0.030.
+[003603.28] [0/4] 12-11 18:32  MCMCSampler               INFO     3986 steps, acceptance rate 0.029.
+[003642.38] [0/4] 12-11 18:32  MCMCSampler               INFO     4119 steps, acceptance rate 0.030.
+[003683.26] [0/4] 12-11 18:33  MCMCSampler               INFO     4255 steps, acceptance rate 0.031.
+[003714.49] [0/4] 12-11 18:34  MCMCSampler               INFO     4342 steps, acceptance rate 0.031.
+[003755.87] [0/4] 12-11 18:34  MCMCSampler               INFO     4496 steps, acceptance rate 0.030.
+[003786.04] [0/4] 12-11 18:35  MCMCSampler               INFO     4597 steps, acceptance rate 0.031.
+[003839.48] [0/4] 12-11 18:36  MCMCSampler               INFO     4750 steps, acceptance rate 0.031.
+[003869.63] [0/4] 12-11 18:36  MCMCSampler               INFO     4859 steps, acceptance rate 0.031.
+[003921.50] [0/4] 12-11 18:37  MCMCSampler               INFO     5034 steps, acceptance rate 0.031.
+[003952.88] [0/4] 12-11 18:38  MCMCSampler               INFO     5138 steps, acceptance rate 0.031.
+[004006.68] [0/4] 12-11 18:39  MCMCSampler               INFO     5313 steps, acceptance rate 0.030.
+[004055.99] [0/4] 12-11 18:39  MCMCSampler               INFO     5518 steps, acceptance rate 0.030.
+[004108.17] [0/4] 12-11 18:40  MCMCSampler               INFO     5701 steps, acceptance rate 0.029.
+[004145.70] [0/4] 12-11 18:41  MCMCSampler               INFO     5834 steps, acceptance rate 0.029.
+[004180.70] [0/4] 12-11 18:41  MCMCSampler               INFO     5937 steps, acceptance rate 0.030.
+[004210.82] [0/4] 12-11 18:42  MCMCSampler               INFO     6064 steps, acceptance rate 0.030.
+[004246.19] [0/4] 12-11 18:43  MCMCSampler               INFO     6190 steps, acceptance rate 0.030.
+[004292.39] [0/4] 12-11 18:43  MCMCSampler               INFO     6345 steps, acceptance rate 0.030.
+[004329.06] [0/4] 12-11 18:44  MCMCSampler               INFO     6446 steps, acceptance rate 0.030.
+[004360.37] [0/4] 12-11 18:44  MCMCSampler               INFO     6537 steps, acceptance rate 0.030.
+[004390.44] [0/4] 12-11 18:45  MCMCSampler               INFO     6650 steps, acceptance rate 0.029.
+[004429.01] [0/4] 12-11 18:46  MCMCSampler               INFO     6779 steps, acceptance rate 0.029.
+[004481.15] [0/4] 12-11 18:46  MCMCSampler               INFO     6951 steps, acceptance rate 0.029.
+[004529.69] [0/4] 12-11 18:47  MCMCSampler               INFO     7107 steps, acceptance rate 0.029.
+[004575.75] [0/4] 12-11 18:48  MCMCSampler               INFO     7254 steps, acceptance rate 0.030.
+[004607.67] [0/4] 12-11 18:49  MCMCSampler               INFO     7363 steps, acceptance rate 0.030.
+[004655.98] [0/4] 12-11 18:49  MCMCSampler               INFO     7531 steps, acceptance rate 0.030.
+[004690.67] [0/4] 12-11 18:50  MCMCSampler               INFO     7627 steps, acceptance rate 0.030.
+[004737.11] [0/4] 12-11 18:51  MCMCSampler               INFO     7793 steps, acceptance rate 0.030.
+[004777.26] [0/4] 12-11 18:51  MCMCSampler               INFO     7916 steps, acceptance rate 0.030.
+[004808.84] [0/4] 12-11 18:52  MCMCSampler               INFO     8034 steps, acceptance rate 0.030.
+[004850.87] [0/4] 12-11 18:53  MCMCSampler               INFO     8156 steps, acceptance rate 0.030.
+[004891.66] [0/4] 12-11 18:53  MCMCSampler               INFO     8282 steps, acceptance rate 0.030.
+[004930.67] [0/4] 12-11 18:54  MCMCSampler               INFO     8424 steps, acceptance rate 0.030.
+[004961.81] [0/4] 12-11 18:54  MCMCSampler               INFO     8516 steps, acceptance rate 0.030.
+[005026.45] [0/4] 12-11 18:56  MCMCSampler               INFO     8734 steps, acceptance rate 0.030.
+[005089.09] [0/4] 12-11 18:57  MCMCSampler               INFO     8917 steps, acceptance rate 0.030.
+[005139.59] [0/4] 12-11 18:57  MCMCSampler               INFO     9105 steps, acceptance rate 0.030.
+[005174.16] [0/4] 12-11 18:58  MCMCSampler               INFO     9252 steps, acceptance rate 0.030.
+[005222.32] [0/4] 12-11 18:59  MCMCSampler               INFO     9404 steps, acceptance rate 0.030.
+[005285.15] [0/4] 12-11 19:00  MCMCSampler               INFO     9609 steps, acceptance rate 0.030.
+[005322.36] [0/4] 12-11 19:00  MCMCSampler               INFO     9746 steps, acceptance rate 0.030.
+[005353.68] [0/4] 12-11 19:01  MCMCSampler               INFO     9833 steps, acceptance rate 0.030.
+[005405.43] [0/4] 12-11 19:02  MCMCSampler               INFO     9994 steps, acceptance rate 0.030.
+[005405.44] [0/4] 12-11 19:02  Chain                     INFO     Saving /global/cfs/cdirs/desicollab/users/prakharb/folpsD_paper_chains/cxxx_mocks_chains/c002/base/Pk_Bk_bugfixed/LRG2_std_kr0.301_kb0_0.120_kb2_0.080_folpsD_Afull_b3_coev_no_emu.
+[005405.55] [0/4] 12-11 19:02  MCMCSampler               INFO     Diagnostics:
+[005405.59] [0/4] 12-11 19:02  Diagnostics               INFO     - max eigen Gelman-Rubin - 1 is 507; not < 0.05.
+[005405.63] [0/4] 12-11 19:02  Diagnostics               INFO     - max diag Gelman-Rubin - 1 is 19.7.
+[005405.79] [0/4] 12-11 19:02  Diagnostics               INFO     - max diag Gelman-Rubin - 1 at 1.0 sigmas is 27.5.
+/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/samples/diagnostics.py:339: RuntimeWarning: divide by zero encountered in scalar divide
+  diff /= (np.cov(value_first, aweights=aweight_first, fweights=fweight_first) + np.cov(value_last, aweights=aweight_last, fweights=fweight_last))**0.5
+[005405.81] [0/4] 12-11 19:02  Diagnostics               INFO     - max Geweke is nan.
+[005405.82] [0/4] 12-11 19:02  Diagnostics               INFO     - Geweke p-value is nan.
+[005405.82] [0/4] 12-11 19:02  Diagnostics               INFO     - effective sample size = (300 iterations / integrated autocorrelation time) is 9.1.
+[005405.82] [0/4] 12-11 19:02  Diagnostics               INFO     - max variation of integrated autocorrelation time is nan.
+[005405.82] [0/4] 12-11 19:02  Diagnostics               INFO     - current mean acceptance rate is 0.03.
+[005405.82] [0/4] 12-11 19:02  Diagnostics               INFO     - total mean acceptance rate is 0.0347.
+[005407.62] [0/4] 12-11 19:02  MCMCSampler               INFO     Updating proposal covariance.
+[005437.73] [0/4] 12-11 19:02  MCMCSampler               INFO     82 steps, acceptance rate 0.244.
+[005469.47] [0/4] 12-11 19:03  MCMCSampler               INFO     168 steps, acceptance rate 0.220.
+[005501.72] [0/4] 12-11 19:03  MCMCSampler               INFO     291 steps, acceptance rate 0.179.
+[005534.75] [0/4] 12-11 19:04  MCMCSampler               INFO     435 steps, acceptance rate 0.166.
+[005565.50] [0/4] 12-11 19:04  MCMCSampler               INFO     536 steps, acceptance rate 0.179.
+[005596.69] [0/4] 12-11 19:05  MCMCSampler               INFO     663 steps, acceptance rate 0.169.
+[005627.14] [0/4] 12-11 19:06  MCMCSampler               INFO     771 steps, acceptance rate 0.166.
+[005657.62] [0/4] 12-11 19:06  MCMCSampler               INFO     870 steps, acceptance rate 0.167.
+[005688.18] [0/4] 12-11 19:07  MCMCSampler               INFO     985 steps, acceptance rate 0.164.
+[005726.79] [0/4] 12-11 19:07  MCMCSampler               INFO     1138 steps, acceptance rate 0.154.
+[005757.13] [0/4] 12-11 19:08  MCMCSampler               INFO     1230 steps, acceptance rate 0.154.
+[005788.19] [0/4] 12-11 19:08  MCMCSampler               INFO     1366 steps, acceptance rate 0.146.
+[005822.72] [0/4] 12-11 19:09  MCMCSampler               INFO     1584 steps, acceptance rate 0.141.
+[005856.33] [0/4] 12-11 19:09  MCMCSampler               INFO     1683 steps, acceptance rate 0.141.
+[005887.54] [0/4] 12-11 19:10  MCMCSampler               INFO     1815 steps, acceptance rate 0.141.
+[005917.55] [0/4] 12-11 19:10  MCMCSampler               INFO     1902 steps, acceptance rate 0.139.
+[005949.07] [0/4] 12-11 19:11  MCMCSampler               INFO     2045 steps, acceptance rate 0.138.
+[005984.10] [0/4] 12-11 19:11  MCMCSampler               INFO     2202 steps, acceptance rate 0.135.
+[005991.65] [0/4] 12-11 19:12  Chain                     INFO     Saving /global/cfs/cdirs/desicollab/users/prakharb/folpsD_paper_chains/cxxx_mocks_chains/c002/base/Pk_Bk_bugfixed/LRG2_std_kr0.301_kb0_0.120_kb2_0.080_folpsD_Afull_b3_coev_no_emu.
+[005991.70] [0/4] 12-11 19:12  MCMCSampler               INFO     Diagnostics:
+[005991.74] [0/4] 12-11 19:12  Diagnostics               INFO     - max eigen Gelman-Rubin - 1 is 1.07e+03; not < 0.05.
+[005991.79] [0/4] 12-11 19:12  Diagnostics               INFO     - max diag Gelman-Rubin - 1 is 61.2.
+[005991.96] [0/4] 12-11 19:12  Diagnostics               INFO     - max diag Gelman-Rubin - 1 at 1.0 sigmas is 74.9.
+[005991.98] [0/4] 12-11 19:12  Diagnostics               INFO     - max Geweke is nan.
+[005991.98] [0/4] 12-11 19:12  Diagnostics               INFO     - Geweke p-value is nan.
+[005991.99] [0/4] 12-11 19:12  Diagnostics               INFO     - effective sample size = (450 iterations / integrated autocorrelation time) is 8.53.
+[005991.99] [0/4] 12-11 19:12  Diagnostics               INFO     - max variation of integrated autocorrelation time is 1.19.
+[005991.99] [0/4] 12-11 19:12  Diagnostics               INFO     - current mean acceptance rate is 0.135.
+[005991.99] [0/4] 12-11 19:12  Diagnostics               INFO     - total mean acceptance rate is 0.0461.
+[005992.08] [0/4] 12-11 19:12  MCMCSampler               INFO     Updating proposal covariance.
+[006023.97] [0/4] 12-11 19:12  MCMCSampler               INFO     71 steps, acceptance rate 0.211.
+[006054.34] [0/4] 12-11 19:13  MCMCSampler               INFO     176 steps, acceptance rate 0.182.
+[006084.77] [0/4] 12-11 19:13  MCMCSampler               INFO     273 steps, acceptance rate 0.168.
+[006116.49] [0/4] 12-11 19:14  MCMCSampler               INFO     341 steps, acceptance rate 0.185.
+[006146.64] [0/4] 12-11 19:14  MCMCSampler               INFO     416 steps, acceptance rate 0.202.
+[006181.94] [0/4] 12-11 19:15  MCMCSampler               INFO     482 steps, acceptance rate 0.214.
+[006212.22] [0/4] 12-11 19:15  MCMCSampler               INFO     573 steps, acceptance rate 0.211.
+[006243.92] [0/4] 12-11 19:16  MCMCSampler               INFO     633 steps, acceptance rate 0.227.
+[006274.07] [0/4] 12-11 19:16  MCMCSampler               INFO     724 steps, acceptance rate 0.220.
+[006307.64] [0/4] 12-11 19:17  MCMCSampler               INFO     800 steps, acceptance rate 0.226.
+[006338.05] [0/4] 12-11 19:17  MCMCSampler               INFO     862 steps, acceptance rate 0.237.
+[006368.06] [0/4] 12-11 19:18  MCMCSampler               INFO     926 steps, acceptance rate 0.242.
+[006399.64] [0/4] 12-11 19:18  MCMCSampler               INFO     990 steps, acceptance rate 0.249.
+[006429.75] [0/4] 12-11 19:19  MCMCSampler               INFO     1063 steps, acceptance rate 0.249.
+[006461.28] [0/4] 12-11 19:19  MCMCSampler               INFO     1134 steps, acceptance rate 0.249.
+[006487.84] [0/4] 12-11 19:20  Chain                     INFO     Saving /global/cfs/cdirs/desicollab/users/prakharb/folpsD_paper_chains/cxxx_mocks_chains/c002/base/Pk_Bk_bugfixed/LRG2_std_kr0.301_kb0_0.120_kb2_0.080_folpsD_Afull_b3_coev_no_emu.
+[006487.89] [0/4] 12-11 19:20  MCMCSampler               INFO     Diagnostics:
+[006487.93] [0/4] 12-11 19:20  Diagnostics               INFO     - max eigen Gelman-Rubin - 1 is 145; not < 0.05.
+[006487.97] [0/4] 12-11 19:20  Diagnostics               INFO     - max diag Gelman-Rubin - 1 is 14.4.
+[006488.15] [0/4] 12-11 19:20  Diagnostics               INFO     - max diag Gelman-Rubin - 1 at 1.0 sigmas is 18.4.
+[006488.18] [0/4] 12-11 19:20  Diagnostics               INFO     - max Geweke is 13.2.
+[006488.18] [0/4] 12-11 19:20  Diagnostics               INFO     - Geweke p-value is 8.07e-13.
+[006488.19] [0/4] 12-11 19:20  Diagnostics               INFO     - effective sample size = (600 iterations / integrated autocorrelation time) is 8.37.
+[006488.19] [0/4] 12-11 19:20  Diagnostics               INFO     - max variation of integrated autocorrelation time is 1.86.
+[006488.19] [0/4] 12-11 19:20  Diagnostics               INFO     - current mean acceptance rate is 0.25.
+[006488.19] [0/4] 12-11 19:20  Diagnostics               INFO     - total mean acceptance rate is 0.0579.
+[006488.28] [0/4] 12-11 19:20  MCMCSampler               INFO     Updating proposal covariance.
+[006519.56] [0/4] 12-11 19:20  MCMCSampler               INFO     59 steps, acceptance rate 0.237.
+[006552.70] [0/4] 12-11 19:21  MCMCSampler               INFO     125 steps, acceptance rate 0.248.
+[006585.02] [0/4] 12-11 19:21  MCMCSampler               INFO     218 steps, acceptance rate 0.234.
+[006616.72] [0/4] 12-11 19:22  MCMCSampler               INFO     278 steps, acceptance rate 0.255.
+[006648.24] [0/4] 12-11 19:23  MCMCSampler               INFO     337 steps, acceptance rate 0.270.
+[006680.41] [0/4] 12-11 19:23  MCMCSampler               INFO     434 steps, acceptance rate 0.251.
+[006712.29] [0/4] 12-11 19:24  MCMCSampler               INFO     526 steps, acceptance rate 0.241.
+[006744.21] [0/4] 12-11 19:24  MCMCSampler               INFO     596 steps, acceptance rate 0.243.
+[006774.76] [0/4] 12-11 19:25  MCMCSampler               INFO     694 steps, acceptance rate 0.236.
+[006804.79] [0/4] 12-11 19:25  MCMCSampler               INFO     760 steps, acceptance rate 0.241.
+[006836.47] [0/4] 12-11 19:26  MCMCSampler               INFO     835 steps, acceptance rate 0.238.
+[006866.74] [0/4] 12-11 19:26  MCMCSampler               INFO     918 steps, acceptance rate 0.236.
+[006900.20] [0/4] 12-11 19:27  MCMCSampler               INFO     988 steps, acceptance rate 0.232.
+[006930.49] [0/4] 12-11 19:27  MCMCSampler               INFO     1065 steps, acceptance rate 0.229.
+[006961.93] [0/4] 12-11 19:28  MCMCSampler               INFO     1127 steps, acceptance rate 0.232.
+[006995.39] [0/4] 12-11 19:28  MCMCSampler               INFO     1201 steps, acceptance rate 0.234.
+[007025.40] [0/4] 12-11 19:29  Chain                     INFO     Saving /global/cfs/cdirs/desicollab/users/prakharb/folpsD_paper_chains/cxxx_mocks_chains/c002/base/Pk_Bk_bugfixed/LRG2_std_kr0.301_kb0_0.120_kb2_0.080_folpsD_Afull_b3_coev_no_emu.
+[007025.46] [0/4] 12-11 19:29  MCMCSampler               INFO     Diagnostics:
+[007025.50] [0/4] 12-11 19:29  Diagnostics               INFO     - max eigen Gelman-Rubin - 1 is 281; not < 0.05.
+[007025.54] [0/4] 12-11 19:29  Diagnostics               INFO     - max diag Gelman-Rubin - 1 is 16.2.
+[007025.73] [0/4] 12-11 19:29  Diagnostics               INFO     - max diag Gelman-Rubin - 1 at 1.0 sigmas is 21.2.
+[007025.76] [0/4] 12-11 19:29  Diagnostics               INFO     - max Geweke is 8.7.
+[007025.76] [0/4] 12-11 19:29  Diagnostics               INFO     - Geweke p-value is 7.53e-09.
+[007025.77] [0/4] 12-11 19:29  Diagnostics               INFO     - effective sample size = (750 iterations / integrated autocorrelation time) is 8.45.
+[007025.77] [0/4] 12-11 19:29  Diagnostics               INFO     - max variation of integrated autocorrelation time is 0.491.
+[007025.77] [0/4] 12-11 19:29  Diagnostics               INFO     - current mean acceptance rate is 0.236.
+[007025.77] [0/4] 12-11 19:29  Diagnostics               INFO     - total mean acceptance rate is 0.0682.
+[007025.86] [0/4] 12-11 19:29  MCMCSampler               INFO     Updating proposal covariance.
+[007057.50] [0/4] 12-11 19:29  MCMCSampler               INFO     67 steps, acceptance rate 0.224.
+[007089.12] [0/4] 12-11 19:30  MCMCSampler               INFO     137 steps, acceptance rate 0.234.
+[007119.30] [0/4] 12-11 19:30  MCMCSampler               INFO     225 steps, acceptance rate 0.222.
+[007150.90] [0/4] 12-11 19:31  MCMCSampler               INFO     307 steps, acceptance rate 0.215.
+[007184.47] [0/4] 12-11 19:31  MCMCSampler               INFO     380 steps, acceptance rate 0.211.
+[007214.64] [0/4] 12-11 19:32  MCMCSampler               INFO     456 steps, acceptance rate 0.217.
+[007246.23] [0/4] 12-11 19:33  MCMCSampler               INFO     527 steps, acceptance rate 0.220.
+[007277.79] [0/4] 12-11 19:33  MCMCSampler               INFO     596 steps, acceptance rate 0.223.
+[007311.31] [0/4] 12-11 19:34  MCMCSampler               INFO     670 steps, acceptance rate 0.228.
+[007341.49] [0/4] 12-11 19:34  MCMCSampler               INFO     742 steps, acceptance rate 0.236.
+[007371.82] [0/4] 12-11 19:35  MCMCSampler               INFO     821 steps, acceptance rate 0.234.
+[007401.89] [0/4] 12-11 19:35  MCMCSampler               INFO     902 steps, acceptance rate 0.233.
+[007433.25] [0/4] 12-11 19:36  MCMCSampler               INFO     965 steps, acceptance rate 0.234.
+[007464.86] [0/4] 12-11 19:36  MCMCSampler               INFO     1042 steps, acceptance rate 0.232.
+[007498.48] [0/4] 12-11 19:37  MCMCSampler               INFO     1124 steps, acceptance rate 0.231.
+[007530.25] [0/4] 12-11 19:37  MCMCSampler               INFO     1208 steps, acceptance rate 0.232.
+[007561.43] [0/4] 12-11 19:38  MCMCSampler               INFO     1253 steps, acceptance rate 0.238.
+[007565.09] [0/4] 12-11 19:38  Chain                     INFO     Saving /global/cfs/cdirs/desicollab/users/prakharb/folpsD_paper_chains/cxxx_mocks_chains/c002/base/Pk_Bk_bugfixed/LRG2_std_kr0.301_kb0_0.120_kb2_0.080_folpsD_Afull_b3_coev_no_emu.
+[007565.20] [0/4] 12-11 19:38  MCMCSampler               INFO     Diagnostics:
+[007565.24] [0/4] 12-11 19:38  Diagnostics               INFO     - max eigen Gelman-Rubin - 1 is 43.4; not < 0.05.
+[007565.29] [0/4] 12-11 19:38  Diagnostics               INFO     - max diag Gelman-Rubin - 1 is 6.48.
+[007565.49] [0/4] 12-11 19:38  Diagnostics               INFO     - max diag Gelman-Rubin - 1 at 1.0 sigmas is 9.16.
+[007565.52] [0/4] 12-11 19:38  Diagnostics               INFO     - max Geweke is 5.59.
+[007565.52] [0/4] 12-11 19:38  Diagnostics               INFO     - Geweke p-value is 0.000288.
+[007565.52] [0/4] 12-11 19:38  Diagnostics               INFO     - effective sample size = (900 iterations / integrated autocorrelation time) is 9.4.
+[007565.52] [0/4] 12-11 19:38  Diagnostics               INFO     - max variation of integrated autocorrelation time is 0.772.
+[007565.52] [0/4] 12-11 19:38  Diagnostics               INFO     - current mean acceptance rate is 0.239.
+[007565.52] [0/4] 12-11 19:38  Diagnostics               INFO     - total mean acceptance rate is 0.0774.
+[007565.62] [0/4] 12-11 19:38  MCMCSampler               INFO     Updating proposal covariance.
+[007597.48] [0/4] 12-11 19:38  MCMCSampler               INFO     66 steps, acceptance rate 0.303.
+[007628.80] [0/4] 12-11 19:39  MCMCSampler               INFO     125 steps, acceptance rate 0.312.
+[007658.85] [0/4] 12-11 19:39  MCMCSampler               INFO     194 steps, acceptance rate 0.289.
+[007692.40] [0/4] 12-11 19:40  MCMCSampler               INFO     281 steps, acceptance rate 0.256.
+[007724.24] [0/4] 12-11 19:40  MCMCSampler               INFO     372 steps, acceptance rate 0.239.
+[007757.83] [0/4] 12-11 19:41  MCMCSampler               INFO     459 steps, acceptance rate 0.229.
+[007791.43] [0/4] 12-11 19:42  MCMCSampler               INFO     554 steps, acceptance rate 0.215.
+[007823.19] [0/4] 12-11 19:42  MCMCSampler               INFO     635 steps, acceptance rate 0.213.
+[007856.87] [0/4] 12-11 19:43  MCMCSampler               INFO     729 steps, acceptance rate 0.202.
+[007887.00] [0/4] 12-11 19:43  MCMCSampler               INFO     816 steps, acceptance rate 0.197.
+[007918.54] [0/4] 12-11 19:44  MCMCSampler               INFO     893 steps, acceptance rate 0.195.
+[007950.22] [0/4] 12-11 19:44  MCMCSampler               INFO     979 steps, acceptance rate 0.191.
+[007981.55] [0/4] 12-11 19:45  MCMCSampler               INFO     1050 steps, acceptance rate 0.190.
+[008015.04] [0/4] 12-11 19:45  MCMCSampler               INFO     1125 steps, acceptance rate 0.192.
+[008046.83] [0/4] 12-11 19:46  MCMCSampler               INFO     1215 steps, acceptance rate 0.193.
+[008076.85] [0/4] 12-11 19:46  MCMCSampler               INFO     1303 steps, acceptance rate 0.189.
+[008108.49] [0/4] 12-11 19:47  MCMCSampler               INFO     1382 steps, acceptance rate 0.189.
+[008138.66] [0/4] 12-11 19:47  MCMCSampler               INFO     1464 steps, acceptance rate 0.191.
+[008168.80] [0/4] 12-11 19:48  MCMCSampler               INFO     1537 steps, acceptance rate 0.193.
+[008172.72] [0/4] 12-11 19:48  Chain                     INFO     Saving /global/cfs/cdirs/desicollab/users/prakharb/folpsD_paper_chains/cxxx_mocks_chains/c002/base/Pk_Bk_bugfixed/LRG2_std_kr0.301_kb0_0.120_kb2_0.080_folpsD_Afull_b3_coev_no_emu.
+[008172.80] [0/4] 12-11 19:48  MCMCSampler               INFO     Diagnostics:
+[008172.84] [0/4] 12-11 19:48  Diagnostics               INFO     - max eigen Gelman-Rubin - 1 is 45.3; not < 0.05.
+[008172.88] [0/4] 12-11 19:48  Diagnostics               INFO     - max diag Gelman-Rubin - 1 is 3.19.
+[008173.10] [0/4] 12-11 19:48  Diagnostics               INFO     - max diag Gelman-Rubin - 1 at 1.0 sigmas is 6.77.
+[008173.12] [0/4] 12-11 19:48  Diagnostics               INFO     - max Geweke is 13.
+[008173.12] [0/4] 12-11 19:48  Diagnostics               INFO     - Geweke p-value is 9.64e-14.
+[008173.13] [0/4] 12-11 19:48  Diagnostics               INFO     - effective sample size = (1050 iterations / integrated autocorrelation time) is 10.9.
+[008173.13] [0/4] 12-11 19:48  Diagnostics               INFO     - max variation of integrated autocorrelation time is 1.25.
+[008173.13] [0/4] 12-11 19:48  Diagnostics               INFO     - current mean acceptance rate is 0.194.
+[008173.13] [0/4] 12-11 19:48  Diagnostics               INFO     - total mean acceptance rate is 0.0847.
+[008173.22] [0/4] 12-11 19:48  MCMCSampler               INFO     Updating proposal covariance.
+[008210.28] [0/4] 12-11 19:49  MCMCSampler               INFO     100 steps, acceptance rate 0.120.
+[008240.60] [0/4] 12-11 19:49  MCMCSampler               INFO     192 steps, acceptance rate 0.151.
+[008271.97] [0/4] 12-11 19:50  MCMCSampler               INFO     250 steps, acceptance rate 0.176.
+[008305.28] [0/4] 12-11 19:50  MCMCSampler               INFO     331 steps, acceptance rate 0.184.
+[008335.39] [0/4] 12-11 19:51  MCMCSampler               INFO     431 steps, acceptance rate 0.172.
+[008372.60] [0/4] 12-11 19:51  MCMCSampler               INFO     532 steps, acceptance rate 0.165.
+[008403.25] [0/4] 12-11 19:52  MCMCSampler               INFO     635 steps, acceptance rate 0.165.
+[008433.31] [0/4] 12-11 19:52  MCMCSampler               INFO     714 steps, acceptance rate 0.171.
+[008463.62] [0/4] 12-11 19:53  MCMCSampler               INFO     801 steps, acceptance rate 0.175.
+[008497.12] [0/4] 12-11 19:53  MCMCSampler               INFO     886 steps, acceptance rate 0.174.
+[008528.25] [0/4] 12-11 19:54  MCMCSampler               INFO     1017 steps, acceptance rate 0.174.
+[008561.63] [0/4] 12-11 19:54  MCMCSampler               INFO     1096 steps, acceptance rate 0.176.
+[008593.30] [0/4] 12-11 19:55  MCMCSampler               INFO     1174 steps, acceptance rate 0.181.
+[008624.91] [0/4] 12-11 19:55  MCMCSampler               INFO     1239 steps, acceptance rate 0.187.
+[008656.26] [0/4] 12-11 19:56  MCMCSampler               INFO     1288 steps, acceptance rate 0.193.
+[008686.37] [0/4] 12-11 19:57  MCMCSampler               INFO     1362 steps, acceptance rate 0.197.
+[008722.30] [0/4] 12-11 19:57  MCMCSampler               INFO     1463 steps, acceptance rate 0.198.
+[008746.35] [0/4] 12-11 19:58  Chain                     INFO     Saving /global/cfs/cdirs/desicollab/users/prakharb/folpsD_paper_chains/cxxx_mocks_chains/c002/base/Pk_Bk_bugfixed/LRG2_std_kr0.301_kb0_0.120_kb2_0.080_folpsD_Afull_b3_coev_no_emu.
+[008746.44] [0/4] 12-11 19:58  MCMCSampler               INFO     Diagnostics:
+[008746.48] [0/4] 12-11 19:58  Diagnostics               INFO     - max eigen Gelman-Rubin - 1 is 78.6; not < 0.05.
+[008746.52] [0/4] 12-11 19:58  Diagnostics               INFO     - max diag Gelman-Rubin - 1 is 4.4.
+[008746.74] [0/4] 12-11 19:58  Diagnostics               INFO     - max diag Gelman-Rubin - 1 at 1.0 sigmas is 4.29.
+[008746.77] [0/4] 12-11 19:58  Diagnostics               INFO     - max Geweke is 5.71.
+[008746.77] [0/4] 12-11 19:58  Diagnostics               INFO     - Geweke p-value is 2.3e-07.
+[008746.78] [0/4] 12-11 19:58  Diagnostics               INFO     - effective sample size = (1200 iterations / integrated autocorrelation time) is 9.73.
+[008746.78] [0/4] 12-11 19:58  Diagnostics               INFO     - max variation of integrated autocorrelation time is 1.16.
+[008746.78] [0/4] 12-11 19:58  Diagnostics               INFO     - current mean acceptance rate is 0.199.
+[008746.78] [0/4] 12-11 19:58  Diagnostics               INFO     - total mean acceptance rate is 0.0912.
+[008746.87] [0/4] 12-11 19:58  MCMCSampler               INFO     Updating proposal covariance.
+[008781.60] [0/4] 12-11 19:58  MCMCSampler               INFO     121 steps, acceptance rate 0.132.
+[008815.59] [0/4] 12-11 19:59  MCMCSampler               INFO     241 steps, acceptance rate 0.104.
+[008847.37] [0/4] 12-11 19:59  MCMCSampler               INFO     324 steps, acceptance rate 0.120.
+[008877.49] [0/4] 12-11 20:00  MCMCSampler               INFO     409 steps, acceptance rate 0.134.
+[008908.20] [0/4] 12-11 20:00  MCMCSampler               INFO     502 steps, acceptance rate 0.143.
+[008939.46] [0/4] 12-11 20:01  MCMCSampler               INFO     576 steps, acceptance rate 0.139.
+[008970.62] [0/4] 12-11 20:01  MCMCSampler               INFO     636 steps, acceptance rate 0.145.
+[009004.23] [0/4] 12-11 20:02  MCMCSampler               INFO     732 steps, acceptance rate 0.145.
+[009039.87] [0/4] 12-11 20:02  MCMCSampler               INFO     827 steps, acceptance rate 0.148.
+[009071.22] [0/4] 12-11 20:03  MCMCSampler               INFO     901 steps, acceptance rate 0.160.
+[009101.22] [0/4] 12-11 20:03  MCMCSampler               INFO     991 steps, acceptance rate 0.159.
+[009136.35] [0/4] 12-11 20:04  MCMCSampler               INFO     1071 steps, acceptance rate 0.162.
+[009166.41] [0/4] 12-11 20:05  MCMCSampler               INFO     1149 steps, acceptance rate 0.163.
+[009199.95] [0/4] 12-11 20:05  MCMCSampler               INFO     1224 steps, acceptance rate 0.167.
+[009231.71] [0/4] 12-11 20:06  MCMCSampler               INFO     1306 steps, acceptance rate 0.168.
+[009263.28] [0/4] 12-11 20:06  MCMCSampler               INFO     1376 steps, acceptance rate 0.170.
+[009298.48] [0/4] 12-11 20:07  MCMCSampler               INFO     1459 steps, acceptance rate 0.171.
+[009329.85] [0/4] 12-11 20:07  MCMCSampler               INFO     1520 steps, acceptance rate 0.174.
+[009361.32] [0/4] 12-11 20:08  MCMCSampler               INFO     1590 steps, acceptance rate 0.180.
+[009376.79] [0/4] 12-11 20:08  Chain                     INFO     Saving /global/cfs/cdirs/desicollab/users/prakharb/folpsD_paper_chains/cxxx_mocks_chains/c002/base/Pk_Bk_bugfixed/LRG2_std_kr0.301_kb0_0.120_kb2_0.080_folpsD_Afull_b3_coev_no_emu.
+[009376.89] [0/4] 12-11 20:08  MCMCSampler               INFO     Diagnostics:
+[009376.93] [0/4] 12-11 20:08  Diagnostics               INFO     - max eigen Gelman-Rubin - 1 is 46.5; not < 0.05.
+[009376.97] [0/4] 12-11 20:08  Diagnostics               INFO     - max diag Gelman-Rubin - 1 is 1.85.
+[009377.21] [0/4] 12-11 20:08  Diagnostics               INFO     - max diag Gelman-Rubin - 1 at 1.0 sigmas is 3.27.
+[009377.24] [0/4] 12-11 20:08  Diagnostics               INFO     - max Geweke is 12.3.
+[009377.24] [0/4] 12-11 20:08  Diagnostics               INFO     - Geweke p-value is 3.86e-18.
+[009377.24] [0/4] 12-11 20:08  Diagnostics               INFO     - effective sample size = (1350 iterations / integrated autocorrelation time) is 10.7.
+[009377.24] [0/4] 12-11 20:08  Diagnostics               INFO     - max variation of integrated autocorrelation time is 1.22.
+[009377.25] [0/4] 12-11 20:08  Diagnostics               INFO     - current mean acceptance rate is 0.184.
+[009377.25] [0/4] 12-11 20:08  Diagnostics               INFO     - total mean acceptance rate is 0.0966.
+[009377.34] [0/4] 12-11 20:08  MCMCSampler               INFO     Updating proposal covariance.
+[009409.10] [0/4] 12-11 20:09  MCMCSampler               INFO     95 steps, acceptance rate 0.137.
+[009440.70] [0/4] 12-11 20:09  MCMCSampler               INFO     186 steps, acceptance rate 0.156.
+[009474.43] [0/4] 12-11 20:10  MCMCSampler               INFO     275 steps, acceptance rate 0.175.
+[009506.03] [0/4] 12-11 20:10  MCMCSampler               INFO     347 steps, acceptance rate 0.184.
+[009536.95] [0/4] 12-11 20:11  MCMCSampler               INFO     492 steps, acceptance rate 0.154.
+[009574.05] [0/4] 12-11 20:11  MCMCSampler               INFO     591 steps, acceptance rate 0.152.
+[009605.43] [0/4] 12-11 20:12  MCMCSampler               INFO     671 steps, acceptance rate 0.158.
+[009636.99] [0/4] 12-11 20:12  MCMCSampler               INFO     741 steps, acceptance rate 0.165.
+[009667.05] [0/4] 12-11 20:13  MCMCSampler               INFO     833 steps, acceptance rate 0.162.
+[009702.41] [0/4] 12-11 20:13  MCMCSampler               INFO     923 steps, acceptance rate 0.168.
+[009736.26] [0/4] 12-11 20:14  MCMCSampler               INFO     1022 steps, acceptance rate 0.171.
+[009767.65] [0/4] 12-11 20:15  MCMCSampler               INFO     1103 steps, acceptance rate 0.170.
+[009799.42] [0/4] 12-11 20:15  MCMCSampler               INFO     1175 steps, acceptance rate 0.179.
+[009834.84] [0/4] 12-11 20:16  MCMCSampler               INFO     1263 steps, acceptance rate 0.181.
+[009865.16] [0/4] 12-11 20:16  MCMCSampler               INFO     1357 steps, acceptance rate 0.182.
+[009895.60] [0/4] 12-11 20:17  MCMCSampler               INFO     1450 steps, acceptance rate 0.181.
+[009931.00] [0/4] 12-11 20:17  MCMCSampler               INFO     1539 steps, acceptance rate 0.179.
+[009962.56] [0/4] 12-11 20:18  MCMCSampler               INFO     1614 steps, acceptance rate 0.179.
+[009992.37] [0/4] 12-11 20:18  Chain                     INFO     Saving /global/cfs/cdirs/desicollab/users/prakharb/folpsD_paper_chains/cxxx_mocks_chains/c002/base/Pk_Bk_bugfixed/LRG2_std_kr0.301_kb0_0.120_kb2_0.080_folpsD_Afull_b3_coev_no_emu.
+[009992.42] [0/4] 12-11 20:18  MCMCSampler               INFO     Diagnostics:
+[009992.46] [0/4] 12-11 20:18  Diagnostics               INFO     - max eigen Gelman-Rubin - 1 is 51.1; not < 0.05.
+[009992.50] [0/4] 12-11 20:18  Diagnostics               INFO     - max diag Gelman-Rubin - 1 is 3.29.
+[009992.75] [0/4] 12-11 20:18  Diagnostics               INFO     - max diag Gelman-Rubin - 1 at 1.0 sigmas is 4.97.
+[009992.78] [0/4] 12-11 20:18  Diagnostics               INFO     - max Geweke is 6.1.
+[009992.78] [0/4] 12-11 20:18  Diagnostics               INFO     - Geweke p-value is 1.44e-14.
+[009992.78] [0/4] 12-11 20:18  Diagnostics               INFO     - effective sample size = (1500 iterations / integrated autocorrelation time) is 9.39.
+[009992.78] [0/4] 12-11 20:18  Diagnostics               INFO     - max variation of integrated autocorrelation time is 0.514.
+[009992.78] [0/4] 12-11 20:18  Diagnostics               INFO     - current mean acceptance rate is 0.177.
+[009992.79] [0/4] 12-11 20:18  Diagnostics               INFO     - total mean acceptance rate is 0.101.
+[009992.88] [0/4] 12-11 20:18  MCMCSampler               INFO     Updating proposal covariance.
+[010024.20] [0/4] 12-11 20:19  MCMCSampler               INFO     62 steps, acceptance rate 0.242.
+[010055.68] [0/4] 12-11 20:19  MCMCSampler               INFO     133 steps, acceptance rate 0.226.
+[010087.62] [0/4] 12-11 20:20  MCMCSampler               INFO     229 steps, acceptance rate 0.179.
+[010119.24] [0/4] 12-11 20:20  MCMCSampler               INFO     307 steps, acceptance rate 0.156.
+[010150.71] [0/4] 12-11 20:21  MCMCSampler               INFO     367 steps, acceptance rate 0.177.
+[010182.30] [0/4] 12-11 20:21  MCMCSampler               INFO     428 steps, acceptance rate 0.199.
+[010212.60] [0/4] 12-11 20:22  MCMCSampler               INFO     519 steps, acceptance rate 0.195.
+[010245.79] [0/4] 12-11 20:22  MCMCSampler               INFO     605 steps, acceptance rate 0.188.
+[010279.13] [0/4] 12-11 20:23  MCMCSampler               INFO     678 steps, acceptance rate 0.196.
+[010312.70] [0/4] 12-11 20:24  MCMCSampler               INFO     759 steps, acceptance rate 0.198.
+[010348.54] [0/4] 12-11 20:24  MCMCSampler               INFO     876 steps, acceptance rate 0.189.
+[010379.93] [0/4] 12-11 20:25  MCMCSampler               INFO     949 steps, acceptance rate 0.189.
+[010411.53] [0/4] 12-11 20:25  MCMCSampler               INFO     1014 steps, acceptance rate 0.195.
+[010442.58] [0/4] 12-11 20:26  MCMCSampler               INFO     1084 steps, acceptance rate 0.196.
+[010474.19] [0/4] 12-11 20:26  MCMCSampler               INFO     1163 steps, acceptance rate 0.197.
+[010507.74] [0/4] 12-11 20:27  MCMCSampler               INFO     1257 steps, acceptance rate 0.193.
+[010538.30] [0/4] 12-11 20:27  MCMCSampler               INFO     1336 steps, acceptance rate 0.197.
+[010568.32] [0/4] 12-11 20:28  MCMCSampler               INFO     1414 steps, acceptance rate 0.197.
+[010598.43] [0/4] 12-11 20:28  MCMCSampler               INFO     1517 steps, acceptance rate 0.192.
+[010613.64] [0/4] 12-11 20:29  Chain                     INFO     Saving /global/cfs/cdirs/desicollab/users/prakharb/folpsD_paper_chains/cxxx_mocks_chains/c002/base/Pk_Bk_bugfixed/LRG2_std_kr0.301_kb0_0.120_kb2_0.080_folpsD_Afull_b3_coev_no_emu.
+[010613.72] [0/4] 12-11 20:29  MCMCSampler               INFO     Diagnostics:
+[010613.76] [0/4] 12-11 20:29  Diagnostics               INFO     - max eigen Gelman-Rubin - 1 is 43.2; not < 0.05.
+[010613.80] [0/4] 12-11 20:29  Diagnostics               INFO     - max diag Gelman-Rubin - 1 is 3.45.
+[010614.06] [0/4] 12-11 20:29  Diagnostics               INFO     - max diag Gelman-Rubin - 1 at 1.0 sigmas is 8.64.
+[010614.09] [0/4] 12-11 20:29  Diagnostics               INFO     - max Geweke is 2.52.
+[010614.09] [0/4] 12-11 20:29  Diagnostics               INFO     - Geweke p-value is 0.0574.
+[010614.10] [0/4] 12-11 20:29  Diagnostics               INFO     - effective sample size = (1650 iterations / integrated autocorrelation time) is 10.3.
+[010614.10] [0/4] 12-11 20:29  Diagnostics               INFO     - max variation of integrated autocorrelation time is 0.644.
+[010614.10] [0/4] 12-11 20:29  Diagnostics               INFO     - current mean acceptance rate is 0.191.
+[010614.10] [0/4] 12-11 20:29  Diagnostics               INFO     - total mean acceptance rate is 0.106.
+[010614.19] [0/4] 12-11 20:29  MCMCSampler               INFO     Updating proposal covariance.
+[010647.66] [0/4] 12-11 20:29  MCMCSampler               INFO     76 steps, acceptance rate 0.237.
+[010679.03] [0/4] 12-11 20:30  MCMCSampler               INFO     142 steps, acceptance rate 0.239.
+[010714.29] [0/4] 12-11 20:30  MCMCSampler               INFO     232 steps, acceptance rate 0.211.
+[010745.70] [0/4] 12-11 20:31  MCMCSampler               INFO     289 steps, acceptance rate 0.211.
+[010775.78] [0/4] 12-11 20:31  MCMCSampler               INFO     369 steps, acceptance rate 0.217.
+[010809.11] [0/4] 12-11 20:32  MCMCSampler               INFO     451 steps, acceptance rate 0.211.
+[010840.86] [0/4] 12-11 20:32  MCMCSampler               INFO     530 steps, acceptance rate 0.213.
+[010872.32] [0/4] 12-11 20:33  MCMCSampler               INFO     598 steps, acceptance rate 0.214.
+[010904.13] [0/4] 12-11 20:33  MCMCSampler               INFO     666 steps, acceptance rate 0.227.
+[010935.71] [0/4] 12-11 20:34  MCMCSampler               INFO     737 steps, acceptance rate 0.228.
+[010966.25] [0/4] 12-11 20:35  MCMCSampler               INFO     840 steps, acceptance rate 0.218.
+[011000.02] [0/4] 12-11 20:35  MCMCSampler               INFO     926 steps, acceptance rate 0.212.
+[011030.80] [0/4] 12-11 20:36  MCMCSampler               INFO     1033 steps, acceptance rate 0.208.
+[011061.96] [0/4] 12-11 20:36  MCMCSampler               INFO     1090 steps, acceptance rate 0.210.
+[011093.47] [0/4] 12-11 20:37  MCMCSampler               INFO     1155 steps, acceptance rate 0.216.
+[011127.41] [0/4] 12-11 20:37  MCMCSampler               INFO     1250 steps, acceptance rate 0.213.
+[011162.59] [0/4] 12-11 20:38  MCMCSampler               INFO     1349 steps, acceptance rate 0.205.
+[011192.71] [0/4] 12-11 20:38  MCMCSampler               INFO     1432 steps, acceptance rate 0.203.
+[011209.34] [0/4] 12-11 20:39  Chain                     INFO     Saving /global/cfs/cdirs/desicollab/users/prakharb/folpsD_paper_chains/cxxx_mocks_chains/c002/base/Pk_Bk_bugfixed/LRG2_std_kr0.301_kb0_0.120_kb2_0.080_folpsD_Afull_b3_coev_no_emu.
+[011209.40] [0/4] 12-11 20:39  MCMCSampler               INFO     Diagnostics:
+[011209.45] [0/4] 12-11 20:39  Diagnostics               INFO     - max eigen Gelman-Rubin - 1 is 24.8; not < 0.05.
+[011209.49] [0/4] 12-11 20:39  Diagnostics               INFO     - max diag Gelman-Rubin - 1 is 3.3.
+[011209.76] [0/4] 12-11 20:39  Diagnostics               INFO     - max diag Gelman-Rubin - 1 at 1.0 sigmas is 4.77.
+[011209.79] [0/4] 12-11 20:39  Diagnostics               INFO     - max Geweke is 5.06.
+[011209.79] [0/4] 12-11 20:39  Diagnostics               INFO     - Geweke p-value is 6.25e-08.
+[011209.80] [0/4] 12-11 20:39  Diagnostics               INFO     - effective sample size = (1800 iterations / integrated autocorrelation time) is 10.4.
+[011209.80] [0/4] 12-11 20:39  Diagnostics               INFO     - max variation of integrated autocorrelation time is 0.67.
+[011209.80] [0/4] 12-11 20:39  Diagnostics               INFO     - current mean acceptance rate is 0.206.
+[011209.80] [0/4] 12-11 20:39  Diagnostics               INFO     - total mean acceptance rate is 0.11.
+[011209.89] [0/4] 12-11 20:39  MCMCSampler               INFO     Updating proposal covariance.
+[011241.43] [0/4] 12-11 20:39  MCMCSampler               INFO     71 steps, acceptance rate 0.183.
+[011274.99] [0/4] 12-11 20:40  MCMCSampler               INFO     164 steps, acceptance rate 0.159.
+[011309.81] [0/4] 12-11 20:40  MCMCSampler               INFO     232 steps, acceptance rate 0.155.
+[011341.56] [0/4] 12-11 20:41  MCMCSampler               INFO     307 steps, acceptance rate 0.182.
+[011371.94] [0/4] 12-11 20:41  MCMCSampler               INFO     403 steps, acceptance rate 0.179.
+[011403.29] [0/4] 12-11 20:42  MCMCSampler               INFO     456 steps, acceptance rate 0.200.
+[011434.56] [0/4] 12-11 20:42  MCMCSampler               INFO     526 steps, acceptance rate 0.196.
+[011467.81] [0/4] 12-11 20:43  MCMCSampler               INFO     607 steps, acceptance rate 0.183.
+[011499.64] [0/4] 12-11 20:43  MCMCSampler               INFO     696 steps, acceptance rate 0.178.
+[011531.42] [0/4] 12-11 20:44  MCMCSampler               INFO     792 steps, acceptance rate 0.173.
+[011563.16] [0/4] 12-11 20:44  MCMCSampler               INFO     875 steps, acceptance rate 0.168.
+[011593.49] [0/4] 12-11 20:45  MCMCSampler               INFO     958 steps, acceptance rate 0.166.
+[011624.26] [0/4] 12-11 20:45  MCMCSampler               INFO     1077 steps, acceptance rate 0.162.
+[011657.71] [0/4] 12-11 20:46  MCMCSampler               INFO     1167 steps, acceptance rate 0.159.
+[011693.10] [0/4] 12-11 20:47  MCMCSampler               INFO     1273 steps, acceptance rate 0.159.
+[011723.14] [0/4] 12-11 20:47  MCMCSampler               INFO     1361 steps, acceptance rate 0.162.
+[011754.24] [0/4] 12-11 20:48  MCMCSampler               INFO     1415 steps, acceptance rate 0.165.
+[011786.06] [0/4] 12-11 20:48  MCMCSampler               INFO     1516 steps, acceptance rate 0.162.
+[011822.85] [0/4] 12-11 20:49  MCMCSampler               INFO     1595 steps, acceptance rate 0.166.
+[011854.50] [0/4] 12-11 20:49  MCMCSampler               INFO     1685 steps, acceptance rate 0.164.
+[011884.55] [0/4] 12-11 20:50  MCMCSampler               INFO     1777 steps, acceptance rate 0.164.
+[011910.02] [0/4] 12-11 20:50  Chain                     INFO     Saving /global/cfs/cdirs/desicollab/users/prakharb/folpsD_paper_chains/cxxx_mocks_chains/c002/base/Pk_Bk_bugfixed/LRG2_std_kr0.301_kb0_0.120_kb2_0.080_folpsD_Afull_b3_coev_no_emu.
+[011910.12] [0/4] 12-11 20:50  MCMCSampler               INFO     Diagnostics:
+[011910.16] [0/4] 12-11 20:50  Diagnostics               INFO     - max eigen Gelman-Rubin - 1 is 89.3; not < 0.05.
+[011910.20] [0/4] 12-11 20:50  Diagnostics               INFO     - max diag Gelman-Rubin - 1 is 5.8.
+[011910.49] [0/4] 12-11 20:50  Diagnostics               INFO     - max diag Gelman-Rubin - 1 at 1.0 sigmas is 8.94.
+[011910.52] [0/4] 12-11 20:50  Diagnostics               INFO     - max Geweke is 2.76.
+[011910.52] [0/4] 12-11 20:50  Diagnostics               INFO     - Geweke p-value is 0.0211.
+[011910.52] [0/4] 12-11 20:50  Diagnostics               INFO     - effective sample size = (1950 iterations / integrated autocorrelation time) is 9.52.
+[011910.52] [0/4] 12-11 20:50  Diagnostics               INFO     - max variation of integrated autocorrelation time is 1.21.
+[011910.52] [0/4] 12-11 20:50  Diagnostics               INFO     - current mean acceptance rate is 0.164.
+[011910.53] [0/4] 12-11 20:50  Diagnostics               INFO     - total mean acceptance rate is 0.113.
+[011910.62] [0/4] 12-11 20:50  MCMCSampler               INFO     Updating proposal covariance.
+[011943.07] [0/4] 12-11 20:51  MCMCSampler               INFO     99 steps, acceptance rate 0.172.
+[011976.38] [0/4] 12-11 20:51  MCMCSampler               INFO     185 steps, acceptance rate 0.189.
+[012007.94] [0/4] 12-11 20:52  MCMCSampler               INFO     260 steps, acceptance rate 0.185.
+[012040.86] [0/4] 12-11 20:52  MCMCSampler               INFO     339 steps, acceptance rate 0.174.
+[012071.96] [0/4] 12-11 20:53  MCMCSampler               INFO     436 steps, acceptance rate 0.158.
+[012106.92] [0/4] 12-11 20:54  MCMCSampler               INFO     518 steps, acceptance rate 0.160.
+[012143.50] [0/4] 12-11 20:54  MCMCSampler               INFO     615 steps, acceptance rate 0.151.
+[012179.06] [0/4] 12-11 20:55  MCMCSampler               INFO     713 steps, acceptance rate 0.147.
+[012212.34] [0/4] 12-11 20:55  MCMCSampler               INFO     803 steps, acceptance rate 0.146.
+[012243.73] [0/4] 12-11 20:56  MCMCSampler               INFO     900 steps, acceptance rate 0.147.
+[012277.19] [0/4] 12-11 20:56  MCMCSampler               INFO     976 steps, acceptance rate 0.149.
+[012307.39] [0/4] 12-11 20:57  MCMCSampler               INFO     1055 steps, acceptance rate 0.154.
+[012340.75] [0/4] 12-11 20:57  MCMCSampler               INFO     1133 steps, acceptance rate 0.158.
+[012370.97] [0/4] 12-11 20:58  MCMCSampler               INFO     1231 steps, acceptance rate 0.158.
+[012406.32] [0/4] 12-11 20:59  MCMCSampler               INFO     1323 steps, acceptance rate 0.160.
+[012436.64] [0/4] 12-11 20:59  MCMCSampler               INFO     1413 steps, acceptance rate 0.161.
+[012468.17] [0/4] 12-11 21:00  MCMCSampler               INFO     1488 steps, acceptance rate 0.161.
+[012500.15] [0/4] 12-11 21:00  MCMCSampler               INFO     1574 steps, acceptance rate 0.164.
+[012532.21] [0/4] 12-11 21:01  MCMCSampler               INFO     1667 steps, acceptance rate 0.167.
+[012567.00] [0/4] 12-11 21:01  MCMCSampler               INFO     1799 steps, acceptance rate 0.165.
+[012574.40] [0/4] 12-11 21:01  Chain                     INFO     Saving /global/cfs/cdirs/desicollab/users/prakharb/folpsD_paper_chains/cxxx_mocks_chains/c002/base/Pk_Bk_bugfixed/LRG2_std_kr0.301_kb0_0.120_kb2_0.080_folpsD_Afull_b3_coev_no_emu.
+[012574.48] [0/4] 12-11 21:01  MCMCSampler               INFO     Diagnostics:
+[012574.52] [0/4] 12-11 21:01  Diagnostics               INFO     - max eigen Gelman-Rubin - 1 is 55.8; not < 0.05.
+[012574.56] [0/4] 12-11 21:01  Diagnostics               INFO     - max diag Gelman-Rubin - 1 is 6.27.
+[012574.86] [0/4] 12-11 21:01  Diagnostics               INFO     - max diag Gelman-Rubin - 1 at 1.0 sigmas is 7.22.
+[012574.88] [0/4] 12-11 21:01  Diagnostics               INFO     - max Geweke is 2.61.
+[012574.88] [0/4] 12-11 21:01  Diagnostics               INFO     - Geweke p-value is 0.00084.
+[012574.89] [0/4] 12-11 21:01  Diagnostics               INFO     - effective sample size = (2100 iterations / integrated autocorrelation time) is 9.16.
+[012574.89] [0/4] 12-11 21:01  Diagnostics               INFO     - max variation of integrated autocorrelation time is 0.664.
+[012574.89] [0/4] 12-11 21:01  Diagnostics               INFO     - current mean acceptance rate is 0.165.
+[012574.89] [0/4] 12-11 21:01  Diagnostics               INFO     - total mean acceptance rate is 0.116.
+[012574.98] [0/4] 12-11 21:01  MCMCSampler               INFO     Updating proposal covariance.
+[012606.13] [0/4] 12-11 21:02  MCMCSampler               INFO     154 steps, acceptance rate 0.123.
+[012645.01] [0/4] 12-11 21:02  MCMCSampler               INFO     259 steps, acceptance rate 0.131.
+[012675.45] [0/4] 12-11 21:03  MCMCSampler               INFO     363 steps, acceptance rate 0.143.
+[012705.51] [0/4] 12-11 21:03  MCMCSampler               INFO     459 steps, acceptance rate 0.148.
+[012739.14] [0/4] 12-11 21:04  MCMCSampler               INFO     568 steps, acceptance rate 0.139.
+[012771.79] [0/4] 12-11 21:05  MCMCSampler               INFO     667 steps, acceptance rate 0.150.
+[012803.71] [0/4] 12-11 21:05  MCMCSampler               INFO     828 steps, acceptance rate 0.145.
+[012834.32] [0/4] 12-11 21:06  MCMCSampler               INFO     946 steps, acceptance rate 0.147.
+[012865.87] [0/4] 12-11 21:06  MCMCSampler               INFO     1019 steps, acceptance rate 0.147.
+[012899.01] [0/4] 12-11 21:07  MCMCSampler               INFO     1093 steps, acceptance rate 0.150.
+[012929.84] [0/4] 12-11 21:07  MCMCSampler               INFO     1204 steps, acceptance rate 0.152.
+[012959.88] [0/4] 12-11 21:08  MCMCSampler               INFO     1299 steps, acceptance rate 0.147.
+[012993.61] [0/4] 12-11 21:08  MCMCSampler               INFO     1394 steps, acceptance rate 0.146.
+[013025.43] [0/4] 12-11 21:09  MCMCSampler               INFO     1478 steps, acceptance rate 0.146.
+[013061.27] [0/4] 12-11 21:09  MCMCSampler               INFO     1653 steps, acceptance rate 0.143.
+[013092.19] [0/4] 12-11 21:10  MCMCSampler               INFO     1765 steps, acceptance rate 0.145.
+[013125.64] [0/4] 12-11 21:10  MCMCSampler               INFO     1900 steps, acceptance rate 0.148.
+[013160.05] [0/4] 12-11 21:11  MCMCSampler               INFO     2021 steps, acceptance rate 0.147.
+[013162.14] [0/4] 12-11 21:11  Chain                     INFO     Saving /global/cfs/cdirs/desicollab/users/prakharb/folpsD_paper_chains/cxxx_mocks_chains/c002/base/Pk_Bk_bugfixed/LRG2_std_kr0.301_kb0_0.120_kb2_0.080_folpsD_Afull_b3_coev_no_emu.
+[013162.19] [0/4] 12-11 21:11  MCMCSampler               INFO     Diagnostics:
+[013162.24] [0/4] 12-11 21:11  Diagnostics               INFO     - max eigen Gelman-Rubin - 1 is 60.3; not < 0.05.
+[013162.28] [0/4] 12-11 21:11  Diagnostics               INFO     - max diag Gelman-Rubin - 1 is 6.02.
+[013162.59] [0/4] 12-11 21:11  Diagnostics               INFO     - max diag Gelman-Rubin - 1 at 1.0 sigmas is 8.11.
+[013162.61] [0/4] 12-11 21:11  Diagnostics               INFO     - max Geweke is 5.24.
+[013162.61] [0/4] 12-11 21:11  Diagnostics               INFO     - Geweke p-value is 1.64e-08.
+[013162.62] [0/4] 12-11 21:11  Diagnostics               INFO     - effective sample size = (2250 iterations / integrated autocorrelation time) is 9.5.
+[013162.62] [0/4] 12-11 21:11  Diagnostics               INFO     - max variation of integrated autocorrelation time is 0.837.
+[013162.62] [0/4] 12-11 21:11  Diagnostics               INFO     - current mean acceptance rate is 0.147.
+[013162.62] [0/4] 12-11 21:11  Diagnostics               INFO     - total mean acceptance rate is 0.117.
+[013162.72] [0/4] 12-11 21:11  MCMCSampler               INFO     Updating proposal covariance.
+[013192.81] [0/4] 12-11 21:12  MCMCSampler               INFO     132 steps, acceptance rate 0.197.
+[013222.95] [0/4] 12-11 21:12  MCMCSampler               INFO     221 steps, acceptance rate 0.199.
+[013254.41] [0/4] 12-11 21:13  MCMCSampler               INFO     287 steps, acceptance rate 0.223.
+[013288.06] [0/4] 12-11 21:13  MCMCSampler               INFO     385 steps, acceptance rate 0.210.
+[013319.45] [0/4] 12-11 21:14  MCMCSampler               INFO     458 steps, acceptance rate 0.199.
+[013349.49] [0/4] 12-11 21:14  MCMCSampler               INFO     595 steps, acceptance rate 0.198.
+[013382.72] [0/4] 12-11 21:15  MCMCSampler               INFO     744 steps, acceptance rate 0.177.
+[013413.75] [0/4] 12-11 21:15  MCMCSampler               INFO     872 steps, acceptance rate 0.178.
+[013444.18] [0/4] 12-11 21:16  MCMCSampler               INFO     966 steps, acceptance rate 0.182.
+[013476.41] [0/4] 12-11 21:16  MCMCSampler               INFO     1067 steps, acceptance rate 0.185.
+[013507.63] [0/4] 12-11 21:17  MCMCSampler               INFO     1202 steps, acceptance rate 0.178.
+[013545.47] [0/4] 12-11 21:17  MCMCSampler               INFO     1312 steps, acceptance rate 0.176.
+[013578.67] [0/4] 12-11 21:18  MCMCSampler               INFO     1449 steps, acceptance rate 0.175.
+[013613.61] [0/4] 12-11 21:19  MCMCSampler               INFO     1583 steps, acceptance rate 0.178.
+[013636.90] [0/4] 12-11 21:19  Chain                     INFO     Saving /global/cfs/cdirs/desicollab/users/prakharb/folpsD_paper_chains/cxxx_mocks_chains/c002/base/Pk_Bk_bugfixed/LRG2_std_kr0.301_kb0_0.120_kb2_0.080_folpsD_Afull_b3_coev_no_emu.
+[013636.97] [0/4] 12-11 21:19  MCMCSampler               INFO     Diagnostics:
+[013637.02] [0/4] 12-11 21:19  Diagnostics               INFO     - max eigen Gelman-Rubin - 1 is 59.7; not < 0.05.
+[013637.06] [0/4] 12-11 21:19  Diagnostics               INFO     - max diag Gelman-Rubin - 1 is 6.36.
+[013637.38] [0/4] 12-11 21:19  Diagnostics               INFO     - max diag Gelman-Rubin - 1 at 1.0 sigmas is 6.71.
+[013637.41] [0/4] 12-11 21:19  Diagnostics               INFO     - max Geweke is 4.6.
+[013637.41] [0/4] 12-11 21:19  Diagnostics               INFO     - Geweke p-value is 0.000101.
+[013637.42] [0/4] 12-11 21:19  Diagnostics               INFO     - effective sample size = (2400 iterations / integrated autocorrelation time) is 9.46.
+[013637.42] [0/4] 12-11 21:19  Diagnostics               INFO     - max variation of integrated autocorrelation time is 0.459.
+[013637.42] [0/4] 12-11 21:19  Diagnostics               INFO     - current mean acceptance rate is 0.179.
+[013637.42] [0/4] 12-11 21:19  Diagnostics               INFO     - total mean acceptance rate is 0.12.
+[013637.51] [0/4] 12-11 21:19  MCMCSampler               INFO     Updating proposal covariance.
+[013668.38] [0/4] 12-11 21:20  MCMCSampler               INFO     106 steps, acceptance rate 0.208.
+[013698.64] [0/4] 12-11 21:20  MCMCSampler               INFO     206 steps, acceptance rate 0.175.
+[013731.22] [0/4] 12-11 21:21  MCMCSampler               INFO     326 steps, acceptance rate 0.160.
+[013762.15] [0/4] 12-11 21:21  MCMCSampler               INFO     388 steps, acceptance rate 0.183.
+[013792.21] [0/4] 12-11 21:22  MCMCSampler               INFO     472 steps, acceptance rate 0.182.
+[013822.50] [0/4] 12-11 21:22  MCMCSampler               INFO     558 steps, acceptance rate 0.186.
+[013855.17] [0/4] 12-11 21:23  MCMCSampler               INFO     684 steps, acceptance rate 0.178.
+[013886.44] [0/4] 12-11 21:23  MCMCSampler               INFO     827 steps, acceptance rate 0.166.
+[013921.81] [0/4] 12-11 21:24  MCMCSampler               INFO     927 steps, acceptance rate 0.166.
+[013952.55] [0/4] 12-11 21:24  MCMCSampler               INFO     1037 steps, acceptance rate 0.168.
+[013985.99] [0/4] 12-11 21:25  MCMCSampler               INFO     1128 steps, acceptance rate 0.166.
+[014016.27] [0/4] 12-11 21:25  MCMCSampler               INFO     1243 steps, acceptance rate 0.161.
+[014046.67] [0/4] 12-11 21:26  MCMCSampler               INFO     1329 steps, acceptance rate 0.167.
+[014078.72] [0/4] 12-11 21:26  MCMCSampler               INFO     1420 steps, acceptance rate 0.169.
+[014111.27] [0/4] 12-11 21:27  MCMCSampler               INFO     1517 steps, acceptance rate 0.174.
+[014144.79] [0/4] 12-11 21:27  MCMCSampler               INFO     1674 steps, acceptance rate 0.172.
+[014160.70] [0/4] 12-11 21:28  Chain                     INFO     Saving /global/cfs/cdirs/desicollab/users/prakharb/folpsD_paper_chains/cxxx_mocks_chains/c002/base/Pk_Bk_bugfixed/LRG2_std_kr0.301_kb0_0.120_kb2_0.080_folpsD_Afull_b3_coev_no_emu.
+[014160.76] [0/4] 12-11 21:28  MCMCSampler               INFO     Diagnostics:
+[014160.80] [0/4] 12-11 21:28  Diagnostics               INFO     - max eigen Gelman-Rubin - 1 is 35.4; not < 0.05.
+[014160.85] [0/4] 12-11 21:28  Diagnostics               INFO     - max diag Gelman-Rubin - 1 is 4.9.
+[014161.18] [0/4] 12-11 21:28  Diagnostics               INFO     - max diag Gelman-Rubin - 1 at 1.0 sigmas is 5.22.
+[014161.20] [0/4] 12-11 21:28  Diagnostics               INFO     - max Geweke is 3.06.
+[014161.21] [0/4] 12-11 21:28  Diagnostics               INFO     - Geweke p-value is 0.00513.
+[014161.21] [0/4] 12-11 21:28  Diagnostics               INFO     - effective sample size = (2550 iterations / integrated autocorrelation time) is 9.4.
+[014161.21] [0/4] 12-11 21:28  Diagnostics               INFO     - max variation of integrated autocorrelation time is 0.651.
+[014161.21] [0/4] 12-11 21:28  Diagnostics               INFO     - current mean acceptance rate is 0.171.
+[014161.22] [0/4] 12-11 21:28  Diagnostics               INFO     - total mean acceptance rate is 0.122.
+[014161.31] [0/4] 12-11 21:28  MCMCSampler               INFO     Updating proposal covariance.
+[014193.74] [0/4] 12-11 21:28  MCMCSampler               INFO     90 steps, acceptance rate 0.244.
+[014225.20] [0/4] 12-11 21:29  MCMCSampler               INFO     216 steps, acceptance rate 0.213.
+[014257.75] [0/4] 12-11 21:29  MCMCSampler               INFO     338 steps, acceptance rate 0.186.
+[014290.43] [0/4] 12-11 21:30  MCMCSampler               INFO     436 steps, acceptance rate 0.197.
+[014320.53] [0/4] 12-11 21:30  MCMCSampler               INFO     521 steps, acceptance rate 0.198.
+[014353.82] [0/4] 12-11 21:31  MCMCSampler               INFO     597 steps, acceptance rate 0.198.
+[014387.08] [0/4] 12-11 21:32  MCMCSampler               INFO     684 steps, acceptance rate 0.190.
+[014420.87] [0/4] 12-11 21:32  MCMCSampler               INFO     798 steps, acceptance rate 0.180.
+[014455.50] [0/4] 12-11 21:33  MCMCSampler               INFO     913 steps, acceptance rate 0.172.
+[014485.89] [0/4] 12-11 21:33  MCMCSampler               INFO     1014 steps, acceptance rate 0.164.
+[014519.39] [0/4] 12-11 21:34  MCMCSampler               INFO     1094 steps, acceptance rate 0.163.
+[014550.05] [0/4] 12-11 21:34  MCMCSampler               INFO     1196 steps, acceptance rate 0.157.
+[014582.32] [0/4] 12-11 21:35  MCMCSampler               INFO     1293 steps, acceptance rate 0.158.
+[014614.32] [0/4] 12-11 21:35  MCMCSampler               INFO     1381 steps, acceptance rate 0.156.
+[014644.53] [0/4] 12-11 21:36  MCMCSampler               INFO     1475 steps, acceptance rate 0.154.
+[014674.84] [0/4] 12-11 21:36  MCMCSampler               INFO     1561 steps, acceptance rate 0.150.
+[014692.94] [0/4] 12-11 21:37  Exception                 CRITICAL 
+====================================================================================================
+Traceback (most recent call last):
+  File "/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/samplers/base.py", line 463, in _run_batch
+    chain = self._run_one(start[ichain], niterations=niterations, **kwargs)
+  File "/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/samplers/mcmc.py", line 538, in _run_one
+    for _ in self.sampler.sample(start=np.ravel(start), iterations=niterations, thin_by=thin_by):
+  File "/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/samplers/mcmc.py", line 89, in sample
+    mh_proposal_log_prob = proposal_log_prob = self.log_prob_fn(proposal_coords)
+  File "/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/samplers/base.py", line 61, in wrapper
+    toret[mask] = func(self, values)
+  File "/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/samplers/base.py", line 151, in logposterior
+    results = self._vlikelihood(points.to_dict())
+  File "/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/samplers/base.py", line 264, in _vlikelihood
+    return vlikelihood(*args, **kwargs, mpicomm=self.mpicomm)
+  File "/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/base.py", line 366, in wrapper
+    results = _concatenate_results([states[0] for states in all_states], shape, add_dims=False)
+  File "/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/base.py", line 186, in _concatenate_results
+    results = type(results[0])(concatenate([res[i] for res in results]) for i in range(len(results[0])))
+  File "/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/base.py", line 186, in <genexpr>
+    results = type(results[0])(concatenate([res[i] for res in results]) for i in range(len(results[0])))
+  File "/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/base.py", line 166, in concatenate
+    return Samples.concatenate([result[None, ...] if add_dims else result for result in results]).reshape(shape)
+  File "/global/u1/p/prakharb/desilike-folps-jax-dev/desilike/parameter.py", line 2274, in concatenate
+    raise ValueError('cannot concatenate values as parameters do not match: {} != {}.'.format(new_names, other_names))
+ValueError: cannot concatenate values as parameters do not match: ['H0', 'Omega_m', 'sigma8_m', 'loglikelihood', 'logprior', 'LRG2.alpha0', 'LRG2.alpha2', 'LRG2.sn0', 'LRG2.sn2'] != ['H0', 'Omega_m', 'loglikelihood', 'logprior', 'LRG2.alpha0', 'LRG2.alpha2', 'LRG2.sn0', 'LRG2.sn2'].
+====================================================================================================
+[014692.94] [0/4] 12-11 21:37  Exception                 CRITICAL An error occured.
+MPICH Notice [Rank 0] [job id 46354733.0] [Thu Dec 11 21:37:07 2025] [nid006584] - Abort(0) (rank 0 in comm 0): application called MPI_Abort(MPI_COMM_WORLD, 0) - process 0
+
+aborting job:
+application called MPI_Abort(MPI_COMM_WORLD, 0) - process 0
+srun: error: nid006584: task 0: Exited with exit code 255
+srun: Terminating StepId=46354733.0
+slurmstepd: error: *** STEP 46354733.0 ON nid006584 CANCELLED AT 2025-12-12T05:37:08 ***
+srun: error: nid006584: tasks 1-3: Terminated
+srun: Force Terminated StepId=46354733.0
