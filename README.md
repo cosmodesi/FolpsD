@@ -16,7 +16,7 @@ To install the code, first clone the repo
 git clone https://github.com/henoriega/FOLPSpipe/tree/final
 cd FOLPSpipe
 ```
-then install via pip using either in user mode
+then install via pip either in user mode
 
 ```
 pip install .
