@@ -4416,7 +4416,7 @@ def convolve_Bl1l2L(bisp_nuis_params_, bisp_cosmo_params_,
                      renormalize=True, 
                      interpolation_method_full='linear',
                      interpolation_method_diag='linear',
-                     use_full_diag=True):
+                     use_full_diag=True,multipoles_for_convolution=None,window_source='Carol'):
 
     bc = WindowConvolvedBispectrum(model="FOLPSD")
     
@@ -4577,40 +4577,6 @@ def convolve_Bl1l2L(bisp_nuis_params_, bisp_cosmo_params_,
         # print(B000th_on_mock.shape, B202th_on_mock.shape)
 
     if window_source=="Carol": 
-
-        multipoles_for_convolution = {}
-
-        multipoles_for_convolution['LRG'] = {
-            # bin 1: 0.4 < z < 0.6
-            'NGC': {
-                'bin1': {
-                    '000': ['000', '110', '220'],
-                    '202': ['000', '202']
-                },
-                'bin2': {
-                    '000': ['000', '110', '220'],
-                    '202': ['000', '202', '312']
-                },
-                'bin3': {
-                    '000': ['000'],
-                    '202': ['000', '110', '202']
-                }
-            },
-            'SGC': {
-                'bin1': {
-                    '000': ['000', '110', '022', '202'],
-                    '202': ['000', '110', '220', '112', '202']
-                },
-                'bin2': {
-                    '000': ['000', '110', '220'],
-                    '202': ['000', '110', '220', '112', '202', '312']
-                },
-                'bin3': {
-                    '000': ['000', '110', '220'],
-                    '202': ['000', '022', '202']
-                }
-            }
-        }
 
 
         
