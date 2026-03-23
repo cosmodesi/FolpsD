@@ -1,94 +1,163 @@
 <p align="center">
-    <img src="https://github.com/henoriega/FOLPSpipe/blob/main/folps_logo.png" width="600" height="300">
+    <img src="https://github.com/henoriega/FOLPSpipe/blob/main/folps_logo.png" width="600" height="300" alt="FOLPS logo">
 </p>
 
-# Important Note for Jax version
-To use jax version, put this line before importing folps
+# FOLPS
 
-```
-os.environ["FOLPS_BACKEND"] = "jax" 
-```
-
-# Installation
-
-To install the code, first clone the repo
-```
-git clone https://github.com/henoriega/FOLPSpipe/tree/final
-cd FOLPSpipe
-```
-then install via pip either in user mode
-
-```
-pip install .
-``` 
-or in the developer model
-
-```
-pip install -e .
-``` 
-
-
-
-# FOLPS (aka Flops)
-FOLPS is a Python code that computes the galaxy redshift space power spectrum for cosmologies containing massive neutrinos. The code combines analytical modeling and numerical methods based on the FFTLog formalism. 
-
-
-For version with JAX (x10 times faster!): [Folpsax](https://github.com/cosmodesi/folpsax)
+Python code for computing galaxy redshift-space power spectrum and bispectrum multipoles, with both NumPy and JAX backends.
 
 [![arXiv](https://img.shields.io/badge/arXiv-2208.02791-red)](https://arxiv.org/abs/2208.02791)
 
+## Requirements
 
-## Developers (code and (e)BOSS and DESI pipelines): 
-- [Hernán E. Noriega](mailto:henoriega@estudiantes.fisica.unam.mx)
+The package relies on the following Python dependencies:
+
+- numpy
+- scipy
+- jax
+- interpax
+
+## Installation
+
+Clone and install from source:
+
+```bash
+git clone https://github.com/henoriega/FOLPSpipe.git
+cd FOLPSpipe_final_branch
+python -m pip install -e .
+```
+
+You can replace `-e` with a standard installation:
+
+```bash
+python -m pip install .
+```
+
+
+## Backend Selection
+
+Set the backend before importing the package:
+
+```python
+import os
+os.environ["FOLPS_BACKEND"] = "numpy"  # or "jax"
+```
+
+## Quick Example
+
+```python
+import os
+os.environ["FOLPS_BACKEND"] = "numpy"
+
+import numpy as np
+from folps import (
+    BispectrumCalculator,
+    MatrixCalculator,
+    NonLinearPowerSpectrumCalculator,
+    RSDMultipolesPowerSpectrumCalculator,
+)
+
+k, pk = np.loadtxt("folps/inputpkT.txt", unpack=True)
+cosmo = dict(z=0.3, h=0.6711, Omega_m=0.3211636237981114, f0=0.6880638641959066, fnu=0.004453689063655854)
+
+matrix = MatrixCalculator(A_full=True, save_dir="folps/output_matrices")
+mmatrices = matrix.get_mmatrices()
+nonlinear = NonLinearPowerSpectrumCalculator(mmatrices=mmatrices, kernels="fk", **cosmo)
+table, table_now = nonlinear.calculate_loop_table(k=k, pklin=pk, cosmo=None, **cosmo)
+
+# Pk parameters
+PshotP = 1.0 / 0.0002118763
+b1 = 1.645
+b2 = -0.46
+bs2 = -4.0 / 7.0 * (b1 - 1.0)
+b3nl = 32.0 / 315.0 * (b1 - 1.0)
+alpha0, alpha2, alpha4, ctilde = 3.0, -28.9, 0.0, 0.0
+alphashot0 = 0.08
+alphashot2 = -8.1
+X_FoG_Pk = 0
+pars = [b1, b2, bs2, b3nl, alpha0, alpha2, alpha4, ctilde, alphashot0, alphashot2, PshotP, X_FoG_Pk]
+
+multipoles = RSDMultipolesPowerSpectrumCalculator(model="FOLPSD")
+P0, P2, P4 = multipoles.get_rsd_pkell(
+    kobs=table[0],
+    qpar=1.0,
+    qper=1.0,
+    pars=pars,
+    table=table,
+    table_now=table_now,
+    bias_scheme="folps",
+    damping="lor",
+)
+
+# Sugiyama bispectrum on diagonal configurations (k1 = k2)
+k_ev = np.linspace(0.01, 0.2, num=40)
+k1k2_pairs = np.vstack([k_ev, k_ev]).T
+pars_bk = [b1, b2, bs2, 0.0, 0.0, 0.0, 0.0, 1.0]
+k_pkl_pklnw = np.array([table[0], table[1], table_now[1]])
+bispectrum = BispectrumCalculator(model="FOLPSD")
+
+B000, B110, B220, B202, B022, B112 = bispectrum.Sugiyama_Bell(
+    f=nonlinear.f0,
+    bpars=pars_bk,
+    k_pkl_pklnw=k_pkl_pklnw,
+    k1k2pairs=k1k2_pairs,
+    qpar=1.0,
+    qper=1.0,
+    precision=[10, 10, 10],
+    damping="lor",
+    multipoles=["B000", "B110", "B220", "B202", "B022", "B112"],
+    renormalize=True,
+    interpolation_method="linear",
+    bias_scheme="folps",
+)
+
+print("Pk:", P0.shape, P2.shape, P4.shape)
+print("Sugiyama Bk:", B000.shape, B202.shape)
+```
+
+## Tests and Timing Benchmarks
+
+The [folps](folps/) directory includes several `test_*.py` scripts that demonstrate end-to-end execution for both the power spectrum and bispectrum using NumPy and JAX.
+
+Main scripts:
+
+- [folps/test_folps_numpy.py](folps/test_folps_numpy.py)
+- [folps/test_folps_jax.py](folps/test_folps_jax.py)
+- [folps/test_compare_folps_numpy_vs_jax.py](folps/test_compare_folps_numpy_vs_jax.py)
+
+## Notebooks
+
+The [notebooks](notebooks/) directory contains worked examples showing how to run:
+
+- Power spectrum calculations
+- Bispectrum calculations in the Scoccimarro and Sugiyama bases
+- Windowed bispectrum calculations including survey geometry effects
+
+Main notebooks:
+
+- [notebooks/example_folps_numpy.ipynb](notebooks/example_folps_numpy.ipynb)
+- [notebooks/example_folps_jax.ipynb](notebooks/example_folps_jax.ipynb)
+- [notebooks/B000_B202_windowing.ipynb](notebooks/B000_B202_windowing.ipynb)
+
+## Developers
+
+- [Hernan E. Noriega](mailto:henoriega@icf.unam.mx)
 - [Alejandro Aviles](mailto:avilescervantes@gmail.com)
 
+Special thanks to Arnaud de Mattia for support with JAX-related development, and to Prakhar Bansal for the integration with desilike.
 
-*Special thanks to Arnaud de Mattia for helping with the [Jax](https://github.com/cosmodesi/folpsax) version of this code.* 
+## Citation
 
+If you use this code in scientific work, please cite:
 
-
-
-
-
-
-
-
-## Run
-
-**Dependences**
-
-The code employs the standard libraries:
-- NumPy 
-- SciPy
-
-We recommend to use NumPy versions ≥ 1.20.0. For older versions, one needs to rescale by a factor 1/N the [FFT computation](https://github.com/henoriega/FOLPS-nu/blob/main/FOLPSnu.py#L626). 
-
-To run the code, first use git clone:
-
+```bibtex
+@article{Noriega:2022nhf,
+    author = {Noriega, Hern\'an E. and Aviles, Alejandro and Fromenteau, Sebastien and Vargas-Maga\~na, Mariana},
+    title = {Fast computation of non-linear power spectrum in cosmologies with massive neutrinos},
+    eprint = {2208.02791},
+    archivePrefix = {arXiv},
+    primaryClass = {astro-ph.CO},
+    month = {8},
+    year = {2022}
+}
 ```
-git clone https://github.com/henoriega/FOLPS-nu.git
-```
-or install via pip by:
-
-```
-pip install git+https://github.com/henoriega/FOLPS-nu
-```
-
-Once everything is ready, please check the [Jupyter Notebook](https://github.com/henoriega/FOLPS-nu/blob/main/notebooks/Example.ipynb) which contains some helpful examples. 
-
-
-
-Attribution
------------
-
-Please cite <https://arxiv.org/abs/2208.02791> if you find this code useful in your research. 
-
-    @article{Noriega:2022nhf,
-    author = "Noriega, Hern\'an E. and Aviles, Alejandro and Fromenteau, Sebastien and Vargas-Maga\~na, Mariana",
-    title = "{Fast computation of non-linear power spectrum in cosmologies with massive neutrinos}",
-    eprint = "2208.02791",
-    archivePrefix = "arXiv",
-    primaryClass = "astro-ph.CO",
-    month = "8",
-    year = "2022"
-    }
