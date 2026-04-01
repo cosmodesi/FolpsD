@@ -7,6 +7,7 @@
 Python code for computing galaxy redshift-space power spectrum and bispectrum multipoles, with both NumPy and JAX backends.
 
 [![arXiv](https://img.shields.io/badge/arXiv-2208.02791-red)](https://arxiv.org/abs/2208.02791)
+[![arXiv](https://img.shields.io/badge/arXiv-2404.07269-red)](https://arxiv.org/abs/2404.07269)
 
 ## Requirements
 
@@ -159,5 +160,18 @@ If you use this code in scientific work, please cite:
     primaryClass = {astro-ph.CO},
     month = {8},
     year = {2022}
+}
+
+@article{Noriega:2024eyu,
+    author = "Noriega, H. E. and others",
+    title = "{Comparing Compressed and Full-Modeling analyses with FOLPS: implications for DESI 2024 and beyond}",
+    eprint = "2404.07269",
+    archivePrefix = "arXiv",
+    primaryClass = "astro-ph.CO",
+    doi = "10.1088/1475-7516/2025/01/136",
+    journal = "JCAP",
+    volume = "01",
+    pages = "136",
+    year = "2025"
 }
 ```
