@@ -7,7 +7,7 @@
 Python code for computing galaxy redshift-space power spectrum and bispectrum multipoles, with both NumPy and JAX backends.
 
 [![arXiv](https://img.shields.io/badge/arXiv-2208.02791-red)](https://arxiv.org/abs/2208.02791)
-[![arXiv](https://img.shields.io/badge/arXiv-2404.07269-red)](https://arxiv.org/abs/2404.07269)
+[![arXiv](https://img.shields.io/badge/arXiv-2404.07269-red)](https://arxiv.org/abs/2604.08895)
 
 ## Requirements
 
@@ -146,12 +146,24 @@ Main notebooks:
 - [Hernan E. Noriega](mailto:henoriega@icf.unam.mx)
 - [Alejandro Aviles](mailto:avilescervantes@gmail.com)
 
-Special thanks to Arnaud de Mattia for support with JAX-related development, and to Prakhar Bansal for the integration with desilike.
+Arnaud de Mattia: support with JAX-related development
+
+Prakhar Bansal: integration with desilike.
 
 ## Citation
 
-If you use this code in scientific work, please cite:
+If you use this code in scientific work, please consider to cite one of the following papers:
 
+
+[https://arxiv.org/abs/2007.06508](https://arxiv.org/abs/2007.06508)   FOLPS theory (LPT)
+
+[https://arxiv.org/abs/2106.13771](https://arxiv.org/abs/2106.13771)   FOLPS theory (EPT)
+ 
+[https://arxiv.org/abs/2208.02791](https://arxiv.org/abs/2208.02791)   Folps v1 original release
+
+[https://arxiv.org/abs/2604.08895](https://arxiv.org/abs/2604.08895)   Including the bispectrum
+
+<!--
 ```bibtex
 @article{Noriega:2022nhf,
     author = {Noriega, Hern\'an E. and Aviles, Alejandro and Fromenteau, Sebastien and Vargas-Maga\~na, Mariana},
@@ -176,3 +188,4 @@ If you use this code in scientific work, please cite:
     year = "2025"
 }
 ```
+-->
