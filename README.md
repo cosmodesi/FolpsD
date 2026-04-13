@@ -4,7 +4,7 @@
 
 # FOLPS
 
-Python code for computing galaxy redshift-space power spectrum and bispectrum multipoles, with both NumPy and JAX backends.
+Python code for computing galaxy redshift-space power spectrum and bispectrum multipoles, with both NumPy and JAX backends. This is Folps v2.
 
 [![arXiv](https://img.shields.io/badge/arXiv-2208.02791-red)](https://arxiv.org/abs/2208.02791)
 [![arXiv](https://img.shields.io/badge/arXiv-2604.08895-red)](https://arxiv.org/abs/2604.08895)
