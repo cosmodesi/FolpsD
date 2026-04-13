@@ -156,9 +156,9 @@ FOLPS theory: [https://arxiv.org/abs/2007.06508](https://arxiv.org/abs/2007.0650
 
 Folps v1 original release: [https://arxiv.org/abs/2208.02791](https://arxiv.org/abs/2208.02791)   
 
-Including the bispectrum and JAX capabilities: [https://arxiv.org/abs/2604.08895](https://arxiv.org/abs/2604.08895)   
+Including bispectrum and JAX capabilities: [https://arxiv.org/abs/2604.08895](https://arxiv.org/abs/2604.08895)   
 
 
-## Acknowledgement
+## Acknowledgements
 
 We acknowledge financial support from grants DGAPA-PAPIIT IA101825 and SECIHITI CBF2023-2024-162
