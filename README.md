@@ -18,6 +18,7 @@ The package relies on the following Python dependencies:
 - jax
 - interpax
 
+<!-- 
 ## Installation
 
 Clone and install from source:
@@ -33,7 +34,7 @@ You can replace `-e` with a standard installation:
 ```bash
 python -m pip install .
 ```
-
+ -->
 
 ## Backend Selection
 
