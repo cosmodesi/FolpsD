@@ -150,42 +150,15 @@ Arnaud de Mattia: support with JAX-related development
 
 Prakhar Bansal: integration with desilike.
 
-## Citation
+## References
 
-If you use this code in scientific work, please consider to cite one of the following papers:
+FOLPS theory: [https://arxiv.org/abs/2007.06508](https://arxiv.org/abs/2007.06508), [https://arxiv.org/abs/2106.13771](https://arxiv.org/abs/2106.13771)  
+
+Folps v1 original release: [https://arxiv.org/abs/2208.02791](https://arxiv.org/abs/2208.02791)   
+
+Including the bispectrum and JAX capabilities: [https://arxiv.org/abs/2604.08895](https://arxiv.org/abs/2604.08895)   
 
 
-[https://arxiv.org/abs/2007.06508](https://arxiv.org/abs/2007.06508)   FOLPS theory (LPT)
+## Acknowledgement
 
-[https://arxiv.org/abs/2106.13771](https://arxiv.org/abs/2106.13771)   FOLPS theory (EPT)
- 
-[https://arxiv.org/abs/2208.02791](https://arxiv.org/abs/2208.02791)   Folps v1 original release
-
-[https://arxiv.org/abs/2604.08895](https://arxiv.org/abs/2604.08895)   Including the bispectrum
-
-<!--
-```bibtex
-@article{Noriega:2022nhf,
-    author = {Noriega, Hern\'an E. and Aviles, Alejandro and Fromenteau, Sebastien and Vargas-Maga\~na, Mariana},
-    title = {Fast computation of non-linear power spectrum in cosmologies with massive neutrinos},
-    eprint = {2208.02791},
-    archivePrefix = {arXiv},
-    primaryClass = {astro-ph.CO},
-    month = {8},
-    year = {2022}
-}
-
-@article{Noriega:2024eyu,
-    author = "Noriega, H. E. and others",
-    title = "{Comparing Compressed and Full-Modeling analyses with FOLPS: implications for DESI 2024 and beyond}",
-    eprint = "2404.07269",
-    archivePrefix = "arXiv",
-    primaryClass = "astro-ph.CO",
-    doi = "10.1088/1475-7516/2025/01/136",
-    journal = "JCAP",
-    volume = "01",
-    pages = "136",
-    year = "2025"
-}
-```
--->
+We acknowledge financial support from grants DGAPA-PAPIIT IA101825 and SECIHITI CBF2023-2024-162
