@@ -6,8 +6,6 @@
 
 # Import standard libraries
 import numpy as np
-from classy import Class
-
 
 # In[2]:
 
@@ -52,7 +50,8 @@ def run_class(h=0.6711, ombh2=0.022, omch2=0.122, omnuh2=0.0006442,
         - If wa_fld is not specified but w0_fld is, wa_fld defaults to 0, representing no evolution
           in the dark energy equation of state.
     """
-    
+    from classy import Class
+
     params = {
         'output': 'mPk',
         'omega_b': ombh2,
