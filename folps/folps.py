@@ -16,7 +16,7 @@ from scipy.interpolate import RegularGridInterpolator
 
 try:
     from triumvirate.winconv import (
-        WinConvFormulae,
+        WinConvFormulae,Multipole
     )
 except ImportError: 
     WinConvFormulae = None
@@ -2175,7 +2175,7 @@ class BispectrumCalculator:
             
     #GL pairs [[x1,w1],[x2,w2],....
     _tables_cache = {}
-
+    import jax
     def _gauss_legendre(self, n, a=-1.0, b=1.0):
         """Return Gauss-Legendre nodes and weights on [a, b] for current backend."""
         # To remain JAX-jittable we always compute points on the host using NumPy,
@@ -2205,7 +2205,10 @@ class BispectrumCalculator:
         muGL = np.stack((mu_roots, mu_weights), axis=-1)
 
         tables = [phiGL, xGL, muGL]
-        self._tables_cache[precision_key] = tables
+
+        if not isinstance(phiGL, jax.core.Tracer):
+            self._tables_cache[precision_key] = tables
+        # self._tables_cache[precision_key] = tables
         return tables
 
     def tablesGL2_f(self, precision=[10, 10]):   # For Scoccimarro 
@@ -2224,7 +2227,9 @@ class BispectrumCalculator:
         mu_roots, mu_weights = scipy.special.roots_legendre(Nmu) 
         muGL=np.array([mu_roots,mu_weights]).T 
         tablesGL = [phiGL,muGL]
-        self._tables_cache[precision_key] = tablesGL
+        # self._tables_cache[precision_key] = tablesGL
+        if not isinstance(phiGL, jax.core.Tracer):
+            self._tables_cache[precision_key] = tablesGL
 
         return tablesGL  
     
@@ -3122,7 +3127,10 @@ class BispectrumCalculator_fk:
         muGL = np.stack((mu_roots, mu_weights), axis=-1)
 
         tables = [phiGL, xGL, muGL]
-        self._tables_cache[precision_key] = tables
+        # Only cache if we are NOT inside JAX tracing
+        if not isinstance(phiGL, jax.core.Tracer):
+            self._tables_cache[precision_key] = tables
+        # self._tables_cache[precision_key] = tables
         return tables
 
     def tablesGL2_f(self, precision=[10, 10]):   # For Scoccimarro 
@@ -3141,7 +3149,9 @@ class BispectrumCalculator_fk:
         mu_roots, mu_weights = scipy.special.roots_legendre(Nmu) 
         muGL=np.array([mu_roots,mu_weights]).T 
         tablesGL = [phiGL,muGL]
-        self._tables_cache[precision_key] = tablesGL
+        if not isinstance(phiGL, jax.core.Tracer):
+            self._tables_cache[precision_key] = tablesGL
+        
 
         return tablesGL  
     
@@ -4454,15 +4464,18 @@ def convolve_Bl1l2L(bisp_nuis_params_, bisp_cosmo_params_,
     N = k_window.shape[0]
     
     coords_202 = np.empty((N, N, 2), dtype=k_window.dtype)
-    coords_202[..., 0] = k_window[:, None]
-    coords_202[..., 1] = k_window[None, :]
+    # coords_202[..., 0] = k_window[:, None]
+    # coords_202[..., 1] = k_window[None, :]
     # coords_202[..., 0] = k_window[:, None]   # first component = k_i
     # coords_202[..., 1] = k_window[None, :]   # second component = k_j
     # print(coords_202.shape)
+    kx, ky = np.meshgrid(k_window, k_window, indexing="ij")
+    coords_202 = np.stack([kx, ky], axis=-1)
     coords_202 = coords_202.reshape(-1, 2)
     # print(coords_202.shape)
     coords_022 = coords_202    
 
+    
     if WinConvFormulae is None:
         raise ImportError(
             "triumvirate is required for window convolution functionality. "
@@ -4520,7 +4533,7 @@ def convolve_Bl1l2L(bisp_nuis_params_, bisp_cosmo_params_,
             'stats_mean': bk_220,
         },
     }
-    
+
     k_proxy = None
     bkk_proxy = {}
 
@@ -4577,35 +4590,52 @@ def convolve_Bl1l2L(bisp_nuis_params_, bisp_cosmo_params_,
         # print(B000th_on_mock.shape, B202th_on_mock.shape)
 
     if window_source=="Carol": 
+        proxy_000 = []
+        proxy_202 = []
 
+        # --- 000 part (always computed) ---
+        for multipole in multipoles_for_convolution:
+            trium_mp = tuple(int(c) for c in multipole) #Convert '000' to (0,0,0) etc.
+            proxy_000.append(bkk_proxy[Multipole(trium_mp)].flatten())
 
-        
-        proxy_000=[]
-        proxy_202=[]
-    
-        #Concatenate cubic proxy multipoles and flatten the array
-        for multipole in multipoles_for_convolution['LRG']['NGC']['bin1']['000']:
-            proxy_000.append(bkk_proxy[multipole].flatten())
-        
-        for multipole in multipoles_for_convolution['LRG']['NGC']['bin1']['202']:
-            proxy_202.append(bkk_proxy[multipole].flatten())
-        
-        proxy_test_000= np.concatenate(proxy_000)
-        proxy_test_202= np.concatenate(proxy_202)
-        #Convolve proxy with window matrix
-        conv_proxy_000= np.dot(wmat_000, proxy_test_000)
-        conv_proxy_202= np.dot(wmat_202, proxy_test_202)
-        
-        
+        proxy_test_000 = np.concatenate(proxy_000)
+        conv_proxy_000 = np.dot(wmat_000, proxy_test_000)
+
         Nk = k_proxy.shape[0]
         conv_proxy_2d_000 = conv_proxy_000.reshape((Nk, Nk))
-        conv_proxy_2d_202 = conv_proxy_202.reshape((Nk, Nk))
 
+        B000th_on_mock = interp2d(
+            kout, kout,
+            k_proxy[:Nk], k_proxy[:Nk],
+            conv_proxy_2d_000
+        ).diagonal()
 
+        results=[]
+        results.append(B000th_on_mock)
 
+        # --- 202 part (compute everything only once condition is satisfied) ---
+        if wmat_202 is not None:
 
-        B000th_on_mock = interp2d(kout,kout, k_proxy[:Nk], k_proxy[:Nk],conv_proxy_2d_000).diagonal()
-        B202th_on_mock = interp2d(kout,kout, k_proxy[:Nk], k_proxy[:Nk], conv_proxy_2d_202).diagonal()
+            for multipole in multipoles_for_convolution['202']:
+                proxy_202.append(bkk_proxy[multipole].flatten())
+
+            proxy_test_202 = np.concatenate(proxy_202)
+            conv_proxy_202 = np.dot(wmat_202, proxy_test_202)
+
+            conv_proxy_2d_202 = conv_proxy_202.reshape((Nk, Nk))
+
+            B202th_on_mock = interp2d(
+                kout, kout,
+                k_proxy[:Nk], k_proxy[:Nk],
+                conv_proxy_2d_202
+            ).diagonal()
+
+            results.append(B202th_on_mock)
+
+        return tuple(results)
+
+        
+        
 
         # print(B000th_on_mock.shape, B202th_on_mock.shape) 
 
