@@ -15,6 +15,8 @@ The package relies on the following Python dependencies:
 
 - numpy
 - scipy
+
+If jax is used:
 - jax
 - interpax
 
