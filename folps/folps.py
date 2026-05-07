@@ -1662,7 +1662,224 @@ class RSDMultipolesPowerSpectrumCalculator:
         jac, kap, muap = (qpar * qper**2)**(-1), self.k_ap(kobs[:, None], muobs, qpar, qper), self.mu_ap(muobs, qpar, qper)[None, :]
         #print(muap[0])
         pkmu = jac * self.get_rsd_pkmu(kap, muap, pars, table, table_now, IR_resummation, damping)
-        return np.sum(pkmu * wmu[:, None, :], axis=-1)     
+        return np.sum(pkmu * wmu[:, None, :], axis=-1)
+
+    def _get_pkmu_bias_table_at_mu(self, kobs, muobs, table, table_nw, qpar=1., qper=1., IR_resummation=True):
+        """
+        Returns shape (nk, 17) array of bias-decomposed P(k, muobs).
+
+        Assumes A_full=False and ctilde=0 (EFT model, W=1).
+
+        Column layout (matches velocileptors convention):
+          0: 1          1: b1         2: b1^2
+          3: b2         4: b1*b2      5: b2^2
+          6: bs2        7: b1*bs2     8: b2*bs2     9: bs2^2
+          10: b3nl      11: b1*b3nl
+          12: alpha0    13: alpha2    14: alpha4
+          15: PshotP*alphashot0   16: PshotP*alphashot2
+        """
+        nk = len(kobs)
+
+        # AP transformation
+        kap  = self.k_ap(kobs, muobs, qpar, qper)   # (nk,)
+        muap = self.mu_ap(muobs, qpar, qper)          # scalar
+        jac  = 1.0 / (qpar * qper**2)
+        k, mu = kap, muap
+
+        # Interpolate tables onto the AP-transformed k grid
+        tab    = self.interp_table(k, table,    False)
+        tab_nw = self.interp_table(k, table_nw, False)
+
+        # Unpack full table (A_full=False: 27 interpolated cols + sigma2w + f0)
+        (pkl, Fkoverf0, Ploop_dd, Ploop_dt, Ploop_tt, Pb1b2, Pb1bs2, Pb22, Pb2bs2,
+         Pb2s2, sigma23pkl, Pb2t, Pbs2t, I1udd_1, I2uud_1, I2uud_2, I3uuu_2, I3uuu_3,
+         I2uudd_1D, I2uudd_2D, I3uuud_2D, I3uuud_3D, I4uuuu_2D, I4uuuu_3D, I4uuuu_4D,
+         I3uuud_1B, I4uuuu_1B, sigma2w, *_, f0) = tab
+
+        # Unpack NW table (same layout + sigma2, delta_sigma2 before f0)
+        (pkl_nw, Fkoverf0_nw, Ploop_dd_nw, Ploop_dt_nw, Ploop_tt_nw, Pb1b2_nw, Pb1bs2_nw,
+         Pb22_nw, Pb2bs2_nw, Pb2s2_nw, sigma23pkl_nw, Pb2t_nw, Pbs2t_nw, I1udd_1_nw,
+         I2uud_1_nw, I2uud_2_nw, I3uuu_2_nw, I3uuu_3_nw, I2uudd_1D_nw, I2uudd_2D_nw,
+         I3uuud_2D_nw, I3uuud_3D_nw, I4uuuu_2D_nw, I4uuuu_3D_nw, I4uuuu_4D_nw,
+         I3uuud_1B_nw, I4uuuu_1B_nw, sigma2w_nw, sigma2, delta_sigma2, f0_nw) = tab_nw
+
+        fk = Fkoverf0 * f0  # scale-dependent growth rate f(k)
+
+        # IR-resummation damping factor
+        if IR_resummation:
+            sigma2t = ((1 + f0 * mu**2 * (2 + f0)) * sigma2
+                       + (f0 * mu)**2 * (mu**2 - 1) * delta_sigma2)
+        else:
+            sigma2t = 0.0
+        damp = np.exp(-k**2 * sigma2t)
+
+        def irloop(X, X_nw):
+            """IR-resummed combination: X_nw + damp*(X - X_nw)."""
+            return X_nw + damp * (X - X_nw)
+
+        # IR-resummed linear P for Kaiser term (includes LPT wiggle correction)
+        Plin_IR = pkl_nw + damp * (pkl - pkl_nw) * (1 + k**2 * sigma2t)
+
+        # IR-resummed linear P for counterterms (no correction factor)
+        pkl_IR_ct = irloop(pkl, pkl_nw)
+
+        bias_table = np.zeros((nk, 17))
+
+        # --- col 0: 1 ---
+        # Kaiser f^2 mu^4 part
+        c0  = fk**2 * mu**4 * Plin_IR
+        # f0^2 mu^4 * Ploop_tt
+        c0 += f0**2 * mu**4 * irloop(Ploop_tt, Ploop_tt_nw)
+        # ATNS: b1^3*Af(f0/b1) → constant-in-b1 part = f0^3*(mu^4*I3uuu_2 + mu^6*I3uuu_3)
+        c0 += f0**3 * (mu**4 * irloop(I3uuu_2, I3uuu_2_nw)
+                      + mu**6 * irloop(I3uuu_3, I3uuu_3_nw))
+        # DRSD: b1^4*Df(f0/b1) → constant part = f0^4*(mu^2*I4uuuu_1B+mu^4*I4uuuu_2D+…)
+        c0 += f0**4 * (mu**2 * irloop(I4uuuu_1B, I4uuuu_1B_nw)
+                      + mu**4 * irloop(I4uuuu_2D, I4uuuu_2D_nw)
+                      + mu**6 * irloop(I4uuuu_3D, I4uuuu_3D_nw)
+                      + mu**8 * irloop(I4uuuu_4D, I4uuuu_4D_nw))
+        # GTNS constant part: -(k*mu*f0)^2 * sigma2w * f0^2*mu^4 * Ptt_L
+        if not use_TNS_model_status:
+            c0 += (irloop(-(k*mu*f0)**2 * sigma2w    * f0**2 * mu**4 * pkl    * Fkoverf0**2,
+                          -(k*mu*f0)**2 * sigma2w_nw * f0**2 * mu**4 * pkl_nw * Fkoverf0_nw**2))
+        bias_table[:, 0] = jac * c0
+
+        # --- col 1: b1 ---
+        # Kaiser 2*fk*mu^2 part
+        c1  = 2 * fk * mu**2 * Plin_IR
+        # 2*f0*mu^2 * Ploop_dt  (from PdtXloop)
+        c1 += 2 * f0 * mu**2 * irloop(Ploop_dt, Ploop_dt_nw)
+        # ATNS b1 part: f0^2*(mu^2*I2uud_1 + mu^4*I2uud_2)
+        c1 += f0**2 * (mu**2 * irloop(I2uud_1, I2uud_1_nw)
+                      + mu**4 * irloop(I2uud_2, I2uud_2_nw))
+        # DRSD b1 part: f0^3*(mu^2*I3uuud_1B + mu^4*I3uuud_2D + mu^6*I3uuud_3D)
+        c1 += f0**3 * (mu**2 * irloop(I3uuud_1B, I3uuud_1B_nw)
+                      + mu**4 * irloop(I3uuud_2D, I3uuud_2D_nw)
+                      + mu**6 * irloop(I3uuud_3D, I3uuud_3D_nw))
+        # GTNS b1 part: -(k*mu*f0)^2 * sigma2w * 2*f0*mu^2 * Pdt_L
+        if not use_TNS_model_status:
+            c1 += irloop(-(k*mu*f0)**2 * sigma2w    * 2 * f0 * mu**2 * pkl    * Fkoverf0,
+                         -(k*mu*f0)**2 * sigma2w_nw * 2 * f0 * mu**2 * pkl_nw * Fkoverf0_nw)
+        bias_table[:, 1] = jac * c1
+
+        # --- col 2: b1^2 ---
+        # Kaiser Plin_IR
+        c2  = Plin_IR
+        # PddXloop b1^2: Ploop_dd
+        c2 += irloop(Ploop_dd, Ploop_dd_nw)
+        # ATNS b1^2 part: f0*mu^2 * I1udd_1
+        c2 += f0 * mu**2 * irloop(I1udd_1, I1udd_1_nw)
+        # DRSD b1^2 part: f0^2*(mu^2*I2uudd_1D + mu^4*I2uudd_2D)
+        c2 += f0**2 * (mu**2 * irloop(I2uudd_1D, I2uudd_1D_nw)
+                      + mu**4 * irloop(I2uudd_2D, I2uudd_2D_nw))
+        # GTNS b1^2 part: -(k*mu*f0)^2 * sigma2w * pkl
+        if not use_TNS_model_status:
+            c2 += irloop(-(k*mu*f0)**2 * sigma2w    * pkl,
+                         -(k*mu*f0)**2 * sigma2w_nw * pkl_nw)
+        bias_table[:, 2] = jac * c2
+
+        # --- col 3: b2 ---  (PdtXloop: 2*f0*mu^2*Pb2t)
+        bias_table[:, 3] = jac * (2 * f0 * mu**2 * irloop(Pb2t, Pb2t_nw))
+
+        # --- col 4: b1*b2 ---  (PddXloop: 2*Pb1b2)
+        bias_table[:, 4] = jac * (2 * irloop(Pb1b2, Pb1b2_nw))
+
+        # --- col 5: b2^2 ---  (PddXloop: Pb22)
+        bias_table[:, 5] = jac * irloop(Pb22, Pb22_nw)
+
+        # --- col 6: bs2 ---  (PdtXloop: 2*f0*mu^2*Pbs2t)
+        bias_table[:, 6] = jac * (2 * f0 * mu**2 * irloop(Pbs2t, Pbs2t_nw))
+
+        # --- col 7: b1*bs2 ---  (PddXloop: 2*Pb1bs2)
+        bias_table[:, 7] = jac * (2 * irloop(Pb1bs2, Pb1bs2_nw))
+
+        # --- col 8: b2*bs2 ---  (PddXloop: 2*Pb2bs2)
+        bias_table[:, 8] = jac * (2 * irloop(Pb2bs2, Pb2bs2_nw))
+
+        # --- col 9: bs2^2 ---  (PddXloop: Pb2s2)
+        bias_table[:, 9] = jac * irloop(Pb2s2, Pb2s2_nw)
+
+        # --- col 10: b3nl ---  (PdtXloop: 2*f0*mu^2*fk/f0*sigma23pkl = 2*mu^2*fk*sigma23pkl)
+        bias_table[:, 10] = jac * (2 * f0 * mu**2
+                                   * irloop(Fkoverf0 * sigma23pkl, Fkoverf0_nw * sigma23pkl_nw))
+
+        # --- col 11: b1*b3nl ---  (PddXloop: 2*sigma23pkl)
+        bias_table[:, 11] = jac * (2 * irloop(sigma23pkl, sigma23pkl_nw))
+
+        # --- col 12: alpha0 ---
+        bias_table[:, 12] = jac * (k**2 * pkl_IR_ct)
+
+        # --- col 13: alpha2 ---
+        bias_table[:, 13] = jac * (mu**2 * k**2 * pkl_IR_ct)
+
+        # --- col 14: alpha4 ---
+        bias_table[:, 14] = jac * (mu**4 * k**2 * pkl_IR_ct)
+
+        # --- col 15: PshotP * alphashot0 (constant)
+        bias_table[:, 15] = jac * np.ones(nk)
+
+        # --- col 16: PshotP * alphashot2 (k^2 mu^2 shape)
+        bias_table[:, 16] = jac * (k * mu)**2
+
+        return bias_table
+
+    def compute_redshift_space_power_multipoles_tables(self, kobs, qpar, qper, table, table_nw,
+                                                       nmu=4, ells=(0, 2, 4), IR_resummation=True):
+        """
+        Compute bias-decomposed multipole tables analogous to velocileptors'
+        compute_redshift_space_power_multipoles_tables.
+
+        Assumes A_full=False, ctilde=0, EFT model (W=1).
+
+        Args:
+            kobs: observed wavenumber array
+            qpar, qper: AP dilation parameters (parallel, perpendicular)
+            table: wiggle+NW loop table from MatrixCalculator.calculate_loop_table
+            table_nw: no-wiggle loop table
+            nmu: number of Gauss-Legendre points (half, total = 2*nmu)
+            ells: multipoles to compute (default (0, 2, 4))
+            IR_resummation: whether to apply IR resummation
+
+        Returns:
+            kobs, p0ktable, p2ktable, p4ktable  each of shape (nk, 17)
+
+        Column order matches velocileptors:
+          0:1   1:b1   2:b1^2   3:b2   4:b1*b2   5:b2^2
+          6:bs2   7:b1*bs2   8:b2*bs2   9:bs2^2
+          10:b3nl   11:b1*b3nl
+          12:alpha0   13:alpha2   14:alpha4
+          15:PshotP*alphashot0   16:PshotP*alphashot2
+
+        Reconstruct multipoles as:
+            P_ell(k) = p_ell_table @ [1, b1, b1^2, b2, b1*b2, b2^2, bs2, b1*bs2, b2*bs2, bs2^2,
+                                       b3nl, b1*b3nl, alpha0, alpha2, alpha4,
+                                       PshotP*alphashot0, PshotP*alphashot2]
+        """
+        import numpy as _np  # use real numpy for GL nodes regardless of backend
+
+        nus, ws = _np.polynomial.legendre.leggauss(2 * nmu)
+        nus_calc = nus[:nmu]
+
+        L0 = _np.polynomial.legendre.Legendre((1,))(nus)
+        L2 = _np.polynomial.legendre.Legendre((0, 0, 1))(nus)
+        L4 = _np.polynomial.legendre.Legendre((0, 0, 0, 0, 1))(nus)
+
+        nk = len(kobs)
+        pknutable = np.zeros((2 * nmu, nk, 17))
+
+        for ii, nu in enumerate(nus_calc):
+            pknutable[ii] = self._get_pkmu_bias_table_at_mu(
+                kobs, nu, table, table_nw, qpar, qper, IR_resummation
+            )
+
+        # P(k, mu) is even in mu for all bias combinations → mirror by symmetry
+        pknutable[nmu:] = np.flip(pknutable[:nmu], axis=0)
+
+        p0ktable = 0.5 * np.sum((ws * L0)[:, None, None] * pknutable, axis=0)
+        p2ktable = 2.5 * np.sum((ws * L2)[:, None, None] * pknutable, axis=0)
+        p4ktable = 4.5 * np.sum((ws * L4)[:, None, None] * pknutable, axis=0)
+
+        return kobs, p0ktable, p2ktable, p4ktable
 
 
 
