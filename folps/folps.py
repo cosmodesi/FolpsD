@@ -3284,6 +3284,195 @@ class BispectrumCalculator:
 
         return B0, B2, B4, x
 
+    # ── Bias-decomposed bispectrum multipole tables ───────────────────────────
+
+    def _bk_bias_kernels_at_angles(self, k1, k2, x12, mu1, phi, f,
+                                    Sigma2, deltaSigma2, k_pkl_pklnw,
+                                    qpar, qperp, interp_method='cubic'):
+        """
+        Bias-decomposed bispectrum kernels at fixed angular GL nodes (W=1).
+
+        Returns array of shape (..., 19) matching the broadcast shape of the inputs.
+
+        Column layout:
+          0: 1(f³)     1: b1      2: b1²     3: b1³
+          4: b2        5: b1*b2   6: b1²*b2
+          7: bs2       8: b1*bs2  9: b1²*bs2
+          10: c1       11: b1*c1  12: c2     13: b1*c2
+          14: Bshot*b1²  15: Bshot*b1
+          16: Pshot    17: Pshot*b1  18: Pshot²
+
+        Reconstruct as:
+            B_ell = table @ [1, b1, b1², b1³, b2, b1*b2, b1²*b2,
+                             bs2, b1*bs2, b1²*bs2,
+                             c1, b1*c1, c2, b1*c2,
+                             Bshot*b1², Bshot*b1,
+                             Pshot, Pshot*b1, Pshot²]
+        """
+        import numpy as _np
+
+        cosphi = _np.cos(phi)
+        (k1AP, k2AP, k3AP, x12AP, x23AP, x31AP,
+         mu1AP, mu2AP, mu3AP, _) = self.APtransforms(k1, k2, x12, mu1, cosphi, qpar, qperp)
+
+        k_ = k_pkl_pklnw[0]; pkl_ = k_pkl_pklnw[1]; pklnw_ = k_pkl_pklnw[2]
+
+        def pk_ir(kAP, muAP):
+            pk   = self.interpolation_b(kAP, k_, pkl_,   method=interp_method)
+            pknw = self.interpolation_b(kAP, k_, pklnw_, method=interp_method)
+            eIR  = ((1 + f*muAP**2*(2+f))*Sigma2
+                    + (f*muAP)**2*(muAP**2 - 1)*deltaSigma2)
+            return pknw + (pk - pknw) * _np.exp(-eIR * kAP**2)
+
+        P1 = pk_ir(k1AP, mu1AP)
+        P2 = pk_ir(k2AP, mu2AP)
+        P3 = pk_ir(k3AP, mu3AP)
+
+        a1, a2, a3 = f*mu1AP**2, f*mu2AP**2, f*mu3AP**2
+
+        def z2_parts(ki, kj, xij, mui, muj, ai, aj):
+            """Return (Z2f, Z2b1, Z2bs): f-only, b1-coeff, and bs2-coeff pieces of Z2."""
+            F2   = 5/7 + xij/2*(ki/kj + kj/ki) + 2/7*xij**2
+            G2   = 3/7 + xij/2*(ki/kj + kj/ki) + 4/7*xij**2
+            km   = ki*mui + kj*muj
+            muG2 = km**2 / (ki**2 + kj**2 + 2*ki*kj*xij)
+            Z2f  = f*G2*muG2 + f**2 * km/2 * (mui*aj/ki + muj*ai/kj)
+            Z2b1 = F2 + f*km/2*(mui/ki + muj/kj)
+            Z2bs = (xij**2 - 1/3) / 2
+            return Z2f, Z2b1, Z2bs
+
+        Z2f12, Z2b1_12, Z2bs_12 = z2_parts(k1AP, k2AP, x12AP, mu1AP, mu2AP, a1, a2)
+        Z2f23, Z2b1_23, Z2bs_23 = z2_parts(k2AP, k3AP, x23AP, mu2AP, mu3AP, a2, a3)
+        Z2f31, Z2b1_31, Z2bs_31 = z2_parts(k3AP, k1AP, x31AP, mu3AP, mu1AP, a3, a1)
+
+        bshape = _np.broadcast(k1, x12, mu1, phi).shape
+        T = _np.zeros(bshape + (19,))
+
+        def add_pair(Z2f, Z2b1, Z2bs, ai, aj, Pi, Pj, kiAP, kjAP, muiAP, mujAP):
+            PiPj = Pi * Pj
+            # Cols 0-3: powers of b1
+            T[..., 0] += 2 * Z2f * ai*aj * PiPj
+            T[..., 1] += 2 * (Z2f*(ai+aj) + Z2b1*ai*aj) * PiPj
+            T[..., 2] += 2 * (Z2f + Z2b1*(ai+aj)) * PiPj
+            T[..., 3] += 2 * Z2b1 * PiPj
+            # Cols 4-6: b2 (Z2b2 = 0.5, so 2*Z2b2 = 1)
+            T[..., 4] += ai*aj * PiPj
+            T[..., 5] += (ai+aj) * PiPj
+            T[..., 6] += PiPj
+            # Cols 7-9: bs2
+            T[..., 7] += 2 * Z2bs * ai*aj * PiPj
+            T[..., 8] += 2 * Z2bs * (ai+aj) * PiPj
+            T[..., 9] += 2 * Z2bs * PiPj
+            # Cols 10-13: EFT (first order in c1, c2; Z2f only for leading order)
+            # Z1eft_i subtracts (c1*mu²+c2*mu⁴)*k², kernel carries the minus sign
+            C1i = muiAP**2 * kiAP**2;  C1j = mujAP**2 * kjAP**2
+            C2i = muiAP**4 * kiAP**2;  C2j = mujAP**4 * kjAP**2
+            T[..., 10] += -2 * Z2f * (C1i*aj + C1j*ai) * PiPj
+            T[..., 11] += -2 * Z2f * (C1i + C1j) * PiPj
+            T[..., 12] += -2 * Z2f * (C2i*aj + C2j*ai) * PiPj
+            T[..., 13] += -2 * Z2f * (C2i + C2j) * PiPj
+
+        add_pair(Z2f12, Z2b1_12, Z2bs_12, a1, a2, P1, P2, k1AP, k2AP, mu1AP, mu2AP)
+        add_pair(Z2f23, Z2b1_23, Z2bs_23, a2, a3, P2, P3, k2AP, k3AP, mu2AP, mu3AP)
+        add_pair(Z2f31, Z2b1_31, Z2bs_31, a3, a1, P3, P1, k3AP, k1AP, mu3AP, mu1AP)
+
+        # Cols 14-18: shot noise (per-leg, no Z2)
+        T[..., 14] += P1 + P2 + P3                          # Bshot * b1²
+        T[..., 15] += a1*P1 + a2*P2 + a3*P3                 # Bshot * b1
+        T[..., 16] += 2*(a1**2*P1 + a2**2*P2 + a3**2*P3)   # Pshot
+        T[..., 17] += 2*(a1*P1 + a2*P2 + a3*P3)             # Pshot * b1
+        T[..., 18] += 1.0                                    # Pshot²
+
+        T /= (qpar * qperp**2)**2
+
+        return T
+
+    def compute_bispectrum_multipoles_tables(self, k1k2pairs, f, k_pkl_pklnw,
+                                              qpar=1., qperp=1.,
+                                              precision=[4, 5, 5],
+                                              multipoles=['B000', 'B202'],
+                                              renormalize=True,
+                                              interp_method='cubic'):
+        """
+        Compute bias-decomposed Sugiyama bispectrum multipole tables (W=1).
+
+        Args:
+            k1k2pairs: array (N, 2) of (k1, k2) pairs
+            f: growth rate
+            k_pkl_pklnw: [k, pkl, pklnw]
+            qpar, qperp: AP parameters
+            precision: [Nphi, Nx, Nmu] GL points
+            multipoles: Sugiyama multipoles to compute
+            renormalize: apply Hl1l2L normalization factors
+            interp_method: 'cubic' or 'linear'
+
+        Returns:
+            dict: multipole name → (N, 19) array
+
+        Reconstruct as:
+            B_ell = table @ [1, b1, b1², b1³,
+                             b2, b1*b2, b1²*b2,
+                             bs2, b1*bs2, b1²*bs2,
+                             c1, b1*c1, c2, b1*c2,
+                             Bshot*b1², Bshot*b1,
+                             Pshot, Pshot*b1, Pshot²]
+        """
+        import numpy as _np
+
+        Hl1l2L = {
+            'B000': 1.0, 'B110': -1/_np.sqrt(3), 'B220': 1/_np.sqrt(5),
+            'B202': 1/_np.sqrt(5), 'B022': 1/_np.sqrt(5), 'B112': _np.sqrt(2/15),
+        }
+        for mp in multipoles:
+            if mp not in Hl1l2L:
+                raise ValueError(f"Unknown multipole '{mp}'. Available: {list(Hl1l2L)}")
+
+        k1k2pairs = _np.asarray(k1k2pairs)
+        k1 = k1k2pairs[:, 0][:, None, None, None]
+        k2 = k1k2pairs[:, 1][:, None, None, None]
+
+        tablesGL = self.tablesGL_f(precision)
+        _, Sigma2, deltaSigma2 = self.sigmas(k_pkl_pklnw[0], k_pkl_pklnw[1])
+
+        phiGL, xGL, muGL = tablesGL
+        phi, wphi = phiGL[:, 0], phiGL[:, 1]
+        x,   wx   = xGL[:,  0], xGL[:,  1]
+        mu,  wmu  = muGL[:, 0], muGL[:, 1]
+
+        x_mesh   = x[None, :, None, None]
+        mu_mesh  = mu[None, None, :, None]
+        phi_mesh = phi[None, None, None, :]
+        cosphi   = _np.cos(phi_mesh)
+        cos2phi  = _np.cos(2 * phi_mesh)
+
+        # shape: (n_pairs, Nx, Nmu, Nphi, 19)
+        kernel_table = self._bk_bias_kernels_at_angles(
+            k1, k2, x_mesh, mu_mesh, phi_mesh,
+            f, Sigma2, deltaSigma2, k_pkl_pklnw,
+            qpar, qperp, interp_method,
+        )
+
+        result = {}
+        for mp in multipoles:
+            integrand = self._compute_single_integrand(
+                mp, x_mesh, mu_mesh, phi_mesh, cosphi, cos2phi,
+            )  # (1, Nx, Nmu, Nphi)
+
+            int_phi = 2 * _np.sum(
+                kernel_table * integrand[..., None] * wphi[None, None, None, :, None],
+                axis=3,
+            )  # (n_pairs, Nx, Nmu, 19)
+            int_mu = _np.sum(int_phi * wmu[None, None, :, None], axis=2)  # (n_pairs, Nx, 19)
+            int_x  = _np.sum(int_mu  * wx[None, :, None],  axis=1)        # (n_pairs, 19)
+
+            if renormalize:
+                int_x *= Hl1l2L[mp]
+
+            result[mp] = int_x
+
+        return result
+
+
 
 
 
