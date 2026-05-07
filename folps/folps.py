@@ -1664,11 +1664,13 @@ class RSDMultipolesPowerSpectrumCalculator:
         pkmu = jac * self.get_rsd_pkmu(kap, muap, pars, table, table_now, IR_resummation, damping)
         return np.sum(pkmu * wmu[:, None, :], axis=-1)
 
-    def _get_pkmu_bias_table_at_mu(self, kobs, muobs, table, table_nw, qpar=1., qper=1., IR_resummation=True):
+    def _get_pkmu_bias_table_at_mu(self, kobs, muobs, table, table_nw, qpar=1., qper=1., IR_resummation=True,
+                                    X_FoG_p=None, damping=None):
         """
         Returns shape (nk, 17) array of bias-decomposed P(k, muobs).
 
-        Assumes A_full=False and ctilde=0 (EFT model, W=1).
+        Assumes A_full=False and ctilde=0. FoG damping W(k,mu) is applied to columns 0-14
+        when X_FoG_p and damping are provided; columns 15-16 (shot noise) are unaffected.
 
         Column layout (matches velocileptors convention):
           0: 1          1: b1         2: b1^2
@@ -1712,6 +1714,21 @@ class RSDMultipolesPowerSpectrumCalculator:
         else:
             sigma2t = 0.0
         damp = np.exp(-k**2 * sigma2t)
+
+        # FoG damping W(k, mu, X_FoG_p) using AP-transformed k and mu
+        if X_FoG_p is not None and damping is not None:
+            c2 = (f0 * k * mu)**2
+            if damping == 'lor':
+                W_fog = 1.0 / (1.0 + X_FoG_p**2 * c2 * sigma2w)
+            elif damping == 'exp':
+                W_fog = _np.exp(-X_FoG_p**2 * c2 * sigma2w)
+            elif damping == 'vdg':
+                X2 = X_FoG_p**2
+                W_fog = _np.exp(-c2 * sigma2w / (1.0 + c2 * X2)) / _np.sqrt(1.0 + c2 * X2)
+            else:
+                W_fog = None
+        else:
+            W_fog = None
 
         def irloop(X, X_nw):
             """IR-resummed combination: X_nw + damp*(X - X_nw)."""
@@ -1822,15 +1839,21 @@ class RSDMultipolesPowerSpectrumCalculator:
         # --- col 16: PshotP * alphashot2 (k^2 mu^2 shape)
         bias_table[:, 16] = jac * (k * mu)**2
 
+        # Apply FoG damping to all non-shot-noise columns (cols 0-14)
+        if W_fog is not None:
+            bias_table[:, :15] *= W_fog[:, None]
+
         return bias_table
 
     def compute_redshift_space_power_multipoles_tables(self, kobs, qpar, qper, table, table_nw,
-                                                       nmu=4, ells=(0, 2, 4), IR_resummation=True):
+                                                       nmu=4, ells=(0, 2, 4), IR_resummation=True,
+                                                       X_FoG_p=None, damping=None):
         """
         Compute bias-decomposed multipole tables analogous to velocileptors'
         compute_redshift_space_power_multipoles_tables.
 
-        Assumes A_full=False, ctilde=0, EFT model (W=1).
+        Assumes A_full=False, ctilde=0. FoG damping is applied to columns 0-14 when
+        X_FoG_p and damping are provided.
 
         Args:
             kobs: observed wavenumber array
@@ -1840,6 +1863,8 @@ class RSDMultipolesPowerSpectrumCalculator:
             nmu: number of Gauss-Legendre points (half, total = 2*nmu)
             ells: multipoles to compute (default (0, 2, 4))
             IR_resummation: whether to apply IR resummation
+            X_FoG_p: FoG velocity dispersion parameter (None = no damping)
+            damping: damping kernel — 'lor' (Lorentzian), 'exp' (Gaussian), 'vdg' (VDG)
 
         Returns:
             kobs, p0ktable, p2ktable, p4ktable  each of shape (nk, 17)
@@ -1870,7 +1895,7 @@ class RSDMultipolesPowerSpectrumCalculator:
 
         for ii, nu in enumerate(nus_calc):
             pknutable[ii] = self._get_pkmu_bias_table_at_mu(
-                kobs, nu, table, table_nw, qpar, qper, IR_resummation
+                kobs, nu, table, table_nw, qpar, qper, IR_resummation, X_FoG_p, damping
             )
 
         # P(k, mu) is even in mu for all bias combinations → mirror by symmetry
