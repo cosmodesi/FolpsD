@@ -1723,7 +1723,8 @@ class RSDMultipolesPowerSpectrumCalculator:
         # IR-resummed linear P for counterterms (no correction factor)
         pkl_IR_ct = irloop(pkl, pkl_nw)
 
-        bias_table = np.zeros((nk, 17))
+        import numpy as _np
+        bias_table = _np.zeros((nk, 17))
 
         # --- col 0: 1 ---
         # Kaiser f^2 mu^4 part
@@ -1816,7 +1817,7 @@ class RSDMultipolesPowerSpectrumCalculator:
         bias_table[:, 14] = jac * (mu**4 * k**2 * pkl_IR_ct)
 
         # --- col 15: PshotP * alphashot0 (constant)
-        bias_table[:, 15] = jac * np.ones(nk)
+        bias_table[:, 15] = jac * _np.ones(nk)
 
         # --- col 16: PshotP * alphashot2 (k^2 mu^2 shape)
         bias_table[:, 16] = jac * (k * mu)**2
@@ -1865,7 +1866,7 @@ class RSDMultipolesPowerSpectrumCalculator:
         L4 = _np.polynomial.legendre.Legendre((0, 0, 0, 0, 1))(nus)
 
         nk = len(kobs)
-        pknutable = np.zeros((2 * nmu, nk, 17))
+        pknutable = _np.zeros((2 * nmu, nk, 17))
 
         for ii, nu in enumerate(nus_calc):
             pknutable[ii] = self._get_pkmu_bias_table_at_mu(
@@ -1873,7 +1874,7 @@ class RSDMultipolesPowerSpectrumCalculator:
             )
 
         # P(k, mu) is even in mu for all bias combinations → mirror by symmetry
-        pknutable[nmu:] = np.flip(pknutable[:nmu], axis=0)
+        pknutable[nmu:] = _np.flip(pknutable[:nmu], axis=0)
 
         p0ktable = 0.5 * np.sum((ws * L0)[:, None, None] * pknutable, axis=0)
         p2ktable = 2.5 * np.sum((ws * L2)[:, None, None] * pknutable, axis=0)
