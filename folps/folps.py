@@ -3180,8 +3180,7 @@ class BispectrumCalculator_fk:
                               muj/kj *  (b1 + fi * mui**2) )
         F2 = 5/7 + xij/2 * (ki/kj + kj/ki) + 2/7 * xij**2
         # G2e = 3/7 + xij/2 * (fi/f0*ki/kj + fj/f0*kj/ki) + 4/7 * xij**2
-        G2 = (3*(fi+fj)*calA + 3*calAp)/(14*f0) + xij/2 * (fi/f0*ki/kj + fj/f0*kj/ki)
-        + xij**2 * ( (fi+fj)*calA/(2*f0) - (3*(fi+fj)*calA + 3*calAp)/(14*f0) )
+        G2 = (3*(fi+fj)*calA + 3*calAp)/(14*f0) + xij/2 * (fi/f0*ki/kj + fj/f0*kj/ki) + xij**2 * ( (fi+fj)*calA/(2*f0) - (3*(fi+fj)*calA + 3*calAp)/(14*f0) )
         term3 = b1 * F2
         mu2 = km**2 / (ki**2 + kj**2 + 2 * ki * kj * xij)
         term4 = fij * mu2 * G2
