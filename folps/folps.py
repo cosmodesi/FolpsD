@@ -970,6 +970,73 @@ class NonLinearPowerSpectrumCalculator:
             self.Fkoverf0 = interp(self.kTout, self.inputfkT[0], self.inputfkT[1])
 
 
+    def _initialize_png(self, k, pklin, cosmo=None):
+        r"""Initialize the local-PNG transfer :math:`\alpha(k) = 1 / M(k)`, times :math:`k^2`.
+
+        The table carries :math:`\alpha k^2` rather than :math:`\alpha` because that combination
+        is :math:`\propto 1/T(k)`: flat where :math:`\alpha` itself diverges, which is exactly
+        the low-:math:`k` region the scale-dependent bias is sensitive to.  Callers divide by
+        :math:`k^2` again -- at the Alcock-Paczynski :math:`k`, which is where the table is
+        interpolated, so the factor is exact.
+
+        :math:`\alpha` is read from ``kwargs``, in order of decreasing directness: ``alpha_png``
+        (an array on the *k* grid), ``pk_prim`` (likewise, e.g. ``cosmoprimo`` ``primordial.pk_k``),
+        or ``A_s`` and ``n_s`` (with ``k_pivot``, in :math:`1/\mathrm{Mpc}`, and ``h``), also
+        taken from *cosmo* when it provides them.  ``png_method`` selects ``'prim'`` (default) or
+        ``'transfer'``; see :func:`folps.png.alpha_png`.  Absent all of these, PNG is switched
+        off -- :math:`\alpha = 0`, so that ``fnl`` has no effect.
+
+        With massive neutrinos :math:`\alpha` inherits whichever spectrum was passed as *pklin*
+        -- cold dark matter + baryons, in the usual FOLPS setup -- which is the one the bias
+        multiplies, so no further choice is needed here.
+        """
+        try:
+            from .png import alpha_png, primordial_pk
+        except ImportError:  # module imported as a plain script, not as a package
+            from png import alpha_png, primordial_pk
+
+        kwargs = self.kwargs
+        h = kwargs.get('h', None)
+        if h is None and cosmo is not None:
+            h = cosmo.h()
+        alpha = kwargs.get('alpha_png', None)
+        if alpha is None:
+            pk_prim = kwargs.get('pk_prim', None)
+            if pk_prim is None:
+                A_s, n_s = kwargs.get('A_s', None), kwargs.get('n_s', None)
+                if A_s is None and cosmo is not None and hasattr(cosmo, 'A_s'):
+                    A_s, n_s = cosmo.A_s(), cosmo.n_s()
+                if A_s is not None:
+                    pk_prim = primordial_pk(k, A_s=A_s, n_s=n_s, k_pivot=kwargs.get('k_pivot', 0.05),
+                                            h=h, alpha_s=kwargs.get('alpha_s', 0.),
+                                            beta_s=kwargs.get('beta_s', 0.))
+            if pk_prim is not None:
+                if h is None:
+                    raise ValueError("local PNG needs 'h' in kwargs (or a cosmo), to normalise the "
+                                     "primordial spectrum")
+                method = kwargs.get('png_method', 'prim')
+                Omega0_m = growth_factor_z = growth_factor_znorm = None
+                znorm = kwargs.get('znorm', 10.)
+                if method == 'transfer':
+                    Omega0_m = kwargs.get('Omega_m', None)
+                    growth_factor_z = kwargs.get('growth_factor_z', None)
+                    growth_factor_znorm = kwargs.get('growth_factor_znorm', None)
+                    if cosmo is not None:
+                        if Omega0_m is None:
+                            Omega0_m = cosmo.Omega0_m()
+                        if growth_factor_z is None:
+                            growth_factor_z = cosmo.scale_independent_growth_factor(kwargs['z'])
+                        if growth_factor_znorm is None:
+                            growth_factor_znorm = cosmo.scale_independent_growth_factor(znorm)
+                alpha = alpha_png(k, pklin, pk_prim, h, method=method, Omega0_m=Omega0_m,
+                                  growth_factor_z=growth_factor_z,
+                                  growth_factor_znorm=growth_factor_znorm, znorm=znorm)
+        self.has_png = alpha is not None
+        if self.has_png:
+            self.alphak2 = interp(self.kTout, k, np.asarray(alpha) * np.asarray(k)**2)
+        else:
+            self.alphak2 = np.zeros_like(self.kTout)
+
     def _initialize_nonwiggle_power_spectrum(self, inputpkT, pknow=None, cosmo=None,k=None):
         """
         Initializes non-wiggle linear power spectrum.
@@ -1203,6 +1270,7 @@ class NonLinearPowerSpectrumCalculator:
         self.kwargs = kwargs
 
         self._initialize_factors(cosmo=cosmo, k=k)
+        self._initialize_png(k, pklin, cosmo=cosmo)
         self._initialize_nonwiggle_power_spectrum(inputpkT=self.inputpkT, pknow=pknow, cosmo=cosmo,k=k)
         self._initialize_liner_power_spectra(inputpkT=self.inputpkT)
         self._initialize_fftlog_terms()
@@ -1296,6 +1364,9 @@ class NonLinearPowerSpectrumCalculator:
                                       I1udd_1_bs2, I2uud_1_bs2, I2uud_2_bs2
                                     ])
 
+            # Last of the interpolated block, so every index before it -- pk_l at 1, Fkoverf0
+            # at 2 -- keeps the meaning it had before local PNG was added; see table_alphak2.
+            common_values.append(self.alphak2)
             common_values.append(sigma2w)
 
             if extra_NW:
@@ -1326,6 +1397,9 @@ class NonLinearPowerSpectrumCalculator:
         # Initialize f(k)/f0 and f0
         self._initialize_factors(cosmo=cosmo, k=k)
 
+        # Initialize the local-PNG transfer alpha(k)
+        self._initialize_png(k, pklin, cosmo=cosmo)
+
         # Initialize non-wiggle spectrum
         self._initialize_nonwiggle_power_spectrum(
             inputpkT=self.inputpkT, pknow=pknow, cosmo=cosmo, k=k
@@ -1338,7 +1412,68 @@ class NonLinearPowerSpectrumCalculator:
         # Scale-dependent growth rate
         fk = self.f0 * self.Fkoverf0
 
-        return {"k": self.kTout,"pk_l": pk_l,"pk_l_NW": pk_l_NW,"f_k": fk,"f0": self.f0}
+        return {"k": self.kTout,"pk_l": pk_l,"pk_l_NW": pk_l_NW,"f_k": fk,"f0": self.f0,
+                "alpha_png": self.alphak2 / self.kTout**2}
+
+
+def split_png_pars(pars, ncore, npng):
+    r"""Split a flat bias vector into ``(core, png, X_FoG)``.
+
+    The local-PNG parameters are optional and sit between the core biases and ``X_FoG``, which
+    stays last so that the ``pars[-1]`` idiom keeps working: a vector without them is read with
+    every PNG parameter zero, which reproduces the Gaussian model exactly.
+
+    Parameters
+    ----------
+    pars : sequence
+        ``[*core, X_FoG]`` or ``[*core, *png, X_FoG]``.
+    ncore, npng : int
+        Number of core and PNG parameters expected.
+    """
+    n = len(pars)
+    if n == ncore + 1:
+        return pars[:ncore], (0.,) * npng, pars[-1]
+    if n == ncore + 1 + npng:
+        return pars[:ncore], pars[ncore:ncore + npng], pars[-1]
+    raise ValueError(f"expected {ncore + 1} bias parameters, or {ncore + 1 + npng} with PNG; got {n}")
+
+
+def table_alphak2(table, nowiggle=False):
+    r"""Return the :math:`\alpha(k) k^2` column of a loop *table*.
+
+    It is the last entry of the interpolated block, so that adding it left every index before it
+    untouched; the entries after it are ``sigma2w``, then -- on the no-wiggle table, hence
+    *nowiggle* -- ``sigma2_NW`` and ``delta_sigma2_NW``, then ``f0``.  Counting from the end
+    therefore works whether or not the loop terms have been interpolated.  Both tables carry the
+    same :math:`\alpha`, which is why the callers inside folps only ever read the wiggle one.
+    """
+    return table[-5 if nowiggle else -3]
+
+
+def with_table_alphak2(table, alphak2, nowiggle=False):
+    r"""Return *table* with its :math:`\alpha(k) k^2` column replaced by *alphak2*.
+
+    For a caller that computes the local-PNG transfer itself -- from the table's own linear
+    power spectrum and a primordial spectrum, say -- rather than letting
+    :meth:`NonLinearPowerSpectrumCalculator._initialize_png` build it from the loop-table kwargs.
+    Both tables need it: the no-wiggle one is what :meth:`get_eft_pkmu` reads for the no-wiggle
+    half of the IR resummation.  See :func:`table_alphak2` for *nowiggle*.
+    """
+    table = list(table)
+    table[-5 if nowiggle else -3] = alphak2
+    return tuple(table)
+
+
+def png_prim_ratio(alphai, alphaj, alphak):
+    r"""Return :math:`\alpha_i \alpha_j / \alpha_k`, and zero wherever :math:`\alpha_k` is.
+
+    This is the combination the primordial bispectrum is built from,
+    :math:`M_1 M_2 M_3 P_\phi(k_i) P_\phi(k_j) = \alpha_i \alpha_j P(k_i) P(k_j) / \alpha_k`.
+    A table built without PNG inputs carries :math:`\alpha = 0`, which would make the ratio
+    0/0; the guard is doubled so that the derivative is finite there too.
+    """
+    safe = np.where(alphak > 0., alphak, 1.)
+    return np.where(alphak > 0., alphai * alphaj / safe, 0.)
 
 
 def weights_leggauss(nx, sym=False):
@@ -1375,38 +1510,37 @@ class RSDMultipolesPowerSpectrumCalculator:
         if bias_scheme in ["folps", "pat", "mcdonald"]:
             if pars is None:
                 pars = [1.0, 0.5, 0.3, 0.1, 0.01, 0.02, 0.03, 0.04, 0.001, 0.002, 0.003, 0.0]
-            (b1, b2, bs2, b3nl, alpha0, alpha2, alpha4, ctilde, alphashot0, alphashot2, PshotP, X_FoG_p) = pars
+            core, png, X_FoG_p = split_png_pars(pars, 11, 2)
+            (b1, b2, bs2, b3nl, alpha0, alpha2, alpha4, ctilde, alphashot0, alphashot2, PshotP) = core
 
         elif bias_scheme in ["assassi", "classpt"]:
             if pars is None:
                 raise ValueError("Nuisance parameters must be provided for Assassi/classpt bias scheme.")
+            core, png, X_FoG_p = split_png_pars(pars, 11, 2)
             (b1_classPT, b2_classPT, bG2_classPT, bGamma3_classPT, alpha0, alpha2, alpha4,
-             ctilde, alphashot0, alphashot2, PshotP, X_FoG_p) = pars
+             ctilde, alphashot0, alphashot2, PshotP) = core
             b1 = b1_classPT
             b2 = b2_classPT - 4/3 * bG2_classPT
             bs2 = 2 * bG2_classPT
             b3nl = -32/21 * (bG2_classPT + 2/5 * bGamma3_classPT)
 
-            pars = [b1, b2, bs2, b3nl, alpha0, alpha2, alpha4,
-                    ctilde, alphashot0, alphashot2, PshotP, X_FoG_p]
-
         elif bias_scheme in ["desi", "priordocument", "dr2", "priordoc"]:
             if pars is None:
                 raise ValueError("Nuisance parameters must be provided for 'priordocument' bias scheme.")
+            core, png, X_FoG_p = split_png_pars(pars, 11, 2)
             (b1_priordoc, b2_priordoc, bK2_priordoc, btd_priordoc, alpha0, alpha2, alpha4,
-             ctilde, alphashot0, alphashot2, PshotP, X_FoG_p) = pars
+             ctilde, alphashot0, alphashot2, PshotP) = core
             b1 = b1_priordoc
             b2 = b2_priordoc
             bs2 = 2.* bK2_priordoc
             b3nl = -32/21 * (bK2_priordoc + 2/5 * btd_priordoc)
 
-            pars = [b1, b2, bs2, b3nl, alpha0, alpha2, alpha4,
-                    ctilde, alphashot0, alphashot2, PshotP, X_FoG_p]
-
         else:
             raise ValueError("Invalid bias scheme. Choose from 'folps', 'pat', 'mcdonald', 'assassi', 'classpt', 'desi', 'priordocument', 'dr2', or 'priordoc' (case-insensitive).")
 
-        return pars
+        # Always returned in the long, PNG-carrying convention, whatever the input length was.
+        return [b1, b2, bs2, b3nl, alpha0, alpha2, alpha4, ctilde, alphashot0, alphashot2, PshotP,
+                png[0], png[1], X_FoG_p]
 
 
     def interp_table(self, k, table, A_full_status):
@@ -1417,13 +1551,14 @@ class RSDMultipolesPowerSpectrumCalculator:
         - If backend is NumPy, use CubicSpline for interpolation.
         """
 
+        # 29 = the interpolated block [pk_l, alpha k^2, Fkoverf0, ... I4uuuu_1B], A_full adding 6.
         extra = 6 if A_full_status else 0
 
         # Detect JAX backend
         is_jax_backend = getattr(np, "__name__", "numpy").startswith("jax.")
 
         # Columns to interpolate
-        cols_to_interp = table[1:28 + extra]
+        cols_to_interp = table[1:29 + extra]
 
         if is_jax_backend:
             # JAX backend: interpolate each column individually to avoid dimension issues
@@ -1433,7 +1568,7 @@ class RSDMultipolesPowerSpectrumCalculator:
                 interp_results.append(interp_val)
 
             interp_tuple = tuple(interp_results)
-            return interp_tuple + tuple(table[28 + extra:])
+            return interp_tuple + tuple(table[29 + extra:])
 
         else:
             # NumPy backend: use SciPy CubicSpline column by column
@@ -1448,7 +1583,7 @@ class RSDMultipolesPowerSpectrumCalculator:
                 interp_results.append(interp_val)
 
             interp_tuple = tuple(interp_results)
-            return interp_tuple + tuple(table[28 + extra:])
+            return interp_tuple + tuple(table[29 + extra:])
 
     def k_ap(self, kobs, muobs, qpar, qper):
         """Return the true wave-number ‘k_AP’."""
@@ -1482,7 +1617,8 @@ class RSDMultipolesPowerSpectrumCalculator:
         """
         damping_method = _normalize_damping_method(damping_method)
         _resolve_use_gtns(use_GTNS, damping_method)  # validate early, even if the model overrides below
-        (b1, b2, bs2, b3nl, alpha0, alpha2, alpha4, ctilde, alphashot0, alphashot2, PshotP, X_FoG_p) = pars
+        core, (fnl, bphi), X_FoG_p = split_png_pars(pars, 11, 2)
+        (b1, b2, bs2, b3nl, alpha0, alpha2, alpha4, ctilde, alphashot0, alphashot2, PshotP) = core
 
         if A_full_status:
             (pkl, Fkoverf0, Ploop_dd, Ploop_dt, Ploop_tt, Pb1b2, Pb1bs2, Pb22, Pb2bs2,
@@ -1490,17 +1626,22 @@ class RSDMultipolesPowerSpectrumCalculator:
              I2uudd_1D, I2uudd_2D, I3uuud_2D, I3uuud_3D, I4uuuu_2D, I4uuuu_3D, I4uuuu_4D,
              I3uuud_1B, I4uuuu_1B,
              I1udd_1_b2, I2uud_1_b2, I2uud_2_b2, I1udd_1_bs2, I2uud_1_bs2, I2uud_2_bs2,
-             sigma2w, *_, f0) = table
+             alphak2, sigma2w, *_, f0) = table
         else:
             (pkl, Fkoverf0, Ploop_dd, Ploop_dt, Ploop_tt, Pb1b2, Pb1bs2, Pb22, Pb2bs2,
              Pb2s2, sigma23pkl, Pb2t, Pbs2t, I1udd_1, I2uud_1, I2uud_2, I3uuu_2, I3uuu_3,
              I2uudd_1D, I2uudd_2D, I3uuud_2D, I3uuud_3D, I4uuuu_2D, I4uuuu_3D, I4uuuu_4D,
              I3uuud_1B, I4uuuu_1B,
-             sigma2w, *_, f0) = table
+             alphak2, sigma2w, *_, f0) = table
 
         fk = Fkoverf0 * f0
         Pdt_L = pkl * Fkoverf0
         Ptt_L = pkl * Fkoverf0**2
+        # Local-PNG scale-dependent bias: the linear response of the tracer, b1 + b_phi f_NL
+        # alpha(k).  It replaces b1 in the terms that are first order in the linear bias -- the
+        # tree-level Kaiser spectrum and what multiplies it -- and *not* in the 1-loop bracket,
+        # whose b1 sits inside convolution integrals that alpha(k) cannot be pulled out of.
+        b1eff = b1 + fnl * bphi * alphak2 / kev**2
 
         def PddXloop(b1, b2, bs2, b3nl):
             return (b1**2 * Ploop_dd + 2 * b1 * b2 * Pb1b2 + 2 * b1 * bs2 * Pb1bs2 + b2**2 * Pb22
@@ -1542,7 +1683,7 @@ class RSDMultipolesPowerSpectrumCalculator:
             if use_TNS_model_status or not _use_gtns:
                 return 0
             else:
-                return -((kev * mu * f0)**2 * sigma2w * (b1**2 * pkl + 2 * b1 * f0 * mu**2 * Pdt_L + f0**2 * mu**4 * Ptt_L))
+                return -((kev * mu * f0)**2 * sigma2w * (b1eff**2 * pkl + 2 * b1eff * f0 * mu**2 * Pdt_L + f0**2 * mu**4 * Ptt_L))
 
         def PloopSPTs(mu, b1, b2, bs2, b3nl):
             if A_full_status:
@@ -1559,7 +1700,7 @@ class RSDMultipolesPowerSpectrumCalculator:
                 )
 
         def PKaiserLs(mu, b1):
-            return (b1 + mu**2 * fk)**2 * pkl
+            return (b1eff + mu**2 * fk)**2 * pkl
 
         def PctNLOs(mu, b1, ctilde):
             return ctilde * (mu * kev * f0)**4 * sigma2w**2 * PKaiserLs(mu, b1)
@@ -1623,7 +1764,8 @@ class RSDMultipolesPowerSpectrumCalculator:
             damping_method = 'loop+ctr'
         table = self.interp_table(k, table, A_full_status)
         table_now = self.interp_table(k, table_now, A_full_status)
-        b1 = pars[0]
+        (fnl, bphi) = split_png_pars(pars, 11, 2)[1]
+        b1 = pars[0] + fnl * bphi * table_alphak2(table) / k**2
         f0 = table[-1]
         fk = table[1] * f0
         pkl, pkl_now = table[0], table_now[0]
@@ -1703,13 +1845,13 @@ class RSDMultipolesPowerSpectrumCalculator:
              I2uudd_1D, I2uudd_2D, I3uuud_2D, I3uuud_3D, I4uuuu_2D, I4uuuu_3D, I4uuuu_4D,
              I3uuud_1B, I4uuuu_1B,
              I1udd_1_b2, I2uud_1_b2, I2uud_2_b2, I1udd_1_bs2, I2uud_1_bs2, I2uud_2_bs2,
-             sigma2w, *_, f0) = table
+             alphak2, sigma2w, *_, f0) = table
         else:
             (pkl, Fkoverf0, Ploop_dd, Ploop_dt, Ploop_tt, Pb1b2, Pb1bs2, Pb22, Pb2bs2,
              Pb2s2, sigma23pkl, Pb2t, Pbs2t, I1udd_1, I2uud_1, I2uud_2, I3uuu_2, I3uuu_3,
              I2uudd_1D, I2uudd_2D, I3uuud_2D, I3uuud_3D, I4uuuu_2D, I4uuuu_3D, I4uuuu_4D,
              I3uuud_1B, I4uuuu_1B,
-             sigma2w, *_, f0) = table
+             alphak2, sigma2w, *_, f0) = table
 
         fk = Fkoverf0 * f0
         Pdt_L = pkl * Fkoverf0
@@ -1718,6 +1860,9 @@ class RSDMultipolesPowerSpectrumCalculator:
         b2 = BiasPolynomial.variable('b2')
         bs2 = BiasPolynomial.variable('bs')
         b3nl = BiasPolynomial.variable('b3nl')
+        # b1 + b_phi f_NL alpha(k), see get_eft_pkmu; Gaussian runs never evaluate the extra
+        # monomials, they only carry them.
+        b1eff = b1 + BiasPolynomial.variable('fnl') * BiasPolynomial.variable('bphi', alphak2 / kev**2)
 
         PddXloop = (b1 * b1 * Ploop_dd + b1 * b2 * (2 * Pb1b2) + b1 * bs2 * (2 * Pb1bs2)
                     + b2 * b2 * Pb22 + b2 * bs2 * (2 * Pb2bs2) + bs2 * bs2 * Pb2s2
@@ -1745,13 +1890,13 @@ class RSDMultipolesPowerSpectrumCalculator:
                                                           f0**2 * (mu**2 * second + mu**4 * third) / 2))
         if not (use_TNS_model_status or not use_gtns):
             gtns = -((kev * mu * f0)**2 * sigma2w)
-            PloopSPTs = PloopSPTs + (b1 * b1 * (gtns * pkl)
-                                     + b1 * (gtns * 2 * f0 * mu**2 * Pdt_L)
+            PloopSPTs = PloopSPTs + (b1eff * b1eff * (gtns * pkl)
+                                     + b1eff * (gtns * 2 * f0 * mu**2 * Pdt_L)
                                      + BiasPolynomial.constant(gtns * f0**2 * mu**4 * Ptt_L))
 
-        # (b1 + mu**2 fk)**2 pkl
-        PKaiserLs = (b1 * b1 * pkl + b1 * (2 * mu**2 * fk * pkl)
-                     + BiasPolynomial.constant(mu**4 * fk**2 * pkl))
+        # (b1eff + mu**2 fk)**2 pkl
+        Z1 = b1eff + BiasPolynomial.constant(mu**2 * fk)
+        PKaiserLs = Z1 * Z1 * pkl
         PctNLOs = PKaiserLs * BiasPolynomial.variable('ctilde', (mu * kev * f0)**4 * sigma2w**2)
         Pcts = (BiasPolynomial.variable('alpha0', kev**2 * pkl)
                 + BiasPolynomial.variable('alpha2', mu**2 * kev**2 * pkl)
@@ -1798,9 +1943,11 @@ class RSDMultipolesPowerSpectrumCalculator:
                    if IR_resummation else 0)
         wiggle_weight = np.exp(-k**2 * sigma2t)
 
-        b1 = BiasPolynomial.variable('b1')
-        tree = ((b1 * b1 + b1 * (2 * fk * mu**2) + BiasPolynomial.constant(fk**2 * mu**4))
-                * (pkl_now + wiggle_weight * (pkl - pkl_now) * (1 + k**2 * sigma2t)))
+        b1eff = (BiasPolynomial.variable('b1')
+                 + BiasPolynomial.variable('fnl')
+                 * BiasPolynomial.variable('bphi', table_alphak2(table) / k**2))
+        Z1 = b1eff + BiasPolynomial.constant(fk * mu**2)
+        tree = Z1 * Z1 * (pkl_now + wiggle_weight * (pkl - pkl_now) * (1 + k**2 * sigma2t))
 
         damped_wiggle, undamped_wiggle, sigma2w = self.get_eft_pkmu_monomials(
             k, mu, table, damping_method=damping_method, use_GTNS=use_GTNS)
@@ -1882,19 +2029,20 @@ class RSDMultipolesPowerSpectrumCalculator:
         once and applied here.
         """
         # set_bias_scheme returns the folps convention, [b1, b2, bs2, b3nl, alpha0, alpha2,
-        # alpha4, ctilde, alphashot0, alphashot2, PshotP, X_FoG]; zip stops at the monomial
-        # variables, leaving PshotP and X_FoG to be handled separately.
+        # alpha4, ctilde, alphashot0, alphashot2, PshotP, (fnl, bphi,) X_FoG]; zip stops at the
+        # monomial variables, leaving PshotP and X_FoG to be handled separately.
         names = ('b1', 'b2', 'bs', 'b3nl', 'alpha0', 'alpha2', 'alpha4', 'ctilde', 'sn0', 'sn2')
-        bias_values = dict(zip(names, pars))
+        core, (fnl, bphi), X_FoG = split_png_pars(pars, 11, 2)
+        bias_values = dict(zip(names, core), fnl=fnl, bphi=bphi)
         # Pshot = PshotP (alphashot0 + alphashot2 (k mu)^2): folding the normalisation into the
         # two stochastic values keeps the tables free of it, so they do not have to be rebuilt
         # when the number density or the prior basis changes.
-        bias_values['sn0'] = bias_values['sn0'] * pars[10]
-        bias_values['sn2'] = bias_values['sn2'] * pars[10]
+        bias_values['sn0'] = bias_values['sn0'] * core[10]
+        bias_values['sn2'] = bias_values['sn2'] * core[10]
         monomial_values = bias_monomial_values(bias_values, tables['monomials'])
         total = tables['undamped']
         for suffix, sigma2v in [('wiggle', tables['sigma2w']), ('nowiggle', tables['sigma2w_nowiggle'])]:
-            kernel = 1. - fog_damping_correction(pars[-1], tables['lam'], sigma2v=sigma2v,
+            kernel = 1. - fog_damping_correction(X_FoG, tables['lam'], sigma2v=sigma2v,
                                                  damping=damping, nlegs=2)
             total = total + kernel * tables['damped_' + suffix]
         pkmu = np.tensordot(monomial_values, total, axes=([0], [0]))   # (n_k, nmu)
@@ -1916,8 +2064,9 @@ def get_rsd_pkell_marg_const(
     def get_rsd_pkmu_const(k, mu, pars, table, table_now, IR_resummation, damping):
         # Apply bias scheme
         pars = multipoles.set_bias_scheme(pars, bias_scheme=bias_scheme)
+        core, (fnl, bphi), X_FoG_p = split_png_pars(pars, 11, 2)
         (b1, b2, bs2, b3nl, alpha0, alpha2, alpha4,
-         ctilde, alphashot0, alphashot2, PshotP, X_FoG_p) = pars
+         ctilde, alphashot0, alphashot2, PshotP) = core
 
         # Interpolate tables
         table_interp = multipoles.interp_table(k, table, A_full_status)
@@ -1927,10 +2076,12 @@ def get_rsd_pkell_marg_const(
         alpha0 = alpha2 = alpha4 = alphashot0 = alphashot2 = 0.0
 
         pars_const = (b1, b2, bs2, b3nl, alpha0, alpha2, alpha4,
-                      ctilde, alphashot0, alphashot2, PshotP, X_FoG_p)
+                      ctilde, alphashot0, alphashot2, PshotP, fnl, bphi, X_FoG_p)
 
         f0 = table_interp[-1]
         fk = table_interp[1] * f0
+        # Local-PNG scale-dependent bias, as in get_rsd_pkmu.
+        b1 = b1 + fnl * bphi * table_alphak2(table_interp) / k**2
         pkl, pkl_now = table_interp[0], table_now_interp[0]
         sigma2, delta_sigma2 = table_now_interp[-3], table_now_interp[-2]
 
@@ -2041,8 +2192,9 @@ def get_rsd_pkell_marg_derivatives(
 
     def get_rsd_pkmu_derivatives(k, mu, pars, table, table_now, IR_resummation, damping):
         pars = multipoles.set_bias_scheme(pars, bias_scheme=bias_scheme)
+        core, (fnl, bphi), X_FoG_p = split_png_pars(pars, 11, 2)
         (b1, b2, bs2, b3nl, alpha0, alpha2, alpha4,
-         ctilde, alphashot0, alphashot2, PshotP, X_FoG_p) = pars
+         ctilde, alphashot0, alphashot2, PshotP) = core
 
         kap = multipoles.k_ap(k, mu, qpar, qper)
         muap = multipoles.mu_ap(mu, qpar, qper)
@@ -2685,32 +2837,32 @@ class BispectrumCalculator:
         if bias_scheme in ["folps", "pat", "mcdonald","FOLPS","FolpsD","FOLPSD"]:
             if pars is None:
                 pars = [1.0, 0.0, 0.0, 0.01, 0.01, 1, 1, 0]
-            (b1, b2, bs2, c1, c2, Bshot, Pshot, X_FoG_bk) = pars
+            core, png, X_FoG_bk = split_png_pars(pars, 7, 3)
+            (b1, b2, bs2, c1, c2, Bshot, Pshot) = core
 
         elif bias_scheme in ["Assassi", "classpt","assassi"]:
             if pars is None:
                 raise ValueError("Nuisance parameters must be provided for Assassi/classpt bias scheme.")
-            (b1_classPT, b2_classPT, bG2_classPT, c1, c2, Bshot, Pshot, X_FoG_bk) = pars
+            core, png, X_FoG_bk = split_png_pars(pars, 7, 3)
+            (b1_classPT, b2_classPT, bG2_classPT, c1, c2, Bshot, Pshot) = core
             b1 = b1_classPT
             b2 = b2_classPT - 4/3 * bG2_classPT
             bs2 = 2 * bG2_classPT
 
-            pars = [b1, b2, bs2, c1, c2, Bshot, Pshot, X_FoG_bk]
-
         elif bias_scheme in ["DESI", "priordocument","DR2","priordoc"]:
             if pars is None:
                 raise ValueError("Nuisance parameters must be provided for 'priordoc' bias scheme.")
-            (b1_priordoc, b2_priordoc, bK2_priordoc, c1, c2, Bshot, Pshot, X_FoG_bk) = pars
+            core, png, X_FoG_bk = split_png_pars(pars, 7, 3)
+            (b1_priordoc, b2_priordoc, bK2_priordoc, c1, c2, Bshot, Pshot) = core
             b1 = b1_priordoc
             b2 = b2_priordoc
             bs2 = 2.* bK2_priordoc
 
-            pars = [b1, b2, bs2, c1, c2, Bshot, Pshot, X_FoG_bk]
-
         else:
             raise ValueError("Invalid bias scheme. Choose from 'folps' or 'classpt' or 'priordoc'.")
 
-        return pars
+        # Always returned in the long, PNG-carrying convention, whatever the input length was.
+        return [b1, b2, bs2, c1, c2, Bshot, Pshot, png[0], png[1], png[2], X_FoG_bk]
 
     #GL pairs [[x1,w1],[x2,w2],....
     _tables_cache = {}
@@ -2793,9 +2945,11 @@ class BispectrumCalculator:
 
         return (k1AP, k2AP, k3AP,x12AP, x23AP, x31AP,mu1AP, mu2AP, mu3AP,cosphi)
 
-    def Z2(self, ki, kj, xij, mui, muj, f, b1, b2, bs,A=1,Ap=0):
+    def Z2(self, ki, kj, xij, mui, muj, f, b1, b2, bs,A=1,Ap=0, bfnld=0., alphai=0., alphaj=0.):
+        r"""Second-order kernel.  *bfnld* is :math:`b_{\phi\delta} f_\mathrm{NL}`, the
+        second-order local-PNG bias, whose kernel is :math:`(\alpha_i + \alpha_j) / 2`."""
 
-        term1 = b2/2 + bs/2 * (xij**2 - 1/3)
+        term1 = b2/2 + bs/2 * (xij**2 - 1/3) + bfnld * (alphai + alphaj) / 2
         km=ki*mui + kj*muj
         term2 = km/2 * (mui/ki * f * (b1 + f * muj**2) +
                         muj/kj * f * (b1 + f * mui**2))
@@ -2810,9 +2964,11 @@ class BispectrumCalculator:
 
 
     def bispectrum(self, k1, k2, x12, mu1, phi, f, sigma2v, Sigma2, deltaSigma2,
-                   bpars, qpar, qperp, k_pkl_pklnw, damping = 'lor',interpolation_method= 'cubic'):
+                   bpars, qpar, qperp, k_pkl_pklnw, damping = 'lor',interpolation_method= 'cubic',
+                   alphak2=None):
 
-        b1, b2, bs, c1, c2, Bshot, Pshot, X_FoG_b = bpars
+        core, (fnl, bphi, bphid), X_FoG_b = split_png_pars(bpars, 7, 3)
+        b1, b2, bs, c1, c2, Bshot, Pshot = core
 
         cosphi = np.cos(phi)
         APtransf = self.APtransforms(k1, k2, x12, mu1, cosphi, qpar, qperp)
@@ -2821,6 +2977,10 @@ class BispectrumCalculator:
         k_     = k_pkl_pklnw[0]
         pkl_   = k_pkl_pklnw[1]
         pklnw_ = k_pkl_pklnw[2]
+        # alphak2, when given, is alpha(k) k^2 on the k_pkl_pklnw grid: the local-PNG
+        # transfer, and what switches the PNG terms on.  See
+        # :meth:`NonLinearPowerSpectrumCalculator._initialize_png` and :func:`table_alphak2`.
+        png = alphak2 is not None
 
         interp_method = interpolation_method
         pk1   = self.interpolation_b(k1AP, k_, pkl_,   method=interp_method)
@@ -2841,18 +3001,38 @@ class BispectrumCalculator:
 
         f1 = f2 = f3 = f
         f0=f
-        Z1_1 = b1 + f1 * mu1AP**2
-        Z1_2 = b1 + f2 * mu2AP**2
-        Z1_3 = b1 + f3 * mu3AP**2
+        if png:
+            alpha1 = self.interpolation_b(k1AP, k_, alphak2, method=interp_method) / k1AP**2
+            alpha2 = self.interpolation_b(k2AP, k_, alphak2, method=interp_method) / k2AP**2
+            alpha3 = self.interpolation_b(k3AP, k_, alphak2, method=interp_method) / k3AP**2
+        else:
+            alpha1 = alpha2 = alpha3 = 0.
+        # Local-PNG scale-dependent bias, one per leg.
+        bfnld = fnl * bphid
+        Z1_1 = b1 + fnl * bphi * alpha1 + f1 * mu1AP**2
+        Z1_2 = b1 + fnl * bphi * alpha2 + f2 * mu2AP**2
+        Z1_3 = b1 + fnl * bphi * alpha3 + f3 * mu3AP**2
 
         Z1eft1 = Z1_1 - (c1 * mu1AP**2 + c2 * mu1AP**4) * k1AP**2
         Z1eft2 = Z1_2 - (c1 * mu2AP**2 + c2 * mu2AP**4) * k2AP**2
         Z1eft3 = Z1_3 - (c1 * mu3AP**2 + c2 * mu3AP**4) * k3AP**2
 
 
-        B12 = (2 * self.Z2(k1AP, k2AP, x12AP, mu1AP, mu2AP, f, b1, b2, bs) * Z1eft1*pkIR1 * Z1eft2*pkIR2)
-        B23 = (2 * self.Z2(k2AP, k3AP, x23AP, mu2AP, mu3AP, f, b1, b2, bs) * Z1eft2*pkIR2 * Z1eft3*pkIR3)
-        B31 = (2 * self.Z2(k3AP, k1AP, x31AP, mu3AP, mu1AP, f, b1, b2, bs) * Z1eft3*pkIR3 * Z1eft1*pkIR1)
+        B12 = (2 * self.Z2(k1AP, k2AP, x12AP, mu1AP, mu2AP, f, b1, b2, bs, bfnld=bfnld, alphai=alpha1, alphaj=alpha2) * Z1eft1*pkIR1 * Z1eft2*pkIR2)
+        B23 = (2 * self.Z2(k2AP, k3AP, x23AP, mu2AP, mu3AP, f, b1, b2, bs, bfnld=bfnld, alphai=alpha2, alphaj=alpha3) * Z1eft2*pkIR2 * Z1eft3*pkIR3)
+        B31 = (2 * self.Z2(k3AP, k1AP, x31AP, mu3AP, mu1AP, f, b1, b2, bs, bfnld=bfnld, alphai=alpha3, alphaj=alpha1) * Z1eft3*pkIR3 * Z1eft1*pkIR1)
+        # Primordial bispectrum: B_m = M1 M2 M3 B_phi with B_phi the local template, propagated
+        # through the three linear kernels.  Written with the alpha ratios so that it reuses the
+        # IR-resummed spectra rather than a second set of interpolations.  alpha itself is the
+        # linear-theory transfer: the exactly-resummed term would instead carry
+        # sqrt(P_IR / P_L) per leg, a (1 - D) x w / 2 effect -- sub-percent of a term that is
+        # itself small wherever the BAO wiggles are not, and the usual convention.
+        Bprim = 0.
+        if png:
+            Bprim = 2. * fnl * Z1eft1 * Z1eft2 * Z1eft3 * (
+                png_prim_ratio(alpha1, alpha2, alpha3) * pkIR1 * pkIR2
+                + png_prim_ratio(alpha2, alpha3, alpha1) * pkIR2 * pkIR3
+                + png_prim_ratio(alpha3, alpha1, alpha2) * pkIR3 * pkIR1)
 
         W = fog_damping((k1AP * mu1AP, X_FoG_b), (k2AP * mu2AP, X_FoG_b), (k3AP * mu3AP, X_FoG_b),
                         f=f, sigma2v=sigma2v, damping=damping)
@@ -2901,6 +3081,9 @@ class BispectrumCalculator:
 
         ## Noise
         # To match eq.3.14 of 2110.10161, one makes (1+Pshot) -> (1+Pshot)/bar-n; Bshot -> Bshot/bar-n
+        # The legs carry the PNG bias through Z1eft; the b1 multiplying Bshot does not, Bshot
+        # being a free stochastic amplitude degenerate with it.  PNG stochastic terms of their
+        # own (a <eps eps_phi> piece going as 1/alpha) are not modelled.
         shot = (
                   (b1*Bshot + 2.0*Pshot*f1*mu1AP**2) * Z1eft1 * pkIR1
                 + (b1*Bshot + 2.0*Pshot*f2*mu2AP**2) * Z1eft2 * pkIR2
@@ -2908,14 +3091,15 @@ class BispectrumCalculator:
                 + Pshot**2
         )
 
-        bispectrum = W*(B12 + B23 + B31) + shot
+        bispectrum = W*(B12 + B23 + B31 + Bprim) + shot
         alpha = qpar * qperp**2
         bispectrum = bispectrum / alpha**2
 
         return bispectrum
 
-    def Z2_monomials(self, ki, kj, xij, mui, muj, f):
-        """:meth:`Z2` as a :class:`BiasPolynomial`; linear in ``b1``, ``b2`` and ``bs``."""
+    def Z2_monomials(self, ki, kj, xij, mui, muj, f, alphai=None, alphaj=None):
+        """:meth:`Z2` as a :class:`BiasPolynomial`; linear in ``b1``, ``b2`` and ``bs``, and in
+        ``bphid`` times ``fnl`` when the local-PNG transfers *alphai*, *alphaj* are given."""
         km = ki * mui + kj * muj
         F2 = 5/7 + xij/2 * (ki/kj + kj/ki) + 2/7 * xij**2
         G2 = 3/7 + xij/2 * (ki/kj + kj/ki) + 4/7 * xij**2
@@ -2924,13 +3108,17 @@ class BispectrumCalculator:
         # split into its b1-linear and bias-independent parts.
         term2_b1 = km / 2 * f * (mui / ki + muj / kj)
         term2_constant = km / 2 * f**2 * (mui / ki * muj**2 + muj / kj * mui**2)
-        return (BiasPolynomial.variable('b2', 0.5)
-                + BiasPolynomial.variable('bs', (xij**2 - 1/3) / 2)
-                + BiasPolynomial.variable('b1', term2_b1 + F2)
-                + BiasPolynomial.constant(term2_constant + f * mu2 * G2))
+        Z2 = (BiasPolynomial.variable('b2', 0.5)
+              + BiasPolynomial.variable('bs', (xij**2 - 1/3) / 2)
+              + BiasPolynomial.variable('b1', term2_b1 + F2)
+              + BiasPolynomial.constant(term2_constant + f * mu2 * G2))
+        if alphai is not None:
+            Z2 = Z2 + (BiasPolynomial.variable('fnl')
+                       * BiasPolynomial.variable('bphid', (alphai + alphaj) / 2))
+        return Z2
 
     def bispectrum_monomials(self, k1, k2, x12, mu1, phi, f, sigma2v, Sigma2, deltaSigma2,
-                             qpar, qperp, k_pkl_pklnw, interpolation_method='linear'):
+                             qpar, qperp, k_pkl_pklnw, interpolation_method='linear', alphak2=None):
         r""":meth:`bispectrum` decomposed over bias monomials.
 
         Returns ``(damped, undamped, lam)``: two :class:`BiasPolynomial` and the collocation
@@ -2950,6 +3138,9 @@ class BispectrumCalculator:
         k_ = k_pkl_pklnw[0]
         pkl_ = k_pkl_pklnw[1]
         pklnw_ = k_pkl_pklnw[2]
+        # alphak2, when given, switches the PNG terms on.  Absent, the monomial basis is
+        # exactly the Gaussian one -- no zero-coefficient PNG monomials to carry around.
+        png = alphak2 is not None
 
         interp_method = interpolation_method
         pk1 = self.interpolation_b(k1AP, k_, pkl_, method=interp_method)
@@ -2969,19 +3160,38 @@ class BispectrumCalculator:
 
         f1 = f2 = f3 = f
 
-        def Z1eft(muAP, kAP, fi):
-            """``b1 + fi muAP**2 - (c1 muAP**2 + c2 muAP**4) kAP**2`` as a polynomial."""
-            return (BiasPolynomial.variable('b1')
-                    + BiasPolynomial.constant(fi * muAP**2)
-                    - BiasPolynomial.variable('c1', muAP**2 * kAP**2)
-                    - BiasPolynomial.variable('c2', muAP**4 * kAP**2))
+        if png:
+            alpha1 = self.interpolation_b(k1AP, k_, alphak2, method=interp_method) / k1AP**2
+            alpha2 = self.interpolation_b(k2AP, k_, alphak2, method=interp_method) / k2AP**2
+            alpha3 = self.interpolation_b(k3AP, k_, alphak2, method=interp_method) / k3AP**2
+        else:
+            alpha1 = alpha2 = alpha3 = None
 
-        Z1eft1, Z1eft2, Z1eft3 = Z1eft(mu1AP, k1AP, f1), Z1eft(mu2AP, k2AP, f2), Z1eft(mu3AP, k3AP, f3)
+        def Z1eft(muAP, kAP, fi, alpha):
+            """``b1 + b_phi fnl alpha + fi muAP**2 - (c1 muAP**2 + c2 muAP**4) kAP**2``."""
+            Z1 = (BiasPolynomial.variable('b1')
+                  + BiasPolynomial.constant(fi * muAP**2)
+                  - BiasPolynomial.variable('c1', muAP**2 * kAP**2)
+                  - BiasPolynomial.variable('c2', muAP**4 * kAP**2))
+            if alpha is None:
+                return Z1
+            return Z1 + BiasPolynomial.variable('fnl') * BiasPolynomial.variable('bphi', alpha)
+
+        Z1eft1 = Z1eft(mu1AP, k1AP, f1, alpha1)
+        Z1eft2 = Z1eft(mu2AP, k2AP, f2, alpha2)
+        Z1eft3 = Z1eft(mu3AP, k3AP, f3, alpha3)
         leg1, leg2, leg3 = Z1eft1 * pkIR1, Z1eft2 * pkIR2, Z1eft3 * pkIR3
 
-        B12 = 2 * self.Z2_monomials(k1AP, k2AP, x12AP, mu1AP, mu2AP, f) * leg1 * leg2
-        B23 = 2 * self.Z2_monomials(k2AP, k3AP, x23AP, mu2AP, mu3AP, f) * leg2 * leg3
-        B31 = 2 * self.Z2_monomials(k3AP, k1AP, x31AP, mu3AP, mu1AP, f) * leg3 * leg1
+        B12 = 2 * self.Z2_monomials(k1AP, k2AP, x12AP, mu1AP, mu2AP, f, alpha1, alpha2) * leg1 * leg2
+        B23 = 2 * self.Z2_monomials(k2AP, k3AP, x23AP, mu2AP, mu3AP, f, alpha2, alpha3) * leg2 * leg3
+        B31 = 2 * self.Z2_monomials(k3AP, k1AP, x31AP, mu3AP, mu1AP, f, alpha3, alpha1) * leg3 * leg1
+        Bprim = BiasPolynomial()
+        if png:
+            # See :meth:`bispectrum`; the three legs are the same Z1eft polynomials.
+            prim = (png_prim_ratio(alpha1, alpha2, alpha3) * pkIR1 * pkIR2
+                    + png_prim_ratio(alpha2, alpha3, alpha1) * pkIR2 * pkIR3
+                    + png_prim_ratio(alpha3, alpha1, alpha2) * pkIR3 * pkIR1)
+            Bprim = (BiasPolynomial.variable('fnl', 2. * prim) * Z1eft1 * Z1eft2 * Z1eft3)
 
         Bshot, Pshot = BiasPolynomial.variable('Bshot'), BiasPolynomial.variable('Pshot')
         b1 = BiasPolynomial.variable('b1')
@@ -2992,12 +3202,12 @@ class BispectrumCalculator:
 
         alpha = qpar * qperp**2
         lam = 0.5 * f**2 * ((k1AP * mu1AP)**2 + (k2AP * mu2AP)**2 + (k3AP * mu3AP)**2)
-        return (B12 + B23 + B31) * (1. / alpha**2), shot * (1. / alpha**2), lam
+        return (B12 + B23 + B31 + Bprim) * (1. / alpha**2), shot * (1. / alpha**2), lam
 
     def Sugiyama_Bell_monomials(self, f, k_pkl_pklnw, k1k2pairs, qpar, qper,
                                 precision=[8, 10, 10], multipoles=['B000', 'B202'],
                                 renormalize=True, interpolation_method='linear',
-                                lambda_nodes=None, n_lambda=12, fixed_bias=None):
+                                lambda_nodes=None, n_lambda=12, fixed_bias=None, alphak2=None):
         r"""Angular-integrated bias-monomial tables for :meth:`Sugiyama_Bell`.
 
         Everything :meth:`Sugiyama_Bell` recomputes per parameter point that does not actually
@@ -3040,7 +3250,7 @@ class BispectrumCalculator:
 
         damped, undamped, lam = self.bispectrum_monomials(
             k1, k2, x_mesh, mu_mesh, phi_mesh, f, sigma2v, Sigma2, deltaSigma2,
-            qpar, qper, k_pkl_pklnw, interpolation_method=interpolation_method)
+            qpar, qper, k_pkl_pklnw, interpolation_method=interpolation_method, alphak2=alphak2)
         if fixed_bias:
             damped, undamped = damped.substitute(fixed_bias), undamped.substitute(fixed_bias)
 
@@ -3082,14 +3292,16 @@ class BispectrumCalculator:
         with the bias parameters, returning the tables' trailing axes -- ``(n_multipoles, n_pairs)``
         as built, or whatever a linear map has since contracted them onto.
 
-        *bpars* is ``[b1, b2, bs, c1, c2, Bshot, Pshot, X_FoG]`` in the folps convention.
+        *bpars* is ``[b1, b2, bs, c1, c2, Bshot, Pshot, (fnl, bphi, bphid,) X_FoG]`` in the
+        folps convention, the PNG entries optional.
         """
-        # set_bias_scheme returns the folps convention, [b1, b2, bs, c1, c2, Bshot, Pshot, X_FoG].
-        # zip stops at the names, dropping X_FoG: it is the one parameter the decomposition does
-        # not absorb, and it enters through the damping correction below instead.
-        names = ('b1', 'b2', 'bs', 'c1', 'c2', 'Bshot', 'Pshot')
-        monomial_values = bias_monomial_values(dict(zip(names, bpars)), tables['monomials'])
-        correction = fog_damping_correction(bpars[-1], tables['lambda_nodes'], sigma2v=tables['sigma2v'],
+        # set_bias_scheme returns the folps convention, [b1, b2, bs, c1, c2, Bshot, Pshot,
+        # (fnl, bphi, bphid,) X_FoG]; X_FoG is the one parameter the decomposition does not
+        # absorb, and it enters through the damping correction below instead.
+        names = ('b1', 'b2', 'bs', 'c1', 'c2', 'Bshot', 'Pshot', 'fnl', 'bphi', 'bphid')
+        core, png, X_FoG = split_png_pars(bpars, 7, 3)
+        monomial_values = bias_monomial_values(dict(zip(names, list(core) + list(png))), tables['monomials'])
+        correction = fog_damping_correction(X_FoG, tables['lambda_nodes'], sigma2v=tables['sigma2v'],
                                             damping=damping)
         # Only two axes are named: the monomial axis (first) and, on the correction table, the
         # collocation axis (second).  Everything after them is left alone, so the same contraction
@@ -3268,7 +3480,8 @@ class BispectrumCalculator:
 
     def Sugiyama_Bl1l2L(self, k1, k2, f, sigma2v, Sigma2, deltaSigma2, bpars, qpar, qper,
                         tablesGL, k_pkl_pklnw, damping='lor', renormalize=True,
-                        multipoles=['B000', 'B202'], interpolation_method='linear',precision=None):
+                        multipoles=['B000', 'B202'], interpolation_method='linear',precision=None,
+                        alphak2=None):
         """
         Compute requested Sugiyama bispectrum multipoles.
 
@@ -3288,6 +3501,9 @@ class BispectrumCalculator:
             Gauss-Legendre tables
         k_pkl_pklnw : list
             [k_array, pkl_array, pklnw_array]
+        alphak2 : array, default=None
+            alpha(k) k^2 on that same grid, switching the local-PNG terms on;
+            see :func:`table_alphak2`.
         damping : str
             Damping type: 'lor', 'exp', 'vdg'
         renormalize : bool
@@ -3323,6 +3539,7 @@ class BispectrumCalculator:
             k_pkl_pklnw,
             damping=damping,
             interpolation_method=interpolation_method,
+            alphak2=alphak2,
         )
 
         # Normalization factors for each multipole
@@ -3362,7 +3579,8 @@ class BispectrumCalculator:
     def Sugiyama_Bell(self, f, bpars, k_pkl_pklnw,
                       k1k2pairs, qpar, qper, precision=[8, 10, 10], damping='lor',
                       m_bin=None, k_thy=None, do_binning=False, multipoles=['B000', 'B202'],
-                      renormalize=True, interpolation_method='linear', bias_scheme='folps',do_interp_bk=False,kout=None):
+                      renormalize=True, interpolation_method='linear', bias_scheme='folps',do_interp_bk=False,kout=None,
+                      alphak2=None):
         """
         Compute Sugiyama bispectrum multipoles for multiple k1k2 pairs.
 
@@ -3374,6 +3592,9 @@ class BispectrumCalculator:
             Bias parameters [b1, b2, bs, c1, c2, Bshot, Pshot, X_FoG_b]
         k_pkl_pklnw : list
             [k_array, pkl_array, pklnw_array]
+        alphak2 : array, default=None
+            alpha(k) k^2 on that same grid, switching the local-PNG terms on;
+            see :func:`table_alphak2`.
         k1k2pairs : array-like
             Array of shape (N, 2) with k1, k2 pairs
         qpar, qper : float
@@ -3443,6 +3664,7 @@ class BispectrumCalculator:
             k_pkl_pklnw,
             damping=damping,
             interpolation_method=interpolation_method,
+            alphak2=alphak2,
         )
 
         # Normalization factors for each multipole
@@ -3520,7 +3742,8 @@ class BispectrumCalculator:
         k_pkl_pklnw,
         damping = 'lor',
         interpolation_method='linear',
-        multipoles=['B0', 'B2', 'B4']
+        multipoles=['B0', 'B2', 'B4'],
+        alphak2=None
     ):
         """
         Computation of Scoccimarro B0, B2, B4
@@ -3563,6 +3786,7 @@ class BispectrumCalculator:
             k_pkl_pklnw,
             damping = 'lor',
             interpolation_method = interpolation_method,
+            alphak2=alphak2,
         )   # (N, Nμ, Nφ)
 
         # --- φ integration ---
@@ -3601,7 +3825,8 @@ class BispectrumCalculator:
     def Scoccimarro_Bell(self, k1k2k3triplets, f, bpars, qpar, qperp,
                          k_pkl_pklnw, precision=[10, 10], damping='lor',
                          interpolation_method='linear', m_bin=None, k_thy=None,
-                         do_binning=False, multipoles=['B0', 'B2', 'B4'], bias_scheme='folps'):
+                         do_binning=False, multipoles=['B0', 'B2', 'B4'], bias_scheme='folps',
+                         alphak2=None):
         """
         Compute Scoccimarro bispectrum multipoles for multiple k1k2k3 triplets.
 
@@ -3619,6 +3844,9 @@ class BispectrumCalculator:
             AP parameters
         k_pkl_pklnw : list
             [k_array, pkl_array, pklnw_array]
+        alphak2 : array, default=None
+            alpha(k) k^2 on that same grid, switching the local-PNG terms on;
+            see :func:`table_alphak2`.
         precision : list
             Gauss-Legendre precision [Nphi, Nmu]
         damping : str
@@ -3665,7 +3893,7 @@ class BispectrumCalculator:
                         triplet, f, sigma2v, Sigma2, deltaSigma2, bpars, qpar, qperp,
                         tablesGL, k_pkl_pklnw, damping=damping,
                         interpolation_method=interpolation_method,
-                        multipoles=multipoles
+                        multipoles=multipoles, alphak2=alphak2
                     )
 
                 vm = jax.vmap(_single)
@@ -3715,7 +3943,7 @@ class BispectrumCalculator:
         B0, B2, B4, x = self.Scoccimarro_B024(
             k1k2k3triplets, f, sigma2v, Sigma2, deltaSigma2, bpars, qpar, qperp,
             tablesGL, k_pkl_pklnw, damping, interpolation_method,
-            multipoles=multipoles
+            multipoles=multipoles, alphak2=alphak2
         )
 
         # Optional internal binning
@@ -3765,32 +3993,32 @@ class BispectrumCalculator_fk:
         if bias_scheme in ["folps", "pat", "mcdonald","FOLPS","FolpsD","FOLPSD"]:
             if pars is None:
                 pars = [1.0, 0.0, 0.0, 0.01, 0.01, 1, 1, 0]
-            (b1, b2, bs2, c1, c2, Bshot, Pshot, X_FoG_bk) = pars
+            core, png, X_FoG_bk = split_png_pars(pars, 7, 3)
+            (b1, b2, bs2, c1, c2, Bshot, Pshot) = core
 
         elif bias_scheme in ["Assassi", "classpt","assassi"]:
             if pars is None:
                 raise ValueError("Nuisance parameters must be provided for Assassi/classpt bias scheme.")
-            (b1_classPT, b2_classPT, bG2_classPT, c1, c2, Bshot, Pshot, X_FoG_bk) = pars
+            core, png, X_FoG_bk = split_png_pars(pars, 7, 3)
+            (b1_classPT, b2_classPT, bG2_classPT, c1, c2, Bshot, Pshot) = core
             b1 = b1_classPT
             b2 = b2_classPT - 4/3 * bG2_classPT
             bs2 = 2 * bG2_classPT
 
-            pars = [b1, b2, bs2, c1, c2, Bshot, Pshot, X_FoG_bk]
-
         elif bias_scheme in ["DESI", "priordocument","DR2","priordoc"]:
             if pars is None:
                 raise ValueError("Nuisance parameters must be provided for 'priordoc' bias scheme.")
-            (b1_priordoc, b2_priordoc, bK2_priordoc, c1, c2, Bshot, Pshot, X_FoG_bk) = pars
+            core, png, X_FoG_bk = split_png_pars(pars, 7, 3)
+            (b1_priordoc, b2_priordoc, bK2_priordoc, c1, c2, Bshot, Pshot) = core
             b1 = b1_priordoc
             b2 = b2_priordoc
             bs2 = 2.* bK2_priordoc
 
-            pars = [b1, b2, bs2, c1, c2, Bshot, Pshot, X_FoG_bk]
-
         else:
             raise ValueError("Invalid bias scheme. Choose from 'folps' or 'classpt' or 'priordoc'.")
 
-        return pars
+        # Always returned in the long, PNG-carrying convention, whatever the input length was.
+        return [b1, b2, bs2, c1, c2, Bshot, Pshot, png[0], png[1], png[2], X_FoG_bk]
 
     #GL pairs [[x1,w1],[x2,w2],....
     _tables_cache = {}
@@ -3889,9 +4117,12 @@ class BispectrumCalculator_fk:
 
     #     return term1 + term2 + term3 + term4
 
-    def Z2(self, ki, kj, xij, mui, muj, f0, fi, fj, b1, b2, bs, calA=1., calAp=0.):
+    def Z2(self, ki, kj, xij, mui, muj, f0, fi, fj, b1, b2, bs, calA=1., calAp=0.,
+           bfnld=0., alphai=0., alphaj=0.):
+        r"""Second-order kernel.  *bfnld* is :math:`b_{\phi\delta} f_\mathrm{NL}`, the
+        second-order local-PNG bias, whose kernel is :math:`(\alpha_i + \alpha_j) / 2`."""
 
-        term1 = b2 / 2. + bs / 2. * (xij**2 - 1. / 3.)
+        term1 = b2 / 2. + bs / 2. * (xij**2 - 1. / 3.) + bfnld * (alphai + alphaj) / 2.
         km = ki * mui + kj * muj
         fij = (fi + fj) / 2.0  # This should be f(|ki+kj|)
         term2 = km / 2. * fij * (mui / ki * (b1 + fj * muj**2) + muj / kj * (b1 + fi * mui**2))
@@ -3908,9 +4139,11 @@ class BispectrumCalculator_fk:
 
 
     def bispectrum(self, k1, k2, x12, mu1, phi, f, sigma2v, Sigma2, deltaSigma2,
-                   bpars, qpar, qperp, k_pkl_pklnw_fk, damping = 'lor',interpolation_method= 'cubic'):
+                   bpars, qpar, qperp, k_pkl_pklnw_fk, damping = 'lor',interpolation_method= 'cubic',
+                   alphak2=None):
 
-        b1, b2, bs, c1, c2, Bshot, Pshot, X_FoG_b = bpars
+        core, (fnl, bphi, bphid), X_FoG_b = split_png_pars(bpars, 7, 3)
+        b1, b2, bs, c1, c2, Bshot, Pshot = core
 
         cosphi = np.cos(phi)
         APtransf = self.APtransforms(k1, k2, x12, mu1, cosphi, qpar, qperp)
@@ -3921,8 +4154,12 @@ class BispectrumCalculator_fk:
         pklnw_ = k_pkl_pklnw_fk[2]
         fk_    = k_pkl_pklnw_fk[3]
 
+        # alphak2, when given, is alpha(k) k^2 on the k_pkl_pklnw_fk grid: the local-PNG
+        # transfer, and what switches the PNG terms on.  See
+        # :meth:`NonLinearPowerSpectrumCalculator._initialize_png` and :func:`table_alphak2`.
+        png = alphak2 is not None
         # \mathcal{A} factors from eq 4.6 in 2312.10510 (fkpt paper)
-        if len(k_pkl_pklnw_fk) >= 5:
+        if len(k_pkl_pklnw_fk) >= 6:
             calAarr = k_pkl_pklnw_fk[4]
             calAparr = k_pkl_pklnw_fk[5]
             # Handle both scalar and array-like inputs in a backend-agnostic way (NumPy/JAX).
@@ -3957,19 +4194,33 @@ class BispectrumCalculator_fk:
         pkIR3= pk3nw + (pk3-pk3nw)*np.exp(-e3IR*k3AP**2)
 
 
-        # f1 = f2 = f3 = f
-        Z1_1 = b1 + f1 * mu1AP**2
-        Z1_2 = b1 + f2 * mu2AP**2
-        Z1_3 = b1 + f3 * mu3AP**2
+        if png:
+            alpha1 = self.interpolation_b(k1AP, k_, alphak2, method=interp_method) / k1AP**2
+            alpha2 = self.interpolation_b(k2AP, k_, alphak2, method=interp_method) / k2AP**2
+            alpha3 = self.interpolation_b(k3AP, k_, alphak2, method=interp_method) / k3AP**2
+        else:
+            alpha1 = alpha2 = alpha3 = 0.
+        # Local-PNG scale-dependent bias, one per leg.
+        bfnld = fnl * bphid
+        Z1_1 = b1 + fnl * bphi * alpha1 + f1 * mu1AP**2
+        Z1_2 = b1 + fnl * bphi * alpha2 + f2 * mu2AP**2
+        Z1_3 = b1 + fnl * bphi * alpha3 + f3 * mu3AP**2
 
         Z1eft1 = Z1_1 - (c1 * mu1AP**2 + c2 * mu1AP**4) * k1AP**2
         Z1eft2 = Z1_2 - (c1 * mu2AP**2 + c2 * mu2AP**4) * k2AP**2
         Z1eft3 = Z1_3 - (c1 * mu3AP**2 + c2 * mu3AP**4) * k3AP**2
 
 
-        B12 = (2 * self.Z2(k1AP, k2AP, x12AP, mu1AP, mu2AP, f, f1, f2, b1, b2, bs,calA,calAp) * Z1eft1*pkIR1 * Z1eft2*pkIR2)
-        B23 = (2 * self.Z2(k2AP, k3AP, x23AP, mu2AP, mu3AP, f, f2, f3, b1, b2, bs,calA,calAp) * Z1eft2*pkIR2 * Z1eft3*pkIR3)
-        B31 = (2 * self.Z2(k3AP, k1AP, x31AP, mu3AP, mu1AP, f, f3, f1, b1, b2, bs,calA,calAp) * Z1eft3*pkIR3 * Z1eft1*pkIR1)
+        B12 = (2 * self.Z2(k1AP, k2AP, x12AP, mu1AP, mu2AP, f, f1, f2, b1, b2, bs,calA,calAp, bfnld=bfnld, alphai=alpha1, alphaj=alpha2) * Z1eft1*pkIR1 * Z1eft2*pkIR2)
+        B23 = (2 * self.Z2(k2AP, k3AP, x23AP, mu2AP, mu3AP, f, f2, f3, b1, b2, bs,calA,calAp, bfnld=bfnld, alphai=alpha2, alphaj=alpha3) * Z1eft2*pkIR2 * Z1eft3*pkIR3)
+        B31 = (2 * self.Z2(k3AP, k1AP, x31AP, mu3AP, mu1AP, f, f3, f1, b1, b2, bs,calA,calAp, bfnld=bfnld, alphai=alpha3, alphaj=alpha1) * Z1eft3*pkIR3 * Z1eft1*pkIR1)
+        # Primordial bispectrum; see :meth:`BispectrumCalculator.bispectrum`.
+        Bprim = 0.
+        if png:
+            Bprim = 2. * fnl * Z1eft1 * Z1eft2 * Z1eft3 * (
+                png_prim_ratio(alpha1, alpha2, alpha3) * pkIR1 * pkIR2
+                + png_prim_ratio(alpha2, alpha3, alpha1) * pkIR2 * pkIR3
+                + png_prim_ratio(alpha3, alpha1, alpha2) * pkIR3 * pkIR1)
 
         W = fog_damping((k1AP * mu1AP, X_FoG_b), (k2AP * mu2AP, X_FoG_b), (k3AP * mu3AP, X_FoG_b),
                         f=f, sigma2v=sigma2v, damping=damping)
@@ -4025,7 +4276,7 @@ class BispectrumCalculator_fk:
                 + Pshot**2
         )
 
-        bispectrum = W*(B12 + B23 + B31) + shot
+        bispectrum = W*(B12 + B23 + B31 + Bprim) + shot
         alpha = qpar * qperp**2
         bispectrum = bispectrum / alpha**2
 
@@ -4201,7 +4452,8 @@ class BispectrumCalculator_fk:
 
     def Sugiyama_Bl1l2L(self, k1, k2, f, sigma2v, Sigma2, deltaSigma2, bpars, qpar, qper,
                         tablesGL, k_pkl_pklnw_fk, damping='lor', renormalize=True,
-                        multipoles=['B000', 'B202'], interpolation_method='linear',precision=None):
+                        multipoles=['B000', 'B202'], interpolation_method='linear',precision=None,
+                        alphak2=None):
         """
         Compute requested Sugiyama bispectrum multipoles.
 
@@ -4220,7 +4472,10 @@ class BispectrumCalculator_fk:
         tablesGL : list
             Gauss-Legendre tables
         k_pkl_pklnw : list
-            [k_array, pkl_array, pklnw_array]
+            [k_array, pkl_array, pklnw_array, fk_array, calA, calAp]
+        alphak2 : array, default=None
+            alpha(k) k^2 on that same grid, switching the local-PNG terms on;
+            see :func:`table_alphak2`.
         damping : str
             Damping type: 'lor', 'exp', 'vdg'
         renormalize : bool
@@ -4256,6 +4511,7 @@ class BispectrumCalculator_fk:
             k_pkl_pklnw_fk,
             damping=damping,
             interpolation_method=interpolation_method,
+            alphak2=alphak2,
         )
 
         # Normalization factors for each multipole
@@ -4295,7 +4551,8 @@ class BispectrumCalculator_fk:
     def Sugiyama_Bell(self, f, bpars, k_pkl_pklnw_fk,
                       k1k2pairs, qpar, qper, precision=[8, 10, 10], damping='lor',
                       m_bin=None, k_thy=None, do_binning=False, multipoles=['B000', 'B202'],
-                      renormalize=True, interpolation_method='linear', bias_scheme='folps',do_interp_bk=False,kout=None):
+                      renormalize=True, interpolation_method='linear', bias_scheme='folps',do_interp_bk=False,kout=None,
+                      alphak2=None):
         """
         Compute Sugiyama bispectrum multipoles for multiple k1k2 pairs.
 
@@ -4306,7 +4563,10 @@ class BispectrumCalculator_fk:
         bpars : array-like
             Bias parameters [b1, b2, bs, c1, c2, Bshot, Pshot, X_FoG_b]
         k_pkl_pklnw : list
-            [k_array, pkl_array, pklnw_array]
+            [k_array, pkl_array, pklnw_array, fk_array, calA, calAp]
+        alphak2 : array, default=None
+            alpha(k) k^2 on that same grid, switching the local-PNG terms on;
+            see :func:`table_alphak2`.
         k1k2pairs : array-like
             Array of shape (N, 2) with k1, k2 pairs
         qpar, qper : float
@@ -4376,6 +4636,7 @@ class BispectrumCalculator_fk:
             k_pkl_pklnw_fk,
             damping=damping,
             interpolation_method=interpolation_method,
+            alphak2=alphak2,
         )
 
         # Normalization factors for each multipole
@@ -4451,7 +4712,8 @@ class BispectrumCalculator_fk:
         k_pkl_pklnw_fk,
         damping = 'lor',
         interpolation_method='linear',
-        multipoles=['B0', 'B2', 'B4']
+        multipoles=['B0', 'B2', 'B4'],
+        alphak2=None
     ):
         """
         Computation of Scoccimarro B0, B2, B4
@@ -4494,6 +4756,7 @@ class BispectrumCalculator_fk:
             k_pkl_pklnw_fk,
             damping = 'lor',
             interpolation_method = interpolation_method,
+            alphak2=alphak2,
         )   # (N, Nμ, Nφ)
 
         # --- φ integration ---
@@ -4532,7 +4795,8 @@ class BispectrumCalculator_fk:
     def Scoccimarro_Bell(self, k1k2k3triplets, f, bpars, qpar, qperp,
                          k_pkl_pklnw_fk, precision=[10, 10], damping='lor',
                          interpolation_method='linear', m_bin=None, k_thy=None,
-                         do_binning=False, multipoles=['B0', 'B2', 'B4'], bias_scheme='folps'):
+                         do_binning=False, multipoles=['B0', 'B2', 'B4'], bias_scheme='folps',
+                         alphak2=None):
         """
         Compute Scoccimarro bispectrum multipoles for multiple k1k2k3 triplets.
 
@@ -4596,7 +4860,7 @@ class BispectrumCalculator_fk:
                         triplet, f, sigma2v, Sigma2, deltaSigma2, bpars, qpar, qperp,
                         tablesGL, k_pkl_pklnw_fk, damping=damping,
                         interpolation_method=interpolation_method,
-                        multipoles=multipoles
+                        multipoles=multipoles, alphak2=alphak2
                     )
 
                 vm = jax.vmap(_single)
@@ -4646,7 +4910,7 @@ class BispectrumCalculator_fk:
         B0, B2, B4, x = self.Scoccimarro_B024(
             k1k2k3triplets, f, sigma2v, Sigma2, deltaSigma2, bpars, qpar, qperp,
             tablesGL, k_pkl_pklnw_fk, damping, interpolation_method,
-            multipoles=multipoles
+            multipoles=multipoles, alphak2=alphak2
         )
 
         # Optional internal binning
@@ -4750,7 +5014,8 @@ class WindowConvolvedBispectrum:
         damping,
         interpolation_method,
         bias_scheme,
-        multipoles = ['B000', 'B110', 'B220', 'B202', 'B022', 'B112']
+        multipoles = ['B000', 'B110', 'B220', 'B202', 'B022', 'B112'],
+        alphak2 = None
     ):
         Nk = len(k_ev)
         i, j = np.tril_indices(Nk)
@@ -4768,7 +5033,8 @@ class WindowConvolvedBispectrum:
             damping=damping,
             interpolation_method=interpolation_method,
             bias_scheme=bias_scheme,
-            multipoles = multipoles)
+            multipoles = multipoles,
+            alphak2=alphak2)
 
         B000, B110, B220, B202, B022, B112 = Bk2D
 
@@ -4805,6 +5071,7 @@ class WindowConvolvedBispectrum:
         renormalize=True,
         interpolation_method_full="linear",
         interpolation_method_diag="cubic",
+        alphak2=None,
         use_full_diag=True,
         get_windowed=True,
         damping="lor",
@@ -4830,7 +5097,8 @@ class WindowConvolvedBispectrum:
             damping,
             interpolation_method_full,
             bias_scheme,
-            multipoles
+            multipoles,
+            alphak2
         )
 
         if Ssize == len(k_window):
@@ -4864,7 +5132,8 @@ class WindowConvolvedBispectrum:
                 damping=damping,
                 interpolation_method=interpolation_method_diag,
                 bias_scheme=bias_scheme,
-                multipoles=multipoles)
+                multipoles=multipoles,
+                alphak2=alphak2)
 
             B000d, B110d, B220d, B202d, B022d, _ = Bkdiag
             np.fill_diagonal(interp["B000"], B000d)
@@ -4902,6 +5171,7 @@ class WindowConvolvedBispectrum:
         renormalize=True,
         interpolation_method_full="linear",
         interpolation_method_diag="cubic",
+        alphak2=None,
         use_full_diag=True,
         get_windowed=True,
         damping="lor",
@@ -4926,7 +5196,8 @@ class WindowConvolvedBispectrum:
             renormalize,
             damping,
             interpolation_method_full,
-            bias_scheme
+            bias_scheme,
+            alphak2=alphak2
         )
 
         interp = {}
@@ -4951,7 +5222,8 @@ class WindowConvolvedBispectrum:
                 damping=damping,
                 interpolation_method=interpolation_method_diag,
                 bias_scheme=bias_scheme,
-                multipoles=multipoles)
+                multipoles=multipoles,
+                alphak2=alphak2)
 
             B000d, B110d, B220d, B202d, B022d, B112d = Bkdiag
             np.fill_diagonal(interp["B000"], B000d)
@@ -5003,6 +5275,7 @@ class WindowConvolvedBispectrum:
         renormalize=True,
         interpolation_method_full="linear",
         interpolation_method_diag="cubic",
+        alphak2=None,
         use_full_diag=True,
         get_windowed=True,
         damping="lor",
@@ -5027,6 +5300,7 @@ class WindowConvolvedBispectrum:
             damping,
             interpolation_method_full,
             bias_scheme,  #Mod Dic 22
+            alphak2=alphak2,
         )
 
 
@@ -5070,7 +5344,8 @@ class WindowConvolvedBispectrum:
                 damping=damping,
                 interpolation_method=interpolation_method_diag,
                 bias_scheme=bias_scheme,
-                multipoles= ['B000', 'B110', 'B220', 'B202', 'B022', 'B112'])
+                multipoles= ['B000', 'B110', 'B220', 'B202', 'B022', 'B112'],
+                alphak2=alphak2)
 
             B000d, B110d, B220d, B202d, B022d, B112d = Bkdiag
             # np.fill_diagonal(interpb["B000"], B000d)
@@ -5110,6 +5385,7 @@ def convolve_Bl1l2L(bisp_nuis_params_, bisp_cosmo_params_,
                      renormalize=True,
                      interpolation_method_full='linear',
                      interpolation_method_diag='linear',
+                     alphak2=None,
                      use_full_diag=True,multipoles_for_convolution=None,window_source='Carol'):
 
     bc = WindowConvolvedBispectrum(model="FOLPSD")
@@ -5121,6 +5397,7 @@ def convolve_Bl1l2L(bisp_nuis_params_, bisp_cosmo_params_,
                          renormalize=renormalize,
                          interpolation_method_full=interpolation_method_full,
                          interpolation_method_diag=interpolation_method_diag,
+                         alphak2=alphak2,
                          use_full_diag=use_full_diag)
 
 
