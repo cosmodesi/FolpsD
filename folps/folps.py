@@ -1647,6 +1647,37 @@ class RSDMultipolesPowerSpectrumCalculator:
                  + (1 - np.exp(-k**2 * sigma2t)) * self.get_eft_pkmu(k, mu, pars, table_now, damping, damping_method=damping_method, use_GTNS=use_GTNS))
         return pkmu
 
+    def get_rsd_pkell(self, kobs, qpar, qper, pars, table, table_now,
+                      bias_scheme="folps", damping='lor', nmu=6, ells=(0, 2, 4), IR_resummation=True,
+                      damping_method=None, use_GTNS=None):
+        """
+        Computes the redshift-space power spectrum multipoles P_ell(k).
+
+        Args:
+            kobs (array): Observed k.
+            qpar (float): Parallel AP parameter.
+            qper (float): Perpendicular AP parameter.
+            pars (list): Nuisance parameters.
+            table (list): table.
+            table_now (list): No-wiggle table.
+            bias_scheme (str): Bias scheme to use.
+            nmu (int): Number of points for GL integration
+            ells (tuple): Multipoles
+            IR_resummation (bool): Whether to apply IR resummation.
+            damping_method (str): Which terms the FoG kernel multiplies; see :meth:`get_rsd_pkmu`.
+            use_GTNS (bool): Whether to keep the perturbative GTNS term; see :meth:`get_eft_pkmu`.
+
+        Returns:
+            array: Power spectrum multipoles for each ell.
+        """
+        pars = self.set_bias_scheme(pars, bias_scheme=bias_scheme)
+        muobs, wmu = weights_leggauss(nmu, sym=True)
+        wmu = np.array([wmu * (2 * ell + 1) * legendre(ell)(muobs) for ell in ells])
+        jac, kap, muap = (qpar * qper**2)**(-1), self.k_ap(kobs[:, None], muobs, qpar, qper), self.mu_ap(muobs, qpar, qper)[None, :]
+        pkmu = jac * self.get_rsd_pkmu(kap, muap, pars, table, table_now, IR_resummation, damping,
+                                       damping_method=damping_method, use_GTNS=use_GTNS)
+        return np.sum(pkmu * wmu[:, None, :], axis=-1)
+
     def get_eft_pkmu_monomials(self, kev, mu, table, damping_method=None, use_GTNS=None):
         r""":meth:`get_eft_pkmu` decomposed over bias monomials.
 
