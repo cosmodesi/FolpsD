@@ -163,4 +163,4 @@ Including bispectrum and JAX capabilities: [https://arxiv.org/abs/2604.08895](ht
 
 ## Acknowledgements
 
-We acknowledge financial support from grants DGAPA-PAPIIT IA101825 and SECIHITI CBF2023-2024-162
+We acknowledge financial support from grant DGAPA-PAPIIT IA101825 and SECIHITI grants CBF2023-2024-162 and CBF-2025-I-2795
