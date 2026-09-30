@@ -1417,8 +1417,8 @@ def _normalize_damping_method(damping_method):
         raise ValueError(f"damping_method={damping_method!r} is deprecated; use 'tree+loop+ctr' (GTNS removed)")
     if damping_method == 'all':
         return 'tree+loop+ctr+sn'
-    if damping_method not in ('loop+ctr', 'tree+loop', 'tree+loop+ctr', 'tree+loop+ctr+sn'):
-        raise ValueError(f"damping_method must be None / 'tree+loop+ctr' (default), 'tree+loop' or 'tree+loop+ctr+sn' (alias 'all'), got {damping_method!r}")
+    if damping_method not in ('loop+ctr', 'tree+loop', 'tree+loop+ctr', 'tree+loop+ctr+sn', 'loop'):
+        raise ValueError(f"damping_method must be None / 'tree+loop+ctr' (default), 'tree+loop' or 'tree+loop+ctr+sn' (alias 'all') or 'loop' (only used for debugging), got {damping_method!r}")
     return damping_method
 
 

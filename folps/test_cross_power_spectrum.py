@@ -367,9 +367,10 @@ def _check_synthetic_pair_contractions(multipoles, xp, table, A_full):
 
 
 def _check_cross_damping_modes(xp, A_full):
-    from folps import RSDMultipolesPowerSpectrumCalculator
+    from folps import RSDMultipolesPowerSpectrumCalculator, fog_damping
 
     multipoles = RSDMultipolesPowerSpectrumCalculator(model="FOLPSD")
+    multipoles_eft = RSDMultipolesPowerSpectrumCalculator(model="EFT")
     k_eval = xp.asarray(host_np.array([0.055, 0.135, 0.215]))[:, None]
     mu_eval = xp.asarray(host_np.array([0.30, 0.70, 0.95]))[None, :]
     f0 = 0.6880638641959066
@@ -419,7 +420,8 @@ def _check_cross_damping_modes(xp, A_full):
         ["cross-spectrum damping", "exp", "lor", "vdg"],
     )
 
-    no_damping_single = multipoles.get_eft_pkmu(
+    # use multipoles_eft here because multipoles with model='folpsD' always damp even when damping=None
+    no_damping_single = multipoles_eft.get_eft_pkmu(
         k_eval,
         mu_eval,
         pars_a,
@@ -429,7 +431,7 @@ def _check_cross_damping_modes(xp, A_full):
         cross_nuisance=cross_nuisance,
         cross_damping_mode="single",
     )
-    no_damping_geometric = multipoles.get_eft_pkmu(
+    no_damping_geometric = multipoles_eft.get_eft_pkmu(
         k_eval,
         mu_eval,
         pars_a,
@@ -440,7 +442,7 @@ def _check_cross_damping_modes(xp, A_full):
         cross_damping_mode="geometric",
     )
     _assert_allclose(
-        "FOLPSD cross damping=None mode independence",
+        "FOLPSEFT cross damping=None mode independence",
         no_damping_geometric,
         no_damping_single,
         rtol=1.0e-13,
@@ -448,8 +450,10 @@ def _check_cross_damping_modes(xp, A_full):
     )
 
     for damping in ("exp", "lor", "vdg"):
-        W_single = multipoles._pk_damping_factor(
-            k_eval, mu_eval, f0, sigma2w, cross_nuisance[-1], damping
+        kmu = k_eval * mu_eval
+        W_single = fog_damping(
+            (kmu, cross_nuisance[-1]), (kmu, cross_nuisance[-1]),
+            f=f0, sigma2v=sigma2w, damping=damping
         )
         single = multipoles.get_eft_pkmu(
             k_eval,
@@ -524,9 +528,14 @@ def _check_cross_damping_modes(xp, A_full):
             rtol=1.0e-6,
             atol=1.0e-8,
         )
-
-        W_a = multipoles._pk_damping_factor(k_eval, mu_eval, f0, sigma2w, pars_a[-1], damping)
-        W_b = multipoles._pk_damping_factor(k_eval, mu_eval, f0, sigma2w, pars_b[-1], damping)
+        W_a = fog_damping(
+            (kmu, pars_a[-1]), (kmu, pars_a[-1]),
+            f=f0, sigma2v=sigma2w, damping=damping,
+        )
+        W_b = fog_damping(
+            (kmu, pars_b[-1]), (kmu, pars_b[-1]),
+            f=f0, sigma2v=sigma2w, damping=damping,
+        )
         geometric = multipoles.get_eft_pkmu(
             k_eval,
             mu_eval,
@@ -583,7 +592,10 @@ def _check_cross_damping_modes(xp, A_full):
 
         pars_equal_a = _with_x_fog(xp, pars_a, 1.80)
         pars_equal_b = _with_x_fog(xp, pars_b, 1.80)
-        W_equal = multipoles._pk_damping_factor(k_eval, mu_eval, f0, sigma2w, 1.80, damping)
+        W_equal = fog_damping(
+            (kmu, 1.80), (kmu, 1.80),
+            f=f0, sigma2v=sigma2w, damping=damping,
+        )
         geometric_equal = multipoles.get_eft_pkmu(
             k_eval,
             mu_eval,
@@ -726,6 +738,8 @@ def _check_current_auto_regression(root, backend, xp, table, table_now):
         table_now=table_now,
         bias_scheme="folps",
         damping="lor",
+        damping_method="loop",
+        use_GTNS=True,
     )
 
     expected = host_np.asarray([ref["p0"], ref["p2"], ref["p4"]])
