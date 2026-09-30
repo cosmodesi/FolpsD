@@ -1,8 +1,10 @@
 folps/mike_data_tools.py
-.DS_Store
-.ipynb_checkpoints/
 __pycache__/
 *.pyc
+*.egg-info/
+.ipynb_checkpoints/
+.DS_Store
+_build/
 *.aux
 *.bbl
 *.blg
