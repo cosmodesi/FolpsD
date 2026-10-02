@@ -2666,10 +2666,12 @@ class BispectrumCalculator:
 
         ## Noise 
         # To match eq.3.14 of 2110.10161, one makes (1+Pshot) -> (1+Pshot)/bar-n; Bshot -> Bshot/bar-n
+        # One f mu^2 Pshot, not two: with Pshot = Bshot = 1/nbar this reduces to the Poisson
+        # contraction Z1^2 P / nbar + 1/nbar^2 (the two velocity placements sum to one f mu_i^2).
         shot = (
-                  W1 * (b1*Bshot + 2.0*Pshot*f1*mu1AP**2) * Z1eft1 * pkIR1
-                + W2 * (b1*Bshot + 2.0*Pshot*f2*mu2AP**2) * Z1eft2 * pkIR2
-                + W3 * (b1*Bshot + 2.0*Pshot*f3*mu3AP**2) * Z1eft3 * pkIR3
+                  W1 * (b1*Bshot + Pshot*f1*mu1AP**2) * Z1eft1 * pkIR1
+                + W2 * (b1*Bshot + Pshot*f2*mu2AP**2) * Z1eft2 * pkIR2
+                + W3 * (b1*Bshot + Pshot*f3*mu3AP**2) * Z1eft3 * pkIR3
                 + Pshot**2
         )
 
@@ -3601,10 +3603,12 @@ class BispectrumCalculator_fk:
 
         ## Noise 
         # To match eq.3.14 of 2110.10161, one makes (1+Pshot) -> (1+Pshot)/bar-n; Bshot -> Bshot/bar-n
+        # One f mu^2 Pshot, not two: with Pshot = Bshot = 1/nbar this reduces to the Poisson
+        # contraction Z1^2 P / nbar + 1/nbar^2 (the two velocity placements sum to one f mu_i^2).
         shot = (
-                  (b1*Bshot + 2.0*Pshot*f1*mu1AP**2) * Z1eft1 * pkIR1
-                + (b1*Bshot + 2.0*Pshot*f2*mu2AP**2) * Z1eft2 * pkIR2
-                + (b1*Bshot + 2.0*Pshot*f3*mu3AP**2) * Z1eft3 * pkIR3
+                  (b1*Bshot + Pshot*f1*mu1AP**2) * Z1eft1 * pkIR1
+                + (b1*Bshot + Pshot*f2*mu2AP**2) * Z1eft2 * pkIR2
+                + (b1*Bshot + Pshot*f3*mu3AP**2) * Z1eft3 * pkIR3
                 + Pshot**2
         )
 
