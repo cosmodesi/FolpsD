@@ -1,0 +1,15 @@
+quantity,value,description
+maximum_exchange_symmetry_residual_abs,0,"max |P_ell^AB - P_ell^BA| over ell=(0,2,4) and the script k grid"
+maximum_exchange_symmetry_residual_rel,0,max relative exchange-symmetry residual
+maximum_auto_limit_residual_abs,0,"max |P_ell^AA,pair - P_ell^AA,auto|"
+maximum_auto_limit_residual_rel,0,max relative auto-limit residual
+maximum_priordoc_canonical_residual_abs,0,max |P_ell(priordoc input) - P_ell(equivalent canonical folps input)|
+maximum_priordoc_canonical_residual_rel,0,max relative prior-document/canonical residual
+maximum_baseline_abs_r_minus_one,0.021034265667998708,max |P_AB/sqrt(P_AA P_BB)-1| over valid baseline pkmu samples
+cross_damping_modes_max_abs_fractional_difference,0.42563479936117271,"max |P_ell,geometric/P_ell,single - 1| over stable damping-mode samples"
+linear_deterministic_max_abs_r_minus_one,3.3306690738754696e-16,diagnostic synthetic-table linear limit check for r=1
+script_runtime_seconds,4.8758107499888865,wall-clock runtime for docs/cross_power/source/make_cross_power_figures.py
+k_min_h_per_Mpc,0.01,minimum plotted and tabulated k
+k_max_h_per_Mpc,0.29999999999999999,maximum plotted and tabulated k
+number_of_k_points,145,number of points in the common output k grid
+nmu,16,positive-mu Gauss-Legendre quadrature order used for multipoles

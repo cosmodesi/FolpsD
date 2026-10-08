@@ -1,0 +1,641 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,bm,mathtools}
+\usepackage{microtype}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage[numbers,sort&compress]{natbib}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue!55!black,
+  citecolor=blue!55!black,
+  urlcolor=blue!55!black,
+  pdftitle={Cross-power spectrum of two biased tracers in FOLPS},
+  pdfauthor={Alejandro Aviles and collaborators}
+}
+
+\newcommand{\bs}[1]{\boldsymbol{#1}}
+\newcommand{\dd}{\mathrm{d}}
+\newcommand{\cO}{\mathcal{O}}
+\newcommand{\PL}{P_{\mathrm{L}}}
+\newcommand{\PD}{\delta_{\mathrm{D}}}
+\newcommand{\intp}{\int\!\frac{\dd^3\bs{p}}{(2\pi)^3}}
+\newcommand{\TODO}[1]{\textcolor{red!70!black}{\textbf{TODO:} #1}}
+
+\title{Cross-power spectrum of two biased tracers in FOLPS\\
+\large Theory note for the LRG3 $\times$ ELG1 extension}
+\author{Alejandro Avil\'es and collaborators}
+\date{Draft 0.1 -- July 23, 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+We formulate the equal-time redshift-space power-spectrum cross-correlation of two biased tracers within the organization used by FOLPS. The immediate application is the DESI LRG3 $\times$ ELG1 cross-spectrum in their overlap redshift interval. We retain independent bias parameters for the two tracer populations and assume that both follow the same matter velocity field. The density-density and density-velocity sectors follow by bilinearizing the existing single-tracer contractions, and the current FFTLog loop tables are sufficient. We derive the exact cross-tracer rescaling of the $D$ function and the direct cross-Kaiser form of the $G$ contribution. The only unresolved structural issue is the full biased $A$ function used when \texttt{A\_full=True}: the present auto-spectrum implementation may have combined contributions in which the quadratic or tidal operator is inserted at different tracer endpoints. We therefore keep these contributions ordered and identify the endpoint-symmetry test that determines whether new FFTLog outputs are required. This note defines the first implementation target and the consistency tests that the code must satisfy.
+\end{abstract}
+
+\tableofcontents
+
+\section{Scope and assumptions}
+\label{sec:scope}
+
+We consider two tracer populations, denoted by $A$ and $B$, observed over a common redshift interval. The main application is the DESI LRG3 $\times$ ELG1 cross-correlation. The first implementation is restricted to:
+\begin{itemize}[leftmargin=1.5em]
+    \item the power spectrum only;
+    \item a single effective redshift for the cross sample;
+    \item the equal-time and plane-parallel approximations;
+    \item a common underlying matter velocity field and no tracer velocity bias;
+    \item even multipoles $\ell=0,2,4$;
+    \item the current FOLPS bias basis and one-loop perturbative ingredients;
+    \item the standard EFT model before introducing a tracer-dependent FolpsD damping prescription.
+\end{itemize}
+Window convolution, redshift evolution across the overlap interval, relativistic effects, wide-angle effects, odd multipoles, and the bispectrum are outside the present scope.
+
+We use the same conventions as the single-tracer FOLPS formulation of Refs.~\cite{Aviles2021,Noriega2022} and the subsequent FolpsD implementation of Ref.~\cite{FolpsD2026}. The line-of-sight direction is $\hat{\bs{n}}$ and
+\begin{equation}
+    \mu \equiv \hat{\bs{k}}\cdot\hat{\bs{n}}.
+\end{equation}
+The velocity-divergence field is normalized as
+\begin{equation}
+    \theta(\bs{k})
+    \equiv
+    -\frac{i\bs{k}\cdot\bs{v}(\bs{k})}{aHf_0},
+\end{equation}
+where $f_0$ is the large-scale limit of the logarithmic growth rate. At linear order,
+\begin{equation}
+    \theta^{(1)}(\bs{k})
+    =
+    \frac{f(k)}{f_0}\delta^{(1)}(\bs{k}).
+\end{equation}
+
+The renormalized Eulerian bias expansion of tracer $X\in\{A,B\}$ is written as
+\begin{equation}
+\begin{split}
+    \delta_X
+    ={}&
+    b_1^X\delta
+    +\frac{b_2^X}{2}[\delta^2]
+    +b_{s^2}^X[s^2]
+    +b_{3\mathrm{nl}}^X O_{3\mathrm{nl}}
+    +\epsilon_X
+    +\cdots .
+\end{split}
+\label{eq:bias_expansion_cross}
+\end{equation}
+The square brackets denote renormalized composite operators.
+
+\section{Definition and symmetries of the cross-spectrum}
+\label{sec:def}
+
+The redshift-space cross-power spectrum is defined by
+\begin{equation}
+    \left\langle
+        \delta_A^s(\bs{k})
+        \delta_B^s(\bs{k}')
+    \right\rangle
+    =
+    (2\pi)^3
+    \PD(\bs{k}+\bs{k}')
+    P_{AB}^s(k,\mu).
+\end{equation}
+In general,
+\begin{equation}
+    P_{BA}^s(k,\mu)
+    =
+    \left[P_{AB}^s(k,\mu)\right]^*.
+\end{equation}
+Under equal-time evolution, statistical isotropy, parity invariance, a common line of sight, and the absence of wide-angle or relativistic terms, the cross-spectrum is real and even in $\mu$,
+\begin{equation}
+    P_{AB}^s(k,\mu)
+    =P_{BA}^s(k,\mu)
+    =P_{AB}^s(k,-\mu).
+\end{equation}
+The first implementation therefore contains only even multipoles,
+\begin{equation}
+    P_{\ell}^{AB}(k)
+    =
+    \frac{2\ell+1}{2}
+    \int_{-1}^{1}\dd\mu\,
+    \mathcal{L}_{\ell}(\mu)
+    P_{AB}^s(k,\mu),
+    \qquad \ell=0,2,4.
+\end{equation}
+
+The exact generating function is obtained by replacing the two identical tracer fields in the usual redshift-space expression by $\delta_A$ and $\delta_B$:
+\begin{equation}
+\begin{split}
+    (2\pi)^3\PD(\bs{k})+P_{AB}^s(\bs{k})
+    ={}&
+    \int \dd^3\bs{r}\,
+    e^{-i\bs{k}\cdot\bs{r}}
+    \left\langle
+        \left[1+\delta_A(\bs{x}_1)\right]
+        \left[1+\delta_B(\bs{x}_2)\right]
+        e^{-ik\mu\Delta v_{\parallel}/(aH)}
+    \right\rangle,
+\end{split}
+\label{eq:cross_generating_function}
+\end{equation}
+where $\bs{r}=\bs{x}_2-\bs{x}_1$ and
+\begin{equation}
+    \Delta v_{\parallel}
+    =
+    \hat{\bs{n}}\cdot
+    \left[\bs{v}(\bs{x}_2)-\bs{v}(\bs{x}_1)\right].
+\end{equation}
+Equation~\eqref{eq:cross_generating_function} is the correct starting point for deriving the cross-tracer $A$ and $D$ functions. The labels $A$ and $B$ must be retained until all contractions and momentum transformations have been performed.
+
+\section{Independent one-loop representation with redshift-space kernels}
+\label{sec:Zn}
+
+An independent representation of the one-loop cross-spectrum is provided by tracer-dependent redshift-space kernels $Z_n^X$. Before EFT counterterms and stochastic terms are added,
+\begin{align}
+    P_{AB}^s(k,\mu)
+    ={}&
+    Z_1^A(\bs{k})Z_1^B(\bs{k})\PL(k)
+    \nonumber\\
+    &+2\intp
+    Z_2^A(\bs{p},\bs{k}-\bs{p})
+    Z_2^B(\bs{p},\bs{k}-\bs{p})
+    \PL(p)\PL(|\bs{k}-\bs{p}|)
+    \nonumber\\
+    &+3Z_1^A(\bs{k})\PL(k)
+    \intp
+    Z_3^B(\bs{p},-\bs{p},\bs{k})\PL(p)
+    \nonumber\\
+    &+3Z_1^B(\bs{k})\PL(k)
+    \intp
+    Z_3^A(\bs{p},-\bs{p},\bs{k})\PL(p)
+    \nonumber\\
+    &+P_{\mathrm{ctr},AB}^s(k,\mu)
+    +P_{\mathrm{stoch},AB}^s(k,\mu),
+\label{eq:cross_Zkernels}
+\end{align}
+with
+\begin{equation}
+    Z_1^X(\bs{k})=b_1^X+f(k)\mu^2.
+\end{equation}
+Equation~\eqref{eq:cross_Zkernels} will be useful as an independent validation of the FOLPS implementation. The FOLPS organization in terms of density and velocity spectra and the $A$ and $D$ functions is a rearrangement of the same one-loop contributions.
+
+\section{FOLPS decomposition}
+\label{sec:folps}
+
+The cross-spectrum can be organized in the FOLPS form as
+\begin{align}
+    P_{AB}^s(k,\mu)
+    ={}&
+    P_{\delta_A\delta_B}(k)
+    +f_0\mu^2
+    \left[P_{\delta_A\theta}(k)+P_{\delta_B\theta}(k)\right]
+    +f_0^2\mu^4P_{\theta\theta}(k)
+    \nonumber\\
+    &+A_{AB}(k,\mu)
+    +D_{AB}(k,\mu)
+    +G_{AB}(k,\mu)
+    \nonumber\\
+    &+P_{\mathrm{ctr},AB}^s(k,\mu)
+    +P_{\mathrm{stoch},AB}^s(k,\mu).
+\label{eq:cross_folps_decomposition}
+\end{align}
+When $A=B$, the second term becomes $2f_0\mu^2P_{\delta_A\theta}$ and the usual single-tracer expression is recovered.
+
+The linear contribution is the cross-Kaiser spectrum
+\begin{equation}
+    P_{\mathrm{K},AB}^s(k,\mu)
+    =
+    \left[b_1^A+f(k)\mu^2\right]
+    \left[b_1^B+f(k)\mu^2\right]
+    \PL(k).
+\label{eq:cross_kaiser}
+\end{equation}
+
+\section{Biased density and velocity spectra}
+\label{sec:dv}
+
+The one-loop density cross-spectrum is
+\begin{align}
+    P_{\delta_A\delta_B}^{\mathrm{1\mbox{-}loop}}(k)
+    ={}&
+    b_1^A b_1^B P_{\delta\delta}^{\mathrm{1\mbox{-}loop}}(k)
+    \nonumber\\
+    &+\left(b_1^A b_2^B+b_2^A b_1^B\right)P_{b_1b_2}(k)
+    \nonumber\\
+    &+\left(b_1^A b_{s^2}^B+b_{s^2}^A b_1^B\right)P_{b_1s^2}(k)
+    \nonumber\\
+    &+b_2^A b_2^B P_{b_2b_2}(k)
+    \nonumber\\
+    &+\left(b_2^A b_{s^2}^B+b_{s^2}^A b_2^B\right)P_{b_2s^2}(k)
+    \nonumber\\
+    &+b_{s^2}^A b_{s^2}^B P_{s^2s^2}(k)
+    \nonumber\\
+    &+\left(b_1^A b_{3\mathrm{nl}}^B+b_{3\mathrm{nl}}^A b_1^B\right)
+    \sigma_3^2(k)\PL(k).
+\label{eq:Pdd_cross}
+\end{align}
+This expression uses the loop functions already calculated for the auto-spectrum.
+
+For either tracer $X=A,B$, the density-velocity spectrum is
+\begin{align}
+    P_{\delta_X\theta}^{\mathrm{1\mbox{-}loop}}(k)
+    ={}&
+    b_1^X P_{\delta\theta}^{\mathrm{1\mbox{-}loop}}(k)
+    +b_2^X P_{b_2\theta}(k)
+    +b_{s^2}^X P_{s^2\theta}(k)
+    \nonumber\\
+    &+b_{3\mathrm{nl}}^X
+    \frac{f(k)}{f_0}
+    \sigma_3^2(k)\PL(k),
+\label{eq:Pdt_cross}
+\end{align}
+while $P_{\theta\theta}^{\mathrm{1\mbox{-}loop}}(k)$ is common to both tracers. Therefore,
+\begin{align}
+    P_{AB,\mathrm{dv}}^{\mathrm{1\mbox{-}loop}}
+    ={}&
+    P_{\delta_A\delta_B}^{\mathrm{1\mbox{-}loop}}
+    +f_0\mu^2
+    \left[
+        P_{\delta_A\theta}^{\mathrm{1\mbox{-}loop}}
+        +P_{\delta_B\theta}^{\mathrm{1\mbox{-}loop}}
+    \right]
+    \nonumber\\
+    &+f_0^2\mu^4P_{\theta\theta}^{\mathrm{1\mbox{-}loop}}.
+\label{eq:cross_dv_loop}
+\end{align}
+No new loop integrals or FFTLog matrices are required for Eqs.~\eqref{eq:Pdd_cross}--\eqref{eq:cross_dv_loop}.
+
+\paragraph{Normalization warning.}
+The factors multiplying the named loop functions depend on the operator normalization used internally by FOLPS. Equations~\eqref{eq:Pdd_cross} and \eqref{eq:Pdt_cross} assume that the functions $P_{b_1b_2}$, $P_{b_1s^2}$, and related quantities are normalized exactly as in the present single-tracer contractions. During implementation, the safest procedure is to polarize the coefficients appearing in the current source code, rather than infer factors of two solely from operator names.
+
+\section{Exact cross-tracer form of the $D$ function}
+\label{sec:D}
+
+At one-loop order, the $D$ function depends only on linear density and velocity spectra. Define
+\begin{equation}
+    \mathcal{F}_X(\bs{p})
+    =
+    \frac{\bs{p}\cdot\hat{\bs{n}}}{p^2}
+    \left[
+        P_{\delta_X\theta}^{\mathrm{L}}(p)
+        +f_0\mu_p^2P_{\theta\theta}^{\mathrm{L}}(p)
+    \right],
+\label{eq:FX_D}
+\end{equation}
+where $\mu_p=\hat{\bs{p}}\cdot\hat{\bs{n}}$. Using
+\begin{equation}
+    P_{\delta_X\theta}^{\mathrm{L}}(p)
+    =b_1^X\frac{f(p)}{f_0}\PL(p),
+    \qquad
+    P_{\theta\theta}^{\mathrm{L}}(p)
+    =\left[\frac{f(p)}{f_0}\right]^2\PL(p),
+\end{equation}
+we obtain
+\begin{equation}
+    \mathcal{F}_X(\bs{p})
+    =
+    \frac{\bs{p}\cdot\hat{\bs{n}}}{p^2}
+    \frac{f(p)}{f_0}
+    \left[b_1^X+f(p)\mu_p^2\right]\PL(p).
+\end{equation}
+
+The cross-tracer generalization has the schematic form
+\begin{align}
+    D_{AB}(k,\mu)
+    ={}&
+    (k\mu f_0)^2\intp
+    \Bigg\{
+        \mathcal{F}_A(\bs{p})
+        \mathcal{F}_B(\bs{k}-\bs{p})
+    \nonumber\\
+    &\hspace{1.4cm}
+        +\frac{(\bs{p}\cdot\hat{\bs{n}})^2}{p^4}
+        P_{\theta\theta}^{\mathrm{L}}(p)
+        \left[
+            P_{\mathrm{K},AB}^s
+            \left(|\bs{k}-\bs{p}|,\mu_{\bs{k}-\bs{p}}\right)
+            -P_{\mathrm{K},AB}^s(k,\mu)
+        \right]
+    \Bigg\}.
+\label{eq:D_cross_integral}
+\end{align}
+The first term is invariant under the simultaneous exchanges $A\leftrightarrow B$ and $\bs{p}\leftrightarrow\bs{k}-\bs{p}$ after integration.
+
+To connect this expression to the current FOLPS tables, define
+\begin{align}
+    \mathcal{D}_2(k,\mu)
+    ={}&
+    \mu^2 I^{D}_{2,uudd,1}(k)
+    +\mu^4 I^{D}_{2,uudd,2}(k),
+\label{eq:D2_def}
+\\
+    \mathcal{D}_3(k,\mu)
+    ={}&
+    \mu^2 I^{B}_{3,uuud,1}(k)
+    +\mu^4 I^{D}_{3,uuud,2}(k)
+    +\mu^6 I^{D}_{3,uuud,3}(k),
+\label{eq:D3_def}
+\\
+    \mathcal{D}_4(k,\mu)
+    ={}&
+    \mu^2 I^{B}_{4,uuuu,1}(k)
+    +\mu^4 I^{D}_{4,uuuu,2}(k)
+    +\mu^6 I^{D}_{4,uuuu,3}(k)
+    +\mu^8 I^{D}_{4,uuuu,4}(k).
+\label{eq:D4_def}
+\end{align}
+The current auto-spectrum expression can be organized as
+\begin{equation}
+    D_{XX}
+    =
+    (b_1^X)^2f_0^2\mathcal{D}_2
+    +b_1^Xf_0^3\mathcal{D}_3
+    +f_0^4\mathcal{D}_4.
+\label{eq:D_auto_current}
+\end{equation}
+The exact symmetric cross-spectrum result is therefore
+\begin{equation}
+\boxed{
+    D_{AB}
+    =
+    b_1^A b_1^B f_0^2\mathcal{D}_2
+    +\frac{b_1^A+b_1^B}{2}f_0^3\mathcal{D}_3
+    +f_0^4\mathcal{D}_4
+    .
+}
+\label{eq:D_cross_exact}
+\end{equation}
+The factor $1/2$ in the mixed term accounts for the two assignments of the single density insertion to the two endpoints. Equation~\eqref{eq:D_cross_exact} recovers the auto-spectrum exactly when $A=B$. Thus, no new FFTLog matrices are required for $D_{AB}$.
+
+\section{The $G$ contribution}
+\label{sec:G}
+
+The contribution denoted by $G$ in the current implementation is proportional to the linear Kaiser spectrum. Its cross-tracer form is
+\begin{equation}
+    G_{AB}(k,\mu)
+    =
+    -(k\mu f_0)^2\sigma_{2w}
+    P_{\mathrm{K},AB}^s(k,\mu).
+\label{eq:G_cross}
+\end{equation}
+No new FFTLog matrices are required for this contribution.
+
+\section{Operator-level definition of the full $A$ function}
+\label{sec:A}
+
+The $A$ function contains the connected correlator with one pairwise-velocity insertion. Introduce the dimensionless line-of-sight velocity
+\begin{equation}
+    u_{\parallel}(\bs{x})
+    =
+    -\frac{\hat{\bs{n}}\cdot\bs{v}(\bs{x})}{aHf_0},
+\end{equation}
+and the redshift-space source associated with tracer $X$,
+\begin{equation}
+    \mathcal{S}_X(\bs{x})
+    =
+    \delta_X(\bs{x})
+    +f_0\partial_{\parallel}u_{\parallel}(\bs{x}).
+\label{eq:redshift_source_X}
+\end{equation}
+The cross-tracer $A$ function is defined at operator level by
+\begin{equation}
+    A_{AB}(k,\mu)
+    =
+    -ik\mu f_0
+    \int \dd^3\bs{r}\,
+    e^{-i\bs{k}\cdot\bs{r}}
+    \left\langle
+        \Delta u_{\parallel}
+        \mathcal{S}_A(\bs{x}_1)
+        \mathcal{S}_B(\bs{x}_2)
+    \right\rangle_{\mathrm{c}},
+\label{eq:A_cross_configuration}
+\end{equation}
+where $\Delta u_{\parallel}=u_{\parallel}(\bs{x}_2)-u_{\parallel}(\bs{x}_1)$. This reduces to the usual single-tracer $A$ function when $A=B$.
+
+Equivalently, define the ordered bispectrum
+\begin{align}
+    &(2\pi)^3\PD(\bs{k}_1+\bs{k}_2+\bs{k}_3)
+    B_{\sigma;AB}(\bs{k}_1,\bs{k}_2,\bs{k}_3)
+    \nonumber\\
+    &\hspace{1cm}
+    \equiv
+    \left\langle
+        \theta(\bs{k}_1)
+        \mathcal{S}_A(\bs{k}_2)
+        \mathcal{S}_B(\bs{k}_3)
+    \right\rangle.
+\label{eq:Bsigma_AB}
+\end{align}
+For different tracers,
+\begin{equation}
+    B_{\sigma;AB}(\bs{k}_1,\bs{k}_2,\bs{k}_3)
+    =
+    B_{\sigma;BA}(\bs{k}_1,\bs{k}_3,\bs{k}_2),
+\end{equation}
+but it is not automatically invariant under exchange of its second and third arguments while keeping the tracer labels fixed. This is the origin of the possible need to retain ordered FFTLog contributions.
+
+\subsection{Linear-bias sector}
+
+The part containing only $b_1^A$ and $b_1^B$ has the ordered structure
+\begin{align}
+    A_{AB}^{(b_1)}
+    ={}&
+    b_1^A b_1^B f_0\mu^2 I_{1,udd,1}(k)
+    \nonumber\\
+    &+f_0^2\sum_{n=1}^{2}\mu^{2n}
+    \left[
+        b_1^A I_{2,uud,n}^{A}(k)
+        +b_1^B I_{2,uud,n}^{B}(k)
+    \right]
+    \nonumber\\
+    &+f_0^3
+    \left[
+        \mu^4 I_{3,uuu,2}(k)
+        +\mu^6 I_{3,uuu,3}(k)
+    \right].
+\label{eq:A_cross_b1_ordered}
+\end{align}
+Here $I_{2,uud,n}^{A}$ denotes the contribution in which the remaining density insertion belongs to tracer $A$, and $I_{2,uud,n}^{B}$ the corresponding contribution for tracer $B$.
+
+The current auto-spectrum array constrains only their sum,
+\begin{equation}
+    I_{2,uud,n}^{\mathrm{code}}
+    =I_{2,uud,n}^{A}+I_{2,uud,n}^{B}.
+\label{eq:A_I2_code_sum}
+\end{equation}
+If a change of integration variable proves
+\begin{equation}
+    I_{2,uud,n}^{A}=I_{2,uud,n}^{B}
+    =\frac{1}{2}I_{2,uud,n}^{\mathrm{code}},
+\label{eq:A_I2_endpoint_equality}
+\end{equation}
+then
+\begin{align}
+    A_{AB}^{(b_1)}
+    ={}&
+    b_1^A b_1^B f_0\mu^2 I_{1,udd,1}
+    \nonumber\\
+    &+\frac{b_1^A+b_1^B}{2}f_0^2
+    \left[
+        \mu^2 I_{2,uud,1}^{\mathrm{code}}
+        +\mu^4 I_{2,uud,2}^{\mathrm{code}}
+    \right]
+    \nonumber\\
+    &+f_0^3
+    \left[
+        \mu^4I_{3,uuu,2}
+        +\mu^6I_{3,uuu,3}
+    \right].
+\label{eq:A_cross_b1_symmetric}
+\end{align}
+Equation~\eqref{eq:A_I2_endpoint_equality} must be demonstrated rather than assumed.
+
+\subsection{Quadratic and tidal-bias sectors for \texttt{A\_full=True}}
+
+Let $O\in\{[\delta^2],[s^2]\}$ and write its contribution as
+\begin{equation}
+    \delta_X\supset\lambda_O b_O^X O,
+    \qquad
+    \lambda_{\delta^2}=\frac12,
+    \qquad
+    \lambda_{s^2}=1.
+\end{equation}
+The ordered contribution to the full $A$ function has the form
+\begin{align}
+    A_{AB}^{(O)}
+    ={}&
+    \lambda_O f_0\mu^2
+    \left[
+        b_O^A b_1^B I_{1,udd,1}^{O@A}
+        +b_1^A b_O^B I_{1,udd,1}^{O@B}
+    \right]
+    \nonumber\\
+    &+\lambda_O f_0^2
+    \sum_{n=1}^{2}\mu^{2n}
+    \left[
+        b_O^A I_{2,uud,n}^{O@A}
+        +b_O^B I_{2,uud,n}^{O@B}
+    \right].
+\label{eq:A_cross_operator_ordered}
+\end{align}
+The notation $O@A$ indicates that the nonlinear operator is inserted at the $A$ endpoint, and similarly for $O@B$.
+
+For an auto-spectrum, only sums such as
+\begin{equation}
+    I_m^{O,\mathrm{code}}=I_m^{O@A}+I_m^{O@B}
+\end{equation}
+are observable. Consequently, the six additional arrays presently used when \texttt{A\_full=True} are sufficient for the cross-spectrum only if the endpoint pieces are equal or can be reconstructed from the stored combinations.
+
+The immediate analytic task is therefore to test
+\begin{equation}
+    I_m^{O@A}=I_m^{O@B},
+    \qquad O\in\{[\delta^2],[s^2]\},
+\label{eq:A_endpoint_test}
+\end{equation}
+after applying all momentum substitutions and symmetries. If Eq.~\eqref{eq:A_endpoint_test} holds, no new FFTLog matrices are required and the cross-spectrum follows by polarization of the auto-spectrum coefficients. If it does not hold, the current matrices must be split into their ordered endpoint contributions.
+
+\section{Counterterms and stochastic contributions}
+\label{sec:nuisance}
+
+For the first implementation, it is convenient to allow pair-level nuisance parameters,
+\begin{equation}
+    P_{\mathrm{ctr},AB}^s(k,\mu)
+    =k^2\PL(k)
+    \left[
+        \alpha_0^{AB}
+        +\alpha_2^{AB}\mu^2
+        +\alpha_4^{AB}\mu^4
+    \right]
+    +P_{\mathrm{ctr,NLO},AB}^s(k,\mu),
+\end{equation}
+and
+\begin{equation}
+    P_{\mathrm{stoch},AB}^s(k,\mu)
+    =N_0^{AB}+N_2^{AB}(k\mu)^2+\cdots .
+\end{equation}
+For disjoint tracer catalogs the naive cross-Poisson term vanishes, but exclusion, selection effects, catalog overlap, or renormalized stochastic operators can generate a nonzero cross contribution. The nuisance basis should therefore permit $N_0^{AB}$ to vary, while allowing it to be fixed to zero in controlled tests.
+
+A later joint analysis of $P_{AA}$, $P_{AB}$, and $P_{BB}$ may benefit from a field-level counterterm parametrization in which the cross coefficients follow from insertions on the $A$ and $B$ fields. This is not required for the first code prototype.
+
+\section{First implementation target and required tests}
+\label{sec:implementation}
+
+The first code milestone should implement the equal-time cross-spectrum with the following components:
+\begin{enumerate}[leftmargin=1.7em]
+    \item the cross-Kaiser term of Eq.~\eqref{eq:cross_kaiser};
+    \item the density and density-velocity contractions of Sec.~\ref{sec:dv};
+    \item the exact $D_{AB}$ rescaling of Eq.~\eqref{eq:D_cross_exact};
+    \item the $G_{AB}$ contribution of Eq.~\eqref{eq:G_cross};
+    \item the $A$ function first with \texttt{A\_full=False};
+    \item EFT and stochastic cross terms;
+    \item AP mapping, IR resummation, and multipole projection using the existing infrastructure.
+\end{enumerate}
+The production implementation should activate \texttt{A\_full=True} only after the ordered endpoint audit is completed.
+
+The following tests are mandatory:
+\begin{align}
+    P_{AB}^s(k,\mu)&=P_{BA}^s(k,\mu),
+    \\
+    P_{AB}^s(k,\mu)\big|_{A=B}&=P_{AA}^{s,\mathrm{current}}(k,\mu),
+    \\
+    P_{AB}^{s,\mathrm{lin}}(k,\mu)
+    &=
+    \left(b_1^A+f\mu^2\right)
+    \left(b_1^B+f\mu^2\right)\PL(k).
+\end{align}
+The auto-limit must be tested separately for \texttt{A\_full=False} and \texttt{A\_full=True}. Asymmetric tests with $b_2^A=0$, $b_2^B\neq0$ and the reversed assignment are essential, as are the analogous tests for $b_{s^2}$. NumPy and JAX implementations must agree numerically.
+
+\section{Immediate analytic task}
+\label{sec:next}
+
+Before modifying the FFTLog matrix calculator, the analytic definitions behind the following matrix channels should be inspected endpoint by endpoint:
+\begin{itemize}[leftmargin=1.5em]
+    \item the original $A$-term matrices entering the $f_0^2b_1$ sector;
+    \item the three additional $b_2$ matrices used by \texttt{A\_full=True};
+    \item the three additional $b_{s^2}$ matrices used by \texttt{A\_full=True}.
+\end{itemize}
+For each matrix, we should identify the physical correlator, the endpoint carrying the density or nonlinear-bias insertion, the change of variables relating the two orderings, and whether the current stored array is one ordering or their sum. This audit will determine conclusively whether the existing FFTLog output is sufficient.
+
+\section{Preliminary status}
+
+The present analysis gives the following classification:
+\begin{center}
+\begin{tabular}{@{}ll@{}}
+\toprule
+Contribution & Preliminary conclusion \\
+\midrule
+$P_{\delta_A\delta_B}$ & Existing loop tables are sufficient \\
+$P_{\delta_A\theta}+P_{\delta_B\theta}$ & Existing loop tables are sufficient \\
+$P_{\theta\theta}$ & Existing loop tables are sufficient \\
+$D_{AB}$ & Exact rescaling using existing tables \\
+$G_{AB}$ & Direct replacement $P_{\mathrm{K},AA}\to P_{\mathrm{K},AB}$ \\
+$A_{AB}$ with \texttt{A\_full=False} & Endpoint audit of mixed $f_0^2b_1$ sector \\
+$A_{AB}$ with \texttt{A\_full=True} & Ordered $b_2$ and $b_{s^2}$ audit required \\
+\bottomrule
+\end{tabular}
+\end{center}
+No modification of the FFTLog matrix calculator should be made until this ordered-endpoint analysis is completed.
+
+\begin{thebibliography}{99}
+
+\bibitem[Avil\'es et al.(2021)]{Aviles2021}
+A.~Avil\'es, G.~Valogiannis, M.~A.~Rodr\'iguez-Meza, J.~L.~Cervantes-Cota, B.~Li, and R.~Bean,
+``Redshift-space distortions in massive-neutrino cosmologies,''
+\href{https://arxiv.org/abs/2106.13771}{arXiv:2106.13771}.
+
+\bibitem[Noriega et al.(2022)]{Noriega2022}
+H.~E.~Noriega, A.~Avil\'es, S.~Fromenteau, and M.~Vargas-Maga\~na,
+``Fast computation of non-linear power spectrum in cosmologies with massive neutrinos,''
+\href{https://arxiv.org/abs/2208.02791}{arXiv:2208.02791}.
+
+\bibitem[DESI Collaboration et al.(2026)]{FolpsD2026}
+DESI Collaboration et al.,
+``FolpsD: perturbation-theory modeling for DESI full-shape and bispectrum analyses,''
+\href{https://arxiv.org/abs/2604.08895}{arXiv:2604.08895}.
+
+\end{thebibliography}
+
+\end{document}

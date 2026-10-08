@@ -1,0 +1,843 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{bm}
+\usepackage{graphicx}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{mathtools}
+\usepackage{enumitem}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage{hyperref}
+\IfFileExists{cleveref.sty}{\usepackage[nameinlink,noabbrev]{cleveref}}{}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue!55!black,
+  citecolor=blue!55!black,
+  urlcolor=blue!55!black,
+  pdftitle={Two-Tracer Redshift-Space Power Spectra in FOLPS},
+  pdfauthor={FOLPS cross-power implementation notes}
+}
+
+\newcommand{\dd}{\mathrm{d}}
+\newcommand{\ii}{\mathrm{i}}
+\newcommand{\bk}{\bm{k}}
+\newcommand{\bp}{\bm{p}}
+\newcommand{\br}{\bm{r}}
+\newcommand{\bx}{\bm{x}}
+\newcommand{\bn}{\hat{\bm{n}}}
+\newcommand{\PL}{P_{\mathrm L}}
+\newcommand{\PK}{P_{\mathrm K}}
+\newcommand{\PD}{\delta_{\mathrm D}}
+\newcommand{\intp}{\int\!\frac{\dd^3\bp}{(2\pi)^3}}
+\newcommand{\Afull}{A_{\mathrm{full}}}
+\newcommand{\bsst}{b_{s^2}}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+
+\title{\textbf{Two-Tracer Redshift-Space Power Spectra in FOLPS}\\
+\large Theory, implementation, and validation notes for equal-time cross spectra}
+\author{FOLPS cross-power development notes}
+\date{July 25, 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+These notes describe the equal-time two-tracer redshift-space power-spectrum
+extension implemented in FOLPS.  The main motivating application is the
+cross-correlation of distinct DESI tracers in an overlapping redshift interval,
+with LRG3 $\times$ ELG1 as the concrete use case.  The illustrative numerical
+figures use LRG-like and ELG-like parameter choices only; they are not DESI
+best fits.  The derivation keeps the two tracer endpoints ordered until the
+one-loop contractions have been polarized, identifies the exact full biased
+$A$-term endpoint factors, and records the implementation and validation checks
+used by the current branch.
+\end{abstract}
+
+\tableofcontents
+
+\section{Motivation and scope}
+
+Overlapping galaxy samples contain information that is not exhausted by their
+two auto spectra.  If tracer $A$ and tracer $B$ occupy a common redshift
+interval, the same large-scale matter and velocity fields source both samples,
+while their bias expansions, stochastic fields, and pair-level EFT parameters
+remain different.  The cross spectrum $P_{AB}$ probes this shared response
+directly.  It is also the object that enters the covariance matrix of the
+combined two-tracer data vector.
+
+The cross spectrum is not generally reconstructible from $P_{AA}$ and
+$P_{BB}$.  The deterministic linear limit has
+$P_{AB}^{L}=\sqrt{P_{AA}^{L}P_{BB}^{L}}$, but one-loop bias contractions are
+bilinear in the two endpoint bias vectors, EFT counterterms are pair-level
+renormalized parameters, and cross stochasticity is not fixed by either auto
+spectrum.  A direct one-loop calculation is therefore required.
+
+The first FOLPS implementation is deliberately narrow.  Throughout this note we
+assume:
+\begin{itemize}[leftmargin=1.6em]
+  \item equal time and one common effective redshift for the pair;
+  \item common matter and velocity fields, with no tracer velocity bias;
+  \item the plane-parallel approximation and a common line of sight $\bn$;
+  \item even power-spectrum multipoles only;
+  \item the standard EFT redshift-space power spectrum;
+  \item optional FolpsD phenomenological cross damping using the prescriptions
+        in Sec.~\ref{sec:cross-damping};
+  \item no window convolution, covariance, likelihood, or redshift averaging.
+\end{itemize}
+
+This implementation branch is based directly on the repository \texttt{main}
+branch.  It is not based on the separate \texttt{adematti-damping}
+development branch, and it does not claim feature parity with that branch.
+Damping support is limited to functionality present and tested on this
+\texttt{main}-based branch.  Reconciling this work with other
+damping-development branches is outside the present scope and is not a
+scientific dependency of the cross-spectrum theory described here.
+
+Under these assumptions the existing FOLPS FFTLog loop tables are sufficient.
+The extension reuses the matter, velocity, bias, $A$, $D$, $G$, no-wiggle, and
+IR-resummation rows, replacing each single-tracer polynomial by the correctly
+polarized two-tracer polynomial.
+
+\section{Redshift-space definition}
+
+Let $\bn$ be the fixed line-of-sight direction and define
+$\mu=\hat{\bk}\cdot\bn$.  The redshift-space cross spectrum is defined by
+\begin{equation}
+  \left\langle
+    \delta_A^s(\bk)\delta_B^s(\bk')
+  \right\rangle
+  =
+  (2\pi)^3\PD(\bk+\bk')P^s_{AB}(k,\mu).
+\end{equation}
+The exact equal-time plane-parallel generating function is
+\begin{align}
+  (2\pi)^3\PD(\bk)+P^s_{AB}(\bk)
+  ={}&
+  \int \dd^3\br\,e^{-\ii\bk\cdot\br}
+  \left\langle
+  [1+\delta_A(\bx_1)]
+  [1+\delta_B(\bx_2)]
+  e^{-\ii k_\parallel\Delta v_\parallel/(aH)}
+  \right\rangle ,
+  \label{eq:generating}
+\end{align}
+where $\br=\bx_2-\bx_1$,
+$k_\parallel=\bk\cdot\bn$, and
+\begin{equation}
+  \Delta v_\parallel=
+  \bn\cdot[\bm{v}(\bx_2)-\bm{v}(\bx_1)] .
+\end{equation}
+The fields $\delta_A$ and $\delta_B$ denote the real-space density contrasts of
+the two tracers.  Their labels are endpoint labels in
+\eqref{eq:generating}; they must not be identified until after the
+contractions have been evaluated.
+
+At equal time, with statistical homogeneity, isotropy, parity invariance, and a
+common plane-parallel line of sight, the spectrum is real and symmetric under
+endpoint exchange:
+\begin{equation}
+  P^s_{AB}(k,\mu)=P^s_{BA}(k,\mu).
+  \label{eq:exchange}
+\end{equation}
+The same assumptions give $P^s_{AB}(k,\mu)=P^s_{AB}(k,-\mu)$, so the present
+implementation projects only even multipoles,
+\begin{equation}
+  P^{AB}_\ell(k)=
+  \frac{2\ell+1}{2}\int_{-1}^{1}\dd\mu\,
+  \mathcal{L}_\ell(\mu)P^s_{AB}(k,\mu),
+  \qquad \ell=0,2,4.
+\end{equation}
+Odd multipoles can arise once wide-angle, relativistic, unequal-time, or
+selection-asymmetry effects are retained; those effects are outside this first
+FOLPS cross-power path.
+
+\section{Bias conventions}
+
+The public prior-document input basis is
+\begin{equation}
+  b_1,\qquad b_2,\qquad b_{K^2},\qquad b_{\rm td}.
+\end{equation}
+The current FOLPS power-spectrum API maps these four entries to the canonical
+internal basis
+\begin{equation}
+  b_{s^2}=2b_{K^2},
+  \qquad
+  b_{3\mathrm{nl}}
+  =
+  -\frac{32}{21}
+  \left(
+    b_{K^2}+\frac{2}{5}b_{\rm td}
+  \right).
+  \label{eq:priordoc-map}
+\end{equation}
+In canonical FOLPS parameters the density field of tracer $X$ is represented
+schematically as
+\begin{equation}
+  \delta_X
+  =
+  b_1^X\delta
+  +\frac{b_2^X}{2}[\delta^2]
+  +\frac{\bsst^X}{2}[s^2]_{\rm code}
+  +b_{3\mathrm{nl}}^X O_{3\mathrm{nl}}
+  +\epsilon_X+\cdots .
+\end{equation}
+The explicit factor $1/2$ in the $b_2$ source is the standard local-quadratic
+convention.  The current FOLPS full-$A$ kernels also insert canonical
+$b_{s^2}$ with an explicit factor $1/2$ in the same second-order source block.
+Consequently, the full biased $A$ cross term has one factor $1/2$ from the
+second-order source convention and a second factor $1/2$ from polarizing an
+endpoint-summed auto row.  This is the origin of the factors $1/4$ in
+Sec.~\ref{sec:Aterm}.
+
+\section{One-loop decomposition}
+
+FOLPS organizes the equal-time cross spectrum as
+\begin{align}
+  P_{AB}^{s}(k,\mu)
+  ={}&
+  P_{\delta_A\delta_B}
+  +f_0\mu^2
+  \left(
+    P_{\delta_A\theta}
+    +
+    P_{\delta_B\theta}
+  \right)
+  +f_0^2\mu^4P_{\theta\theta}
+  \nonumber\\
+  &+A_{AB}
+  +D_{AB}
+  +G_{AB}
+  +P_{\mathrm{ctr},AB}
+  +P_{\mathrm{stoch},AB}.
+  \label{eq:folps-decomp}
+\end{align}
+Here $\theta$ is the common velocity-divergence field in the FOLPS
+normalization, $f_0$ is the large-scale growth rate, and $f(k)$ is the
+scale-dependent growth rate used by the FOLPS tables.  At linear order,
+\begin{equation}
+  P_{\mathrm K,AB}
+  =
+  \left(b_1^A+f(k)\mu^2\right)
+  \left(b_1^B+f(k)\mu^2\right)
+  \PL(k).
+  \label{eq:kaiser}
+\end{equation}
+The terms in \eqref{eq:folps-decomp} beyond the cross-Kaiser spectrum are the
+one-loop density, velocity, redshift-space mode-coupling, EFT, and stochastic
+pieces.
+
+\section{Density and velocity loops}
+
+The biased density-density loop polynomial is obtained by bilinearizing the
+single-tracer FOLPS auto-spectrum polynomial:
+\begin{align}
+P_{\delta_A\delta_B}^{\rm loop}
+={}&b_1^A b_1^B P_{\delta\delta}^{\rm loop}
++(b_1^A b_2^B+b_2^A b_1^B)P_{b_1b_2}
+\nonumber\\
+&+(b_1^A \bsst^B+\bsst^A b_1^B)P_{b_1s^2}
++b_2^A b_2^B P_{b_2b_2}
+\nonumber\\
+&+(b_2^A \bsst^B+\bsst^A b_2^B)P_{b_2s^2}
++\bsst^A \bsst^B P_{s^2s^2}
+\nonumber\\
+&+(b_1^A b_{3\mathrm{nl}}^B+b_{3\mathrm{nl}}^A b_1^B)
+\sigma_3^2\PL .
+\label{eq:density-loop}
+\end{align}
+For either tracer $X\in\{A,B\}$,
+\begin{equation}
+P_{\delta_X\theta}^{\rm loop}
+=
+b_1^X P_{\delta\theta}^{\rm loop}
++b_2^X P_{b_2\theta}
++\bsst^X P_{s^2\theta}
++b_{3\mathrm{nl}}^X\frac{f(k)}{f_0}\sigma_3^2\PL .
+\label{eq:density-velocity-loop}
+\end{equation}
+The velocity-velocity loop $P_{\theta\theta}^{\rm loop}$ is common to both
+tracers.  Equations \eqref{eq:density-loop} and
+\eqref{eq:density-velocity-loop} use only loop rows that already exist in the
+FOLPS tables; no new FFTLog matrices are introduced.
+
+\section{The full biased A term}
+\label{sec:Aterm}
+
+The $A$ term is the part of the redshift-space expansion with one pairwise
+velocity insertion and one ordered bispectrum.  Define
+\begin{equation}
+  \mathcal{S}_X(\bm{q})
+  =
+  \delta_X(\bm{q})+f_0\mu_q^2\theta(\bm{q})
+\end{equation}
+and the ordered bispectrum
+\begin{equation}
+  (2\pi)^3\PD(\bk_1+\bk_2+\bk_3)
+  B_{\sigma;AB}(\bk_1,\bk_2,\bk_3)
+  =
+  \left\langle
+    \theta(\bk_1)\mathcal{S}_A(\bk_2)\mathcal{S}_B(\bk_3)
+  \right\rangle .
+\end{equation}
+The TNS/FOLPS $A$ term can be written as
+\begin{equation}
+  A_{AB}(k,\mu)=
+  k\mu f_0\intp
+  \frac{p_\parallel}{p^2}
+  \left[
+  B_{\sigma;AB}(\bp,\bk-\bp,-\bk)
+  -
+  B_{\sigma;AB}(\bp,\bk,-\bk-\bp)
+  \right].
+\end{equation}
+
+\subsection{Endpoint exchange}
+
+The Stage 1B endpoint audit resolves the central matrix question.  A P22-type
+FFTLog scalar has the form
+\begin{equation}
+  S[x,M,y]=K^3\sum_{ij}x_iM_{ij}y_j .
+\end{equation}
+Endpoint exchange is the loop-variable transformation
+$\bp\leftrightarrow\bk-\bp$ together with exchange of the two endpoint spectra.
+Therefore the physical exchange is
+\begin{equation}
+  x^{\mathsf T}My
+  \longrightarrow
+  y^{\mathsf T}M^{\mathsf T}x
+  =
+  x^{\mathsf T}My .
+  \label{eq:endpoint-exchange}
+\end{equation}
+The exchanged endpoint is not represented by $x^{\mathsf T}M^{\mathsf T}y$.
+That object transposes the kernel while leaving the endpoint vectors attached
+to the wrong endpoints, and is generally different when the vectors differ.
+Equation \eqref{eq:endpoint-exchange} is algebraic, not Hermitian; no complex
+conjugation is involved.
+
+\subsection{Reduced A term}
+
+With \texttt{A\_full=False}, the exact cross polynomial is
+\begin{align}
+A_{AB}^{\rm reduced}
+={}&b_1^A b_1^B f_0\mu^2 I_{1udd,1}
+\nonumber\\
+&+\frac{b_1^A+b_1^B}{2}f_0^2
+\left(
+\mu^2I_{2uud,1}
++\mu^4I_{2uud,2}
+\right)
+\nonumber\\
+&+f_0^3
+\left(
+\mu^4I_{3uuu,2}
++\mu^6I_{3uuu,3}
+\right).
+\label{eq:A-reduced}
+\end{align}
+The mixed $I_{2uud}$ rows are endpoint-summed auto rows, so they are polarized
+by $(b_1^A+b_1^B)/2$.  The $I_{1udd,1}$ and pure velocity rows are already
+symmetric under endpoint exchange.
+
+\subsection{Additional full-A rows}
+
+With \texttt{A\_full=True}, the biased second-order rows add
+\begin{align}
+\Delta A_{AB}^{b_2}
+={}&
+\frac{b_2^A b_1^B+b_1^A b_2^B}{4}
+f_0\mu^2I_{1udd,1}^{b_2}
+\nonumber\\
+&+
+\frac{b_2^A+b_2^B}{4}f_0^2
+\left(
+\mu^2I_{2uud,1}^{b_2}
++\mu^4I_{2uud,2}^{b_2}
+\right),
+\label{eq:A-b2}
+\end{align}
+and
+\begin{align}
+\Delta A_{AB}^{s^2}
+={}&
+\frac{\bsst^A b_1^B+b_1^A \bsst^B}{4}
+f_0\mu^2I_{1udd,1}^{s^2}
+\nonumber\\
+&+
+\frac{\bsst^A+\bsst^B}{4}f_0^2
+\left(
+\mu^2I_{2uud,1}^{s^2}
++\mu^4I_{2uud,2}^{s^2}
+\right).
+\label{eq:A-bs2}
+\end{align}
+Each factor $1/4$ is the product of two independent factors: $1/2$ from the
+second-order source convention and $1/2$ from polarizing an endpoint-summed
+auto row.  In the auto limit $A=B$, \eqref{eq:A-b2} and \eqref{eq:A-bs2}
+reduce exactly to the canonical FOLPS auto coefficients.
+
+\begin{table}[p]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\caption{Current FOLPS matrix and loop-table mapping for the $A$ rows.  The
+suffix ``\_b'' on vectors denotes the auxiliary FFTLog bias exponent used by
+FOLPS, not tracer $B$.}
+\label{tab:A-mapping}
+\begin{tabular}{@{}L{0.18\textwidth}L{0.24\textwidth}L{0.13\textwidth}L{0.13\textwidth}L{0.19\textwidth}@{}}
+\toprule
+Function & Matrix or vector pieces & Left vector & Right vector & Loop-table row \\
+\midrule
+$I_{1udd,1}$ & $M^{tAfp}_{11}$ plus $M^{afk}_{11},M^{afp}_{11}$ & \texttt{vecf} & \texttt{vec} & \texttt{I1udd\_1} \\
+$I_{2uud,1}$ & $M^{tAfkmpfp}_{12}$ plus $M^{afkfp}_{12},M^{afpfp}_{12}$ & \texttt{vecf} & \texttt{vecf} & \texttt{I2uud\_1} \\
+$I_{2uud,2}$ & $M^{tAfkmpfp}_{22}$, $M^{tAfpfp}_{22}$ and P13 pieces & \texttt{vecf}, \texttt{vecff} & \texttt{vecf}, \texttt{vec} & \texttt{I2uud\_2} \\
+$I_{3uuu,2}$ & $M^{tAfkmpfpfp}_{23}$ plus P13 inherited pieces & \texttt{vecff} & \texttt{vecf} & \texttt{I3uuu\_2} \\
+$I_{3uuu,3}$ & $M^{tAfkmpfpfp}_{33}$ plus $M^{afkfkfp}_{33},M^{afkfpfp}_{33}$ & \texttt{vecff} & \texttt{vecf} & \texttt{I3uuu\_3} \\
+$I_{1udd,1}^{b_2}$ & $M^{tAfp}_{11,b2}$ & \texttt{vecf\_b} & \texttt{vec\_b} & \texttt{I1udd\_1\_b2} \\
+$I_{2uud,1}^{b_2}$ & $M^{tAfkmpfp}_{12,b2}$ & \texttt{vecf\_b} & \texttt{vecf\_b} & \texttt{I2uud\_1\_b2} \\
+$I_{2uud,2}^{b_2}$ & $M^{tAfkmpfp}_{22,b2}$ & \texttt{vecf} & \texttt{vecf} & \texttt{I2uud\_2\_b2} \\
+$I_{1udd,1}^{s^2}$ & $M^{tAfp}_{11,bs2}$ & \texttt{vecf\_b} & \texttt{vec\_b} & \texttt{I1udd\_1\_bs2} \\
+$I_{2uud,1}^{s^2}$ & $M^{tAfkmpfp}_{12,bs2}$ & \texttt{vecf\_b} & \texttt{vecf\_b} & \texttt{I2uud\_1\_bs2} \\
+$I_{2uud,2}^{s^2}$ & $M^{tAfkmpfp}_{22,bs2}$ & \texttt{vecf} & \texttt{vecf} & \texttt{I2uud\_2\_bs2} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{D and G terms}
+
+The cross $D$ term uses the same row basis as the auto spectrum.  Define
+\begin{align}
+D_2 &=
+\mu^2 I^D_{2uudd,1}
++\mu^4 I^D_{2uudd,2},
+\nonumber\\
+D_3 &=
+\mu^2 I^B_{3uuud,1}
++\mu^4 I^D_{3uuud,2}
++\mu^6 I^D_{3uuud,3},
+\nonumber\\
+D_4 &=
+\mu^2 I^B_{4uuuu,1}
++\mu^4 I^D_{4uuuu,2}
++\mu^6 I^D_{4uuuu,3}
++\mu^8 I^D_{4uuuu,4}.
+\end{align}
+Then
+\begin{equation}
+D_{AB}
+=
+b_1^A b_1^B f_0^2D_2
++
+\frac{b_1^A+b_1^B}{2}f_0^3D_3
++
+f_0^4D_4 .
+\label{eq:D-cross}
+\end{equation}
+The $D_3$ coefficient is polarized because the single density insertion can be
+assigned to either endpoint.
+
+The $G$ term is proportional to the cross-Kaiser polynomial in the current
+FOLPS convention:
+\begin{equation}
+G_{AB}
+=
+-(k\mu f_0)^2\sigma_{2w}
+\left[
+b_1^A b_1^B \PL
++
+(b_1^A+b_1^B)f_0\mu^2P_{\delta\theta}^{L}
++
+f_0^2\mu^4P_{\theta\theta}^{L}
+\right],
+\label{eq:G-cross}
+\end{equation}
+where
+$P_{\delta\theta}^{L}=(f(k)/f_0)\PL$ and
+$P_{\theta\theta}^{L}=(f(k)/f_0)^2\PL$.
+
+\section{EFT and stochastic terms}
+
+The first cross implementation uses explicit pair-level nuisance parameters:
+\begin{align}
+P_{\mathrm{ctr},AB}
+&=
+(\alpha_0^{AB}
++\alpha_2^{AB}\mu^2
++\alpha_4^{AB}\mu^4)
+k^2\PL,
+\label{eq:ctr}
+\\
+P_{\mathrm{ctr,NLO},AB}
+&=
+\widetilde c^{AB}
+(k\mu f_0)^4
+\sigma_{2w}^2
+P_{\mathrm K,AB},
+\label{eq:ctr-nlo}
+\\
+P_{\mathrm{stoch},AB}
+&=
+P_{\mathrm{shot}}^{AB}
+\left[
+\alpha_{\mathrm{shot},0}^{AB}
++
+\alpha_{\mathrm{shot},2}^{AB}(k\mu)^2
+\right].
+\label{eq:stoch}
+\end{align}
+These parameters are not inferred from the two auto-spectrum nuisance vectors.
+The public cross API requires them explicitly.  The stochastic term is not
+identified with a Poisson-overlap prediction; $P_{\mathrm{shot}}^{AB}$ is a
+pair-level stochastic normalization in the current parameterization.  The
+implementation does not currently impose a positivity-preserving covariance
+parametrization for the joint $AA$, $AB$, $BB$ model.
+
+\subsection{Phenomenological cross damping}
+\label{sec:cross-damping}
+
+For \texttt{model="FOLPSD"} the cross-power API supports the same production
+power-spectrum damping names as the auto path, \texttt{"exp"}, \texttt{"lor"},
+and \texttt{"vdg"}.  The public keyword
+\texttt{cross\_damping\_mode} chooses how the cross damping factor is sourced.
+The default is \texttt{"single"},
+\begin{equation}
+W_{AB}^{\mathrm{single}}(k,\mu)
+=
+W(k,\mu;X_{\rm FoG}^{AB}),
+\end{equation}
+where $X_{\rm FoG}^{AB}$ is the final entry of the explicit pair-level
+\texttt{cross\_nuisance} vector.  This introduces one damping nuisance
+parameter for the measured cross spectrum.
+
+The alternative mode is \texttt{"geometric"},
+\begin{equation}
+W_{AB}^{\mathrm{geometric}}(k,\mu)
+=
+\sqrt{
+W(k,\mu;X_{\rm FoG}^{A})
+W(k,\mu;X_{\rm FoG}^{B})
+}.
+\end{equation}
+Here $X_{\rm FoG}^{A}$ and $X_{\rm FoG}^{B}$ are read from the two tracer
+parameter arrays after each has been converted through its own bias convention.
+The pair-level $X_{\rm FoG}^{AB}$ remains present in
+\texttt{cross\_nuisance} for API compatibility, but it is ignored in this mode.
+The geometric prescription preserves exchange symmetry because swapping the
+tracers only interchanges the two factors under the square root.  When
+$X_{\rm FoG}^{A}=X_{\rm FoG}^{B}$, it reduces to the corresponding auto damping
+factor.
+
+The damping placement is intentionally identical to the current auto FolpsD
+implementation.  In the production non-marginalized code, $W$ multiplies the
+one-loop pair contraction assembled inside \texttt{PloopSPTs\_cross}.  The
+IR-resummed linear Kaiser term, the standard counterterms, the NLO
+$\widetilde c$ counterterm, and the stochastic term are not multiplied by this
+phenomenological damping factor under the current \texttt{Winfty\_all=False}
+convention.  Counterterms and stochastic terms retain the pair-level
+parameterization in Eqs.~\eqref{eq:ctr}--\eqref{eq:stoch}.
+
+The two damping prescriptions are alternative nuisance models.  Neither is
+claimed to be uniquely selected by first principles; mocks and data should be
+used to decide whether the extra tracer-level structure in the geometric mode
+is useful.
+
+\begin{figure}[p]
+  \centering
+  \includegraphics[width=\textwidth]{figures/cross_damping_modes.pdf}
+  \caption{Illustrative FolpsD cross damping comparison for VDG damping.  The
+  single mode uses one pair-level $X_{\rm FoG}^{AB}$, while the geometric mode
+  uses the two tracer-level damping factors.  The lower panels show the
+  fractional difference relative to the single prescription.}
+  \label{fig:cross-damping-modes}
+\end{figure}
+
+\section{Why the geometric mean is not enough}
+\label{sec:geom}
+
+In the deterministic linear limit,
+\begin{equation}
+  P_{AB}^{L}
+  =
+  \sqrt{P_{AA}^{L}P_{BB}^{L}},
+\end{equation}
+because all spectra are products of the same linear matter power spectrum and
+linear endpoint responses.  Beyond that limit, write schematically
+\begin{equation}
+  P_{XX}=P_{XX}^{L}+P_{XX}^{1\text{-loop}} .
+\end{equation}
+Then
+\begin{equation}
+\sqrt{P_{AA}P_{BB}}
+\simeq
+\sqrt{P_{AA}^{L}P_{BB}^{L}}
+\left[
+1+\frac12
+\frac{P_{AA}^{1\text{-loop}}}{P_{AA}^{L}}
++\frac12
+\frac{P_{BB}^{1\text{-loop}}}{P_{BB}^{L}}
+\right],
+\label{eq:geom-expansion}
+\end{equation}
+which averages fractional auto corrections.  The true cross loop instead
+contains bilinear monomials such as $b_2^A b_1^B+b_1^A b_2^B$ and
+$b_2^A\bsst^B+\bsst^A b_2^B$.  Cross EFT and stochastic terms are independent
+pair-level renormalized parameters.  Therefore the geometric mean is at most a
+diagnostic approximation.
+
+\begin{figure}[p]
+  \centering
+  \includegraphics[width=0.86\textwidth]{figures/cross_vs_geometric_mean_pkmu.pdf}
+  \caption{Comparison of the implemented $P^{AB}(k,\mu)$ with the diagnostic
+  geometric mean $\sqrt{P^{AA}(k,\mu)P^{BB}(k,\mu)}$ for three angular slices.
+  The lower panel displays $P^{AB}/\sqrt{P^{AA}P^{BB}}-1$ only where the
+  geometric mean is real and numerically stable.}
+  \label{fig:geom-pkmu}
+\end{figure}
+
+\begin{figure}[p]
+  \centering
+  \includegraphics[width=0.86\textwidth]{figures/cross_geometric_mean_bias_dependence.pdf}
+  \caption{Controlled sector switch for the geometric-mean diagnostic at
+  $\mu=0.5$.  The deterministic linear synthetic table gives $r-1$ consistent
+  with zero, while matter/RSD loops, nonlinear bias terms, and explicit
+  pair-level nuisance parameters generate departures from the geometric mean.}
+  \label{fig:geom-bias}
+\end{figure}
+
+\section{IR resummation and AP mapping}
+
+The cross implementation keeps the existing FOLPS IR-resummation structure.
+The displacement damping is shared because the two tracers live in the same
+matter and velocity fields.  Only the tracer-dependent polynomials are replaced
+by their cross forms.  In code notation,
+\begin{align}
+\Sigma_t^2(k,\mu)
+&=
+\left[1+f_0\mu^2(2+f_0)\right]\Sigma^2
++(f_0\mu)^2(\mu^2-1)\Delta\Sigma^2 ,
+\nonumber\\
+E(k,\mu)&=\exp[-k^2\Sigma_t^2(k,\mu)] ,
+\end{align}
+and the returned redshift-space spectrum is assembled as
+\begin{align}
+P_{AB}^{s,\mathrm{IR}}
+={}&
+P_{\mathrm K,AB}
+\left[
+P_{\mathrm{nw}}
++E(P_{\mathrm L}-P_{\mathrm{nw}})(1+k^2\Sigma_t^2)
+\right]
+\nonumber\\
+&+
+E\,P_{AB}^{\rm 1loop}[\mathrm{wiggle}]
++
+(1-E)\,P_{AB}^{\rm 1loop}[\mathrm{nowiggle}] .
+\end{align}
+
+The Alcock-Paczynski mapping is also unchanged.  With
+$F=q_\parallel/q_\perp$,
+\begin{align}
+k_{\rm true}
+&=
+\frac{k_{\rm obs}}{q_\perp}
+\left[
+1+\mu_{\rm obs}^2\left(F^{-2}-1\right)
+\right]^{1/2},
+\nonumber\\
+\mu_{\rm true}
+&=
+\frac{\mu_{\rm obs}}{F}
+\left[
+1+\mu_{\rm obs}^2\left(F^{-2}-1\right)
+\right]^{-1/2},
+\end{align}
+and the multipoles are multiplied by the Jacobian
+\begin{equation}
+  (q_\parallel q_\perp^2)^{-1}.
+\end{equation}
+
+\begin{figure}[p]
+  \centering
+  \includegraphics[width=\textwidth]{figures/cross_ir_resummation.pdf}
+  \caption{Numerical effect of the existing FOLPS IR resummation on the cross
+  multipoles.  The upper row compares the resummed and non-resummed
+  calculations; the lower row shows their absolute difference.}
+  \label{fig:ir}
+\end{figure}
+
+\begin{figure}[p]
+  \centering
+  \includegraphics[width=\textwidth]{figures/cross_ap_remapping.pdf}
+  \caption{Illustrative Alcock-Paczynski remapping for the cross multipoles.
+  The distorted case uses $q_\parallel=1.02$ and $q_\perp=0.98$ as a numerical
+  demonstration, not as a DESI fiducial choice.}
+  \label{fig:ap}
+\end{figure}
+
+\section{Implementation architecture}
+
+The implementation remains in \texttt{folps/folps.py}; no \texttt{folpsX.py}
+module is introduced.  The non-marginalized auto and cross spectra both pass
+through the same private pair-level helper.  Auto mode is obtained by setting
+$A=B$ and using the auto nuisance tuple.  Cross mode is activated by passing
+\texttt{pars\_b} and an explicit \texttt{cross\_nuisance} tuple.
+
+The implementation uses small \texttt{NamedTuple} containers for the canonical
+bias and nuisance subsets.  The public multipole method accepts
+\texttt{bias\_scheme} for tracer $A$ and \texttt{bias\_scheme\_b} for tracer
+$B$; the prior-document convention is converted by \eqref{eq:priordoc-map}
+before entering the pair contraction.  Direct \texttt{get\_rsd\_pkmu} and
+\texttt{get\_eft\_pkmu} calls use canonical FOLPS parameter ordering.
+
+Cross spectra are supported for \texttt{model="EFT"} and
+\texttt{model="FOLPSD"}.  With \texttt{model="FOLPSD"}, the public
+\texttt{cross\_damping\_mode} keyword accepts \texttt{"single"} and
+\texttt{"geometric"}, with \texttt{"single"} as the default.  The table and
+\texttt{table\_now} schemas are reused directly,
+including the six \texttt{A\_full=True} rows, the no-wiggle rows, and the IR
+scalar tail.  No matrix file is added or modified.  The NumPy and JAX backends
+share the same source formulas through the module-selected backend namespace;
+JAX device selection is environment dependent and is not restricted to CPU by
+the cross-power code.
+
+The FolpsD cross damping path supports only the main-branch damping names
+\texttt{"exp"}, \texttt{"lor"}, and \texttt{"vdg"}.  No additional damping
+names, fallback aliases, or flags from \texttt{adematti-damping} are part of
+this branch.
+
+\begin{verbatim}
+pars_a = [...]
+pars_b = [...]
+cross_nuisance_ab = [
+    alpha0_ab, alpha2_ab, alpha4_ab, ctilde_ab,
+    alphashot0_ab, alphashot2_ab, PshotP_ab, X_FoG_ab,
+]
+
+multipoles = RSDMultipolesPowerSpectrumCalculator(model="FOLPSD")
+p0_ab, p2_ab, p4_ab = multipoles.get_rsd_pkell(
+    kobs, 1.0, 1.0, pars_a, table, table_now,
+    bias_scheme="priordoc",
+    bias_scheme_b="priordoc",
+    pars_b=pars_b,
+    cross_nuisance=cross_nuisance_ab,
+    damping="vdg",
+    cross_damping_mode="single",
+    IR_resummation=True,
+    ells=(0, 2, 4),
+)
+\end{verbatim}
+
+\section{Validation}
+
+The independent tests in \texttt{folps/test\_cross\_power\_spectrum.py}
+exercise both algebraic identities and backend behavior:
+\begin{itemize}[leftmargin=1.6em]
+  \item linear Kaiser recovery with synthetic tables;
+  \item one-row synthetic loop checks for every density, density-velocity,
+        velocity-velocity, reduced-$A$, full-$A$, $D$, and $G$ row;
+  \item all six full-$A$ rows with asymmetric tracer biases;
+  \item exchange symmetry $P_{AB}=P_{BA}$;
+  \item auto-limit recovery for \texttt{A\_full=False} and \texttt{A\_full=True};
+  \item prior-document/canonical equivalence;
+  \item explicit missing-\texttt{cross\_nuisance} rejection;
+  \item IR on/off checks;
+  \item FolpsD cross damping checks for \texttt{"exp"}, \texttt{"lor"}, and
+        \texttt{"vdg"} in both \texttt{"single"} and \texttt{"geometric"}
+        modes;
+  \item AP-remapped multipole checks against direct quadrature;
+  \item NumPy/JAX agreement;
+  \item unchanged auto-spectrum regression against existing outputs.
+\end{itemize}
+For the plotted run, the exchange, auto-limit, and prior-document/canonical
+residuals are exactly zero.  In Fig.~\ref{fig:residuals}, the $10^{-16}$ level
+is only a visualization floor for logarithmic plotting of those zero residuals.
+
+\begin{figure}[p]
+  \centering
+  \includegraphics[width=\textwidth]{figures/cross_implementation_residuals.pdf}
+  \caption{Implementation residuals for exchange symmetry, auto-limit recovery,
+  and prior-document versus canonical input conversion.  The logarithmic floor
+  is a display device only and has no physical significance.}
+  \label{fig:residuals}
+\end{figure}
+
+\section{Numerical illustrations}
+
+The generated figure set uses the public input linear spectrum and the existing
+\texttt{A\_full=True}, \texttt{use\_TNS\_model=False} matrix cache.  The common
+settings are \texttt{model="EFT"}, \texttt{damping=None}, IR resummation on,
+even multipoles $(0,2,4)$, and prior-document bias inputs.  All parameter
+changes in this section are illustrative visibility choices, not priors.  The
+cross damping comparison in Fig.~\ref{fig:cross-damping-modes} explicitly
+switches to \texttt{model="FOLPSD"} and \texttt{damping="vdg"}.
+
+\begin{figure}[p]
+  \centering
+  \includegraphics[width=\textwidth]{figures/cross_power_multipoles.pdf}
+  \caption{Illustrative auto and cross multipoles for the LRG-like tracer $A$,
+  the ELG-like tracer $B$, and their equal-time cross spectrum.  The cross
+  multipole is a projected EFT model output and is not constrained to lie
+  between the two auto multipoles at every $k$ and $\ell$.}
+  \label{fig:multipoles}
+\end{figure}
+
+\begin{figure}[p]
+  \centering
+  \includegraphics[width=0.86\textwidth]{figures/cross_nonlinear_bias_response.pdf}
+  \caption{Fractional response of the cross monopole when one nonlinear
+  prior-document bias parameter is varied for tracer $A$ or tracer $B$.  The
+  independent responses illustrate that the cross loop polynomial is genuinely
+  bilinear in the two tracer bias vectors.}
+  \label{fig:bias-response}
+\end{figure}
+
+\begin{figure}[p]
+  \centering
+  \includegraphics[width=\textwidth]{figures/cross_nuisance_response.pdf}
+  \caption{Response of the cross multipoles to explicit pair-level EFT and
+  stochastic parameters.  The rows isolate the standard EFT counterterms, the
+  NLO $\widetilde c^{AB}$ counterterm, and the stochastic terms with
+  independent y-axis ranges so the smaller responses remain visible.}
+  \label{fig:nuisance-response}
+\end{figure}
+
+\section{Limitations and future work}
+
+The current implementation is the first equal-time two-tracer power-spectrum
+path.  The main limitations and natural extensions are:
+\begin{itemize}[leftmargin=1.6em]
+  \item effective-redshift modeling and redshift averaging across the true
+        overlap window;
+  \item realistic LRG3 $\times$ ELG1 parameter choices and data-vector
+        definitions;
+  \item cross stochasticity models that enforce positivity of the joint
+        $2\times2$ tracer covariance;
+  \item field-level counterterm parametrizations that relate auto and cross EFT
+        coefficients;
+  \item survey window convolution and integral-constraint effects;
+  \item covariance and likelihood integration, including desilike interfaces;
+  \item tracer velocity bias;
+  \item odd multipoles, wide-angle terms, and relativistic corrections;
+  \item mock- and data-driven comparisons of the available FolpsD cross
+        damping nuisance prescriptions;
+  \item bispectrum cross-correlations and joint power-spectrum/bispectrum
+        two-tracer analyses.
+\end{itemize}
+
+\section{Reference metadata}
+
+Reference metadata were checked against the local notes and arXiv records for
+the four required entries.  The original TNS paper is
+Ref.~\cite{Taruya2010}; the FOLPS and FFTLog massive-neutrino references are
+Refs.~\cite{Aviles2021,Noriega2022}; and the FolpsD reference is
+Ref.~\cite{Bansal2026}.
+
+\bibliographystyle{unsrtnat}
+\bibliography{source/references}
+
+\end{document}
