@@ -2500,7 +2500,7 @@ class BispectrumCalculator:
 
         return pk_out
 
-    def sigmas(self, kT,pklT):
+    def sigmas(self, kT, pklT, pklnwT=None):
 
         k_BAO = 1/104
         kS = 0.4
@@ -2508,18 +2508,17 @@ class BispectrumCalculator:
         sigma2v_  = simpson(pklT, x=kT) / (6 * np.pi**2)
         sigma2v_ *= 1.05  #correction due to k cut
 
-        # pklT_=pklT[kT<=0.4].copy()
-        # kT_=kT[kT<=0.4].copy()
-
-        mask = kT <= 0.4
-        pklT_= np.where(mask, pklT, 0.0)
-        kT_   = np.where(mask, kT, 0.0)
-
-        j0_small = spherical_jn_backend(0, kT_ / k_BAO)
-        j2_small = spherical_jn_backend(2, kT_ / k_BAO)
-        Sigma2_ = 1/(6 * np.pi**2)*simpson(pklT_*(1 - j0_small + 2*j2_small), x=kT_)
-        j2_full = spherical_jn_backend(2, kT / k_BAO)
-        deltaSigma2_ = 1/(2 * np.pi**2)*simpson(pklT*j2_full, x=kT)
+        # IR-resummation scales, computed as for the power spectrum
+        # (NonLinearPowerSpectrumCalculator: no-wiggle spectrum, both integrals on a log grid ending
+        # at kS). The previous version masked k > kS with np.where on the abscissa too, so Simpson
+        # integrated a spurious kS -> 0 step (Sigma2 ~6% low), used the wiggly spectrum, and took
+        # deltaSigma2 over the whole grid. The grid starts at kT[0] rather than the power spectrum's
+        # 1e-6 (no extrapolation of the input; the difference is < 1e-4 of Sigma2).
+        pnwT = pklT if pklnwT is None else pklnwT
+        p = np.geomspace(kT[0], kS, num=100)
+        pnw = interp(p, kT, pnwT)
+        Sigma2_ = 1/(6 * np.pi**2)*simpson(pnw*(1 - spherical_jn_backend(0, p / k_BAO) + 2*spherical_jn_backend(2, p / k_BAO)), x=p)
+        deltaSigma2_ = 1/(2 * np.pi**2)*simpson(pnw*spherical_jn_backend(2, p / k_BAO), x=p)
 
         return sigma2v_, Sigma2_, deltaSigma2_
 
@@ -2787,7 +2786,7 @@ class BispectrumCalculator:
         tablesGL = self.tablesGL_f(precision)
 
         # IR resummation scales
-        sigma2v, Sigma2, deltaSigma2 = self.sigmas(k_pkl_pklnw[0], k_pkl_pklnw[1])
+        sigma2v, Sigma2, deltaSigma2 = self.sigmas(k_pkl_pklnw[0], k_pkl_pklnw[1], k_pkl_pklnw[2])
 
         phiGL, xGL, muGL = tablesGL
         phi, wphi = phiGL[:, 0], phiGL[:, 1]
@@ -3011,7 +3010,7 @@ class BispectrumCalculator:
 
         # IR resummation scales
         kT, pklT = k_pkl_pklnw[0], k_pkl_pklnw[1]
-        sigma2v, Sigma2, deltaSigma2 = self.sigmas(kT, pklT)
+        sigma2v, Sigma2, deltaSigma2 = self.sigmas(kT, pklT, k_pkl_pklnw[2])
 
         # GL tables for (phi, mu)
         tablesGL = self.tablesGL2_f(precision)
@@ -3460,7 +3459,7 @@ class BispectrumCalculator_fk:
 
         return pk_out
 
-    def sigmas(self, kT,pklT):
+    def sigmas(self, kT, pklT, pklnwT=None):
 
         k_BAO = 1/104
         kS = 0.4
@@ -3468,18 +3467,17 @@ class BispectrumCalculator_fk:
         sigma2v_  = simpson(pklT, x=kT) / (6 * np.pi**2)
         sigma2v_ *= 1.05  #correction due to k cut
 
-        # pklT_=pklT[kT<=0.4].copy()
-        # kT_=kT[kT<=0.4].copy()
-
-        mask = kT <= 0.4
-        pklT_= np.where(mask, pklT, 0.0)
-        kT_   = np.where(mask, kT, 0.0)
-
-        j0_small = spherical_jn_backend(0, kT_ / k_BAO)
-        j2_small = spherical_jn_backend(2, kT_ / k_BAO)
-        Sigma2_ = 1/(6 * np.pi**2)*simpson(pklT_*(1 - j0_small + 2*j2_small), x=kT_)
-        j2_full = spherical_jn_backend(2, kT / k_BAO)
-        deltaSigma2_ = 1/(2 * np.pi**2)*simpson(pklT*j2_full, x=kT)
+        # IR-resummation scales, computed as for the power spectrum
+        # (NonLinearPowerSpectrumCalculator: no-wiggle spectrum, both integrals on a log grid ending
+        # at kS). The previous version masked k > kS with np.where on the abscissa too, so Simpson
+        # integrated a spurious kS -> 0 step (Sigma2 ~6% low), used the wiggly spectrum, and took
+        # deltaSigma2 over the whole grid. The grid starts at kT[0] rather than the power spectrum's
+        # 1e-6 (no extrapolation of the input; the difference is < 1e-4 of Sigma2).
+        pnwT = pklT if pklnwT is None else pklnwT
+        p = np.geomspace(kT[0], kS, num=100)
+        pnw = interp(p, kT, pnwT)
+        Sigma2_ = 1/(6 * np.pi**2)*simpson(pnw*(1 - spherical_jn_backend(0, p / k_BAO) + 2*spherical_jn_backend(2, p / k_BAO)), x=p)
+        deltaSigma2_ = 1/(2 * np.pi**2)*simpson(pnw*spherical_jn_backend(2, p / k_BAO), x=p)
 
         return sigma2v_, Sigma2_, deltaSigma2_
 
@@ -3755,7 +3753,7 @@ class BispectrumCalculator_fk:
         tablesGL = self.tablesGL_f(precision)
 
         # IR resummation scales
-        sigma2v, Sigma2, deltaSigma2 = self.sigmas(k_pkl_pklnw_fk[0], k_pkl_pklnw_fk[1])
+        sigma2v, Sigma2, deltaSigma2 = self.sigmas(k_pkl_pklnw_fk[0], k_pkl_pklnw_fk[1], k_pkl_pklnw_fk[2])
 
         phiGL, xGL, muGL = tablesGL
         phi, wphi = phiGL[:, 0], phiGL[:, 1]
@@ -3981,7 +3979,7 @@ class BispectrumCalculator_fk:
 
         # IR resummation scales
         kT, pklT = k_pkl_pklnw_fk[0], k_pkl_pklnw_fk[1]
-        sigma2v, Sigma2, deltaSigma2 = self.sigmas(kT, pklT)
+        sigma2v, Sigma2, deltaSigma2 = self.sigmas(kT, pklT, k_pkl_pklnw_fk[2])
 
         # GL tables for (phi, mu)
         tablesGL = self.tablesGL2_f(precision)
