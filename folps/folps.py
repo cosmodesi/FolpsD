@@ -6,6 +6,8 @@
 # ============================================================================================ #
 
 import os
+from typing import NamedTuple
+
 import scipy
 from scipy import special
 from scipy import integrate
@@ -25,6 +27,29 @@ except ImportError:
 
 # Global variable to store the preferred backend (default: 'numpy')
 PREFERRED_BACKEND = os.environ.get("FOLPS_BACKEND", "numpy")  #options:"numpy" & "jax"
+
+
+class _PowerSpectrumBias(NamedTuple):
+    b1: object
+    b2: object
+    bs2: object
+    b3nl: object
+
+
+class _PowerSpectrumNuisance(NamedTuple):
+    alpha0: object
+    alpha2: object
+    alpha4: object
+    ctilde: object
+    alphashot0: object
+    alphashot2: object
+    PshotP: object
+    X_FoG_p: object
+
+
+class _PowerSpectrumParameters(NamedTuple):
+    bias: _PowerSpectrumBias
+    nuisance: _PowerSpectrumNuisance
 
 class BackendManager:
     def __init__(self, preferred_backend='numpy'):
@@ -1392,8 +1417,8 @@ def _normalize_damping_method(damping_method):
         raise ValueError(f"damping_method={damping_method!r} is deprecated; use 'tree+loop+ctr' (GTNS removed)")
     if damping_method == 'all':
         return 'tree+loop+ctr+sn'
-    if damping_method not in ('loop+ctr', 'tree+loop', 'tree+loop+ctr', 'tree+loop+ctr+sn'):
-        raise ValueError(f"damping_method must be None / 'tree+loop+ctr' (default), 'tree+loop' or 'tree+loop+ctr+sn' (alias 'all'), got {damping_method!r}")
+    if damping_method not in ('loop+ctr', 'tree+loop', 'tree+loop+ctr', 'tree+loop+ctr+sn', 'loop'):
+        raise ValueError(f"damping_method must be None / 'tree+loop+ctr' (default), 'tree+loop' or 'tree+loop+ctr+sn' (alias 'all') or 'loop' (only used for debugging), got {damping_method!r}")
     return damping_method
 
 
@@ -1471,6 +1496,46 @@ class RSDMultipolesPowerSpectrumCalculator:
 
         return pars
 
+    def _split_power_pars(self, pars):
+        if len(pars) != 12:
+            raise ValueError(
+                "power-spectrum parameters must contain exactly 12 values "
+                "(b1, b2, bs2, b3nl, alpha0, alpha2, alpha4, ctilde, "
+                "alphashot0, alphashot2, PshotP, X_FoG_p)."
+            )
+        (b1, b2, bs2, b3nl, alpha0, alpha2, alpha4, ctilde,
+         alphashot0, alphashot2, PshotP, X_FoG_p) = pars
+        return _PowerSpectrumParameters(
+            bias=_PowerSpectrumBias(b1, b2, bs2, b3nl),
+            nuisance=_PowerSpectrumNuisance(
+                alpha0, alpha2, alpha4, ctilde,
+                alphashot0, alphashot2, PshotP, X_FoG_p,
+            ),
+        )
+
+    def _split_cross_nuisance(self, cross_nuisance):
+        if len(cross_nuisance) == 8:
+            return _PowerSpectrumNuisance(*cross_nuisance)
+        if len(cross_nuisance) == 12:
+            return self._split_power_pars(cross_nuisance).nuisance
+        raise ValueError(
+            "cross_nuisance must contain either 8 pair-level values "
+            "(alpha0, alpha2, alpha4, ctilde, alphashot0, alphashot2, PshotP, X_FoG_p) "
+            "or a 12-value FOLPS parameter array whose last 8 values are used."
+        )
+
+    def _resolve_pair_parameters(self, pars, pars_b=None, cross_nuisance=None):
+        params_a = self._split_power_pars(pars)
+        params_b = params_a if pars_b is None else self._split_power_pars(pars_b)
+        if pars_b is not None and cross_nuisance is None:
+            raise ValueError(
+                "cross_nuisance must be supplied when pars_b is supplied; "
+                "pair-level EFT and stochastic parameters must be specified explicitly "
+                "for a cross-spectrum."
+            )
+        nuisance = params_a.nuisance if cross_nuisance is None else self._split_cross_nuisance(cross_nuisance)
+        return params_a, params_b, nuisance, pars_b is not None
+
 
     def interp_table(self, k, table, A_full_status):
         """Interpolation of non-linear terms.
@@ -1523,29 +1588,74 @@ class RSDMultipolesPowerSpectrumCalculator:
         F = qpar / qper
         return (muobs / F) * (1 + muobs**2 * (1 / F**2 - 1))**-0.5
 
-    def get_eft_pkmu(self, kev, mu, pars, table, damping='lor', damping_method=None, use_GTNS=None):
-        """Calculate the EFT galaxy power spectrum in redshift space.
+    def _validate_cross_spectrum_model(self, pars_b):
+        if pars_b is not None and self.model not in ("EFT", "FOLPSD"):
+            raise ValueError(
+                "Cross power spectra support model='EFT' or model='FOLPSD' "
+                "when pars_b/cross_nuisance are supplied; auto spectra keep "
+                "the existing damping behavior."
+            )
 
-        damping_method: which terms the FoG damping kernel multiplies (the tree-level Kaiser
-        term itself is handled in get_rsd_pkmu; here it only controls the ctr/sn factors and,
-        through use_GTNS=None, the GTNS default). 'tree+loop' damps the tree-level Kaiser term
-        and the loop bracket only; 'tree+loop+ctr' (default; None is an alias) additionally the
-        counterterms; 'tree+loop+ctr+sn' (alias 'all') additionally the shot noise.
-        Legacy 'tree'/'tree-gtns' are deprecated and raise (use 'tree+loop+ctr').
+    def _validate_cross_damping_mode(self, pars_b, cross_damping_mode):
+        if pars_b is None:
+            return
+        accepted = ("single", "geometric")
+        if cross_damping_mode not in accepted:
+            raise ValueError(
+                "cross_damping_mode must be one of "
+                f"{accepted}; got {cross_damping_mode!r}."
+            )
 
-        use_GTNS: whether to keep GTNS = -(k mu f0)^2 sigma2w * P_Kaiser, the perturbative FoG
-        suppression of the tree-level spectrum, inside the damped loop bracket.
-        None (default) follows damping_method: kept for 'loop+ctr', dropped for every
-        'tree+...' method, since damping the tree level resums GTNS non-perturbatively and
-        keeping both would double count at O(lambda^2). True / False override that. In
-        particular damping_method='tree+loop+ctr' with use_GTNS=True is the (double-counting)
-        convention used by comet's VDG_infty, which multiplies the full PT spectrum -- its own
-        perturbative sigma_v^2 terms included -- by W_infty.
-        The TNS model handles the FoG term itself and never adds GTNS, whatever use_GTNS says.
-        """
+    def _validate_cross_damping_name(self, damping):
+        accepted = ("exp", "lor", "vdg")
+        if damping not in accepted:
+            raise ValueError(
+                "cross-spectrum damping must be one of "
+                f"{accepted} or None; got {damping!r}."
+            )
+
+    def _get_cross_damping(
+        self, kev, mu, f0, sigma2w, damping,
+        params_a, params_b, cross_nuisance, cross_damping_mode,
+    ):
+        self._validate_cross_damping_mode(params_b, cross_damping_mode)
+        if damping is None:
+            return 1
+        self._validate_cross_damping_name(damping)
+
+        kmu = kev * mu
+        if cross_damping_mode == "single":
+            X = cross_nuisance.X_FoG_p
+            return fog_damping(
+                (kmu, X), (kmu, X),
+                f=f0, sigma2v=sigma2w, damping=damping,
+            )
+
+        X_a = params_a.nuisance.X_FoG_p
+        X_b = params_b.nuisance.X_FoG_p
+        W_a = fog_damping(
+            (kmu, X_a), (kmu, X_a),
+            f=f0, sigma2v=sigma2w, damping=damping,
+        )
+        W_b = fog_damping(
+            (kmu, X_b), (kmu, X_b),
+            f=f0, sigma2v=sigma2w, damping=damping,
+        )
+        return np.sqrt(W_a * W_b)
+
+
+    def _get_eft_pkmu_pair(
+            self, kev, mu, params_a, params_b, nuisance, table, damping='lor',
+            damping_method=None, use_GTNS=None, cross_damping_mode="single", is_cross=False):
+        """Shared pair-level one-loop contraction used by auto and cross spectra."""
         damping_method = _normalize_damping_method(damping_method)
         _resolve_use_gtns(use_GTNS, damping_method)  # validate early, even if the model overrides below
-        (b1, b2, bs2, b3nl, alpha0, alpha2, alpha4, ctilde, alphashot0, alphashot2, PshotP, X_FoG_p) = pars
+        bias_a = params_a.bias
+        bias_b = params_b.bias
+        (b1_a, b2_a, bs2_a, b3nl_a) = bias_a
+        (b1_b, b2_b, bs2_b, b3nl_b) = bias_b
+        (alpha0, alpha2, alpha4, ctilde,
+         alphashot0, alphashot2, PshotP, X_FoG_p) = nuisance
 
         if A_full_status:
             (pkl, Fkoverf0, Ploop_dd, Ploop_dt, Ploop_tt, Pb1b2, Pb1bs2, Pb22, Pb2bs2,
@@ -1565,67 +1675,85 @@ class RSDMultipolesPowerSpectrumCalculator:
         Pdt_L = pkl * Fkoverf0
         Ptt_L = pkl * Fkoverf0**2
 
-        def PddXloop(b1, b2, bs2, b3nl):
-            return (b1**2 * Ploop_dd + 2 * b1 * b2 * Pb1b2 + 2 * b1 * bs2 * Pb1bs2 + b2**2 * Pb22
-                    + 2 * b2 * bs2 * Pb2bs2 + bs2**2 * Pb2s2 + 2 * b1 * b3nl * sigma23pkl)
+        def PddXloop_cross():
+            return (
+                b1_a * b1_b * Ploop_dd
+                + (b1_a * b2_b + b2_a * b1_b) * Pb1b2
+                + (b1_a * bs2_b + bs2_a * b1_b) * Pb1bs2
+                + b2_a * b2_b * Pb22
+                + (b2_a * bs2_b + bs2_a * b2_b) * Pb2bs2
+                + bs2_a * bs2_b * Pb2s2
+                + (b1_a * b3nl_b + b3nl_a * b1_b) * sigma23pkl
+            )
 
         def PdtXloop(b1, b2, bs2, b3nl):
             return b1 * Ploop_dt + b2 * Pb2t + bs2 * Pbs2t + b3nl * Fkoverf0 * sigma23pkl
 
-        def PttXloop(b1, b2, bs2, b3nl):
+        def PttXloop():
             return Ploop_tt
 
-        def Af(mu, f0):
-            return (f0 * mu**2 * I1udd_1 + f0**2 * (mu**2 * I2uud_1 + mu**4 * I2uud_2)
-                    + f0**3 * (mu**4 * I3uuu_2 + mu**6 * I3uuu_3))
+        def ATNS_cross(mu):
+            return (
+                b1_a * b1_b * f0 * mu**2 * I1udd_1
+                + 0.5 * (b1_a + b1_b) * f0**2 * (mu**2 * I2uud_1 + mu**4 * I2uud_2)
+                + f0**3 * (mu**4 * I3uuu_2 + mu**6 * I3uuu_3)
+            )
 
-        def Af_b2(mu, f0):
-            return (f0*mu**2 * I1udd_1_b2 +  f0**2 * (mu**2 * I2uud_1_b2 +  mu**4 * I2uud_2_b2) )
+        def ATNS_b2_bs2_cross(mu):
+            return (
+                0.25 * (b2_a * b1_b + b1_a * b2_b) * f0 * mu**2 * I1udd_1_b2
+                + 0.25 * (b2_a + b2_b) * f0**2 * (mu**2 * I2uud_1_b2 + mu**4 * I2uud_2_b2)
+                + 0.25 * (bs2_a * b1_b + b1_a * bs2_b) * f0 * mu**2 * I1udd_1_bs2
+                + 0.25 * (bs2_a + bs2_b) * f0**2 * (mu**2 * I2uud_1_bs2 + mu**4 * I2uud_2_bs2)
+            )
 
-        def Af_bs2(mu, f0):
-            return (f0*mu**2 * I1udd_1_bs2 +  f0**2 * (mu**2 * I2uud_1_bs2 +  mu**4 * I2uud_2_bs2) )
+        def DRSD_cross(mu):
+            D2 = mu**2 * I2uudd_1D + mu**4 * I2uudd_2D
+            D3 = mu**2 * I3uuud_1B + mu**4 * I3uuud_2D + mu**6 * I3uuud_3D
+            D4 = (
+                mu**2 * I4uuuu_1B
+                + mu**4 * I4uuuu_2D
+                + mu**6 * I4uuuu_3D
+                + mu**8 * I4uuuu_4D
+            )
+            return b1_a * b1_b * f0**2 * D2 + 0.5 * (b1_a + b1_b) * f0**3 * D3 + f0**4 * D4
 
-        def Df(mu, f0):
-            return (f0**2 * (mu**2 * I2uudd_1D + mu**4 * I2uudd_2D)
-                    + f0**3 * (mu**2 * I3uuud_1B + mu**4 * I3uuud_2D + mu**6 * I3uuud_3D)
-                    + f0**4 * (mu**2 * I4uuuu_1B + mu**4 * I4uuuu_2D + mu**6 * I4uuuu_3D + mu**8 * I4uuuu_4D))
-
-        def ATNS(mu, b1):
-            return b1**3 * Af(mu, f0 / b1)
-
-        def ATNS_b2_bs2(mu, b1, b2, bs2):
-            return b1**3 * Af_b2(mu, f0/b1) * b2/(2*b1) +  b1**3 * Af_bs2(mu, f0/b1) * bs2/(2*b1)
-
-        def DRSD(mu, b1):
-            return b1**4 * Df(mu, f0 / b1)
-
-        def GTNS(mu, b1):
+        def GTNS_cross(mu):
             # _use_gtns is bound below, after the model dispatch may have overridden damping_method;
-            # this closure only runs from PloopSPTs, which is called after that point.
+            # this closure only runs from PloopSPTs_cross, which is called after that point.
             if use_TNS_model_status or not _use_gtns:
                 return 0
             else:
-                return -((kev * mu * f0)**2 * sigma2w * (b1**2 * pkl + 2 * b1 * f0 * mu**2 * Pdt_L + f0**2 * mu**4 * Ptt_L))
+                return -(
+                    (kev * mu * f0)**2
+                    * sigma2w
+                    * (
+                        b1_a * b1_b * pkl
+                        + (b1_a + b1_b) * f0 * mu**2 * Pdt_L
+                        + f0**2 * mu**4 * Ptt_L
+                    )
+                )
 
-        def PloopSPTs(mu, b1, b2, bs2, b3nl):
+        def PloopSPTs_cross(mu):
+            Pdt_a = PdtXloop(b1_a, b2_a, bs2_a, b3nl_a)
+            Pdt_b = PdtXloop(b1_b, b2_b, bs2_b, b3nl_b)
+            loop = (
+                PddXloop_cross()
+                + f0 * mu**2 * (Pdt_a + Pdt_b)
+                + mu**4 * f0**2 * PttXloop()
+                + ATNS_cross(mu)
+                + DRSD_cross(mu)
+                + GTNS_cross(mu)
+            )
             if A_full_status:
-                return (
-                        PddXloop(b1, b2, bs2, b3nl) + 2*f0*mu**2 * PdtXloop(b1, b2, bs2, b3nl)
-                        + mu**4 * f0**2 * PttXloop(b1, b2, bs2, b3nl) + ATNS(mu, b1) + DRSD(mu, b1)
-                        + GTNS(mu, b1) + ATNS_b2_bs2(mu, b1, b2, bs2)
-                )
-            else:
-                return (
-                    PddXloop(b1, b2, bs2, b3nl) + 2*f0*mu**2 * PdtXloop(b1, b2, bs2, b3nl)
-                    + mu**4 * f0**2 * PttXloop(b1, b2, bs2, b3nl) + ATNS(mu, b1) + DRSD(mu, b1)
-                    + GTNS(mu, b1)
-                )
+                loop = loop + ATNS_b2_bs2_cross(mu)
+            return loop
 
-        def PKaiserLs(mu, b1):
-            return (b1 + mu**2 * fk)**2 * pkl
+        def PKaiserLs_cross(mu):
+            return (b1_a + mu**2 * fk) * (b1_b + mu**2 * fk) * pkl
 
-        def PctNLOs(mu, b1, ctilde):
-            return ctilde * (mu * kev * f0)**4 * sigma2w**2 * PKaiserLs(mu, b1)
+        def PctNLOs(mu, ctilde):
+            return ctilde * (mu * kev * f0)**4 * sigma2w**2 * PKaiserLs_cross(mu)
 
         def Pcts(mu, alpha0, alpha2, alpha4):
             return (alpha0 + alpha2 * mu**2 + alpha4 * mu**4) * kev**2 * pkl
@@ -1654,19 +1782,54 @@ class RSDMultipolesPowerSpectrumCalculator:
             if damping is None:
                 print("[FOLPS] For FOLPSD you must specify a damping ('exp', 'lor', 'vdg'). Default: 'lor'.")
                 damping = 'lor'
+
         # Resolved here, not at the top: the model dispatch above may have overridden damping_method.
         _use_gtns = _resolve_use_gtns(use_GTNS, damping_method)
-        W = fog_damping((kev * mu, X_FoG_p), (kev * mu, X_FoG_p), f=f0, sigma2v=sigma2w, damping=damping)
+        if is_cross:
+            W = self._get_cross_damping(kev, mu, f0, sigma2w, damping, params_a, params_b, cross_nuisance=nuisance, cross_damping_mode=cross_damping_mode)
+        else:
+            W = fog_damping((kev * mu, X_FoG_p), (kev * mu, X_FoG_p), f=f0, sigma2v=sigma2w, damping=damping)
         # Which terms the kernel multiplies: loop bracket always; ctr/sn if named in damping_method.
         W_ctr = 1. if 'ctr' not in damping_method else W
         W_sn = 1. if 'sn' not in damping_method else W
 
-        PK = W * PloopSPTs(mu, b1, b2, bs2, b3nl) + W_sn * Pshot(mu, alphashot0, alphashot2, PshotP)
+        PK = W * PloopSPTs_cross(mu) + W_sn * Pshot(mu, alphashot0, alphashot2, PshotP)
 
-        return PK + W_ctr * (Pcts(mu, alpha0, alpha2, alpha4) + PctNLOs(mu, b1, ctilde))
+        return PK + W_ctr * (Pcts(mu, alpha0, alpha2, alpha4) + PctNLOs(mu, ctilde))
 
-    def get_rsd_pkmu(self, k, mu, pars, table, table_now, IR_resummation=True, damping='lor',
-                     damping_method=None, use_GTNS=None):
+    def get_eft_pkmu(
+            self, kev, mu, pars, table, damping='lor', damping_method=None, use_GTNS=None, *, pars_b=None,
+            cross_nuisance=None, cross_damping_mode="single"):
+        """Calculate the EFT/FolpsD power-spectrum in redshift space.
+
+        damping_method: which terms the FoG damping kernel multiplies (the tree-level Kaiser
+        term itself is handled in get_rsd_pkmu; here it only controls the ctr/sn factors and,
+        through use_GTNS=None, the GTNS default). 'tree+loop' damps the tree-level Kaiser term
+        and the loop bracket only; 'tree+loop+ctr' (default; None is an alias) additionally the
+        counterterms; 'tree+loop+ctr+sn' (alias 'all') additionally the shot noise.
+        Legacy 'tree'/'tree-gtns' are deprecated and raise (use 'tree+loop+ctr').
+
+        use_GTNS: whether to keep GTNS = -(k mu f0)^2 sigma2w * P_Kaiser, the perturbative FoG
+        suppression of the tree-level spectrum, inside the damped loop bracket.
+        None (default) follows damping_method: kept for 'loop+ctr', dropped for every
+        'tree+...' method, since damping the tree level resums GTNS non-perturbatively and
+        keeping both would double count at O(lambda^2). True / False override that. In
+        particular damping_method='tree+loop+ctr' with use_GTNS=True is the (double-counting)
+        convention used by comet's VDG_infty, which multiplies the full PT spectrum -- its own
+        perturbative sigma_v^2 terms included -- by W_infty.
+        The TNS model handles the FoG term itself and never adds GTNS, whatever use_GTNS says.
+        """
+        self._validate_cross_spectrum_model(pars_b)
+        self._validate_cross_damping_mode(pars_b, cross_damping_mode)
+        params_a, params_b, nuisance, is_cross = self._resolve_pair_parameters(pars, pars_b, cross_nuisance)
+        return self._get_eft_pkmu_pair(
+            kev, mu, params_a, params_b, nuisance, table, damping, damping_method=damping_method, use_GTNS=use_GTNS,
+            cross_damping_mode=cross_damping_mode, is_cross=is_cross,
+        )
+
+    def get_rsd_pkmu(
+            self, k, mu, pars, table, table_now, IR_resummation=True, damping='lor',
+            damping_method=None, use_GTNS=None, *, pars_b=None, cross_nuisance=None, cross_damping_mode="single"):
         """Return redshift space P(k, mu) given input tables.
 
         damping_method: which terms the FoG damping kernel multiplies. 'tree+loop' damps
@@ -1684,9 +1847,13 @@ class RSDMultipolesPowerSpectrumCalculator:
         if self.model == "EFT":
             # EFT ignores FoG damping entirely (see get_eft_pkmu): tree-level Kaiser undamped, GTNS kept.
             damping_method = 'loop+ctr'
+        self._validate_cross_spectrum_model(pars_b)
+        self._validate_cross_damping_mode(pars_b, cross_damping_mode)
         table = self.interp_table(k, table, A_full_status)
         table_now = self.interp_table(k, table_now, A_full_status)
-        b1 = pars[0]
+        params_a, params_b, nuisance, is_cross = self._resolve_pair_parameters(pars, pars_b, cross_nuisance)
+        bias_a, bias_b = params_a.bias, params_b.bias
+        b1_a, b1_b = bias_a.b1, bias_b.b1
         f0 = table[-1]
         fk = table[1] * f0
         pkl, pkl_now = table[0], table_now[0]
@@ -1697,22 +1864,38 @@ class RSDMultipolesPowerSpectrumCalculator:
             # wiggle table's sigma2w (table trailing entries are [..., sigma2w, f0]).
             if damping not in ('exp', 'lor', 'vdg'):
                 raise ValueError(f"damping_method={damping_method!r} requires damping 'exp', 'lor' or 'vdg', got {damping!r}")
-            X_FoG_p = pars[-1]
             sigma2w = table[-2]
-            W_tree = fog_damping((k * mu, X_FoG_p), (k * mu, X_FoG_p), f=f0, sigma2v=sigma2w, damping=damping)
+            if is_cross:
+                W_tree = self._get_cross_damping(k, mu, f0, sigma2w, damping=damping, params_a=params_a, params_b=params_b, cross_nuisance=nuisance, cross_damping_mode=cross_damping_mode)
+            else:
+                X_FoG_p = nuisance.X_FoG_p
+                W_tree = fog_damping((k * mu, X_FoG_p), (k * mu, X_FoG_p), f=f0, sigma2v=sigma2w, damping=damping)
         # Sigma² tot for IR-resummations, see eq.~ 3.59 at arXiv:2208.02791
         if IR_resummation:
             sigma2t = (1 + f0*mu**2 * (2 + f0))*sigma2 + (f0*mu)**2 * (mu**2 - 1) * delta_sigma2
         else:
             sigma2t = 0
-        pkmu = (W_tree * (b1 + fk * mu**2)**2 * (pkl_now + np.exp(-k**2 * sigma2t)*(pkl - pkl_now)*(1 + k**2 * sigma2t))
-                 + np.exp(-k**2 * sigma2t) * self.get_eft_pkmu(k, mu, pars, table, damping, damping_method=damping_method, use_GTNS=use_GTNS)
-                 + (1 - np.exp(-k**2 * sigma2t)) * self.get_eft_pkmu(k, mu, pars, table_now, damping, damping_method=damping_method, use_GTNS=use_GTNS))
+        exp_ir = np.exp(-k**2 * sigma2t)
+        PKaiserLs = (b1_a + fk * mu**2) * (b1_b + fk * mu**2)
+        pkmu = (W_tree * PKaiserLs * (pkl_now + exp_ir * (pkl - pkl_now) * (1 + k**2 * sigma2t))
+                 + exp_ir * self.get_eft_pkmu(
+                    k, mu, pars, table, damping=damping,
+                    damping_method=damping_method, use_GTNS=use_GTNS,
+                    pars_b=pars_b, cross_nuisance=cross_nuisance,
+                    cross_damping_mode=cross_damping_mode,
+                )
+                 + (1 - exp_ir) *self.get_eft_pkmu(
+                    k, mu, pars, table_now, damping=damping,
+                    damping_method=damping_method, use_GTNS=use_GTNS,
+                    pars_b=pars_b, cross_nuisance=cross_nuisance,
+                    cross_damping_mode=cross_damping_mode,
+                ))
         return pkmu
 
     def get_rsd_pkell(self, kobs, qpar, qper, pars, table, table_now,
-                      bias_scheme="folps", damping='lor', nmu=6, ells=(0, 2, 4), IR_resummation=True,
-                      damping_method=None, use_GTNS=None):
+                      bias_scheme="folps", damping='lor', nmu=6, ells=(0, 2, 4), IR_resummation=True, damping_method=None, use_GTNS=None,
+                      *, pars_b=None, cross_nuisance=None, bias_scheme_b=None,
+                      cross_damping_mode="single"):
         """
         Computes the redshift-space power spectrum multipoles P_ell(k).
 
@@ -1729,11 +1912,18 @@ class RSDMultipolesPowerSpectrumCalculator:
             IR_resummation (bool): Whether to apply IR resummation.
             damping_method (str): Which terms the FoG kernel multiplies; see :meth:`get_rsd_pkmu`.
             use_GTNS (bool): Whether to keep the perturbative GTNS term; see :meth:`get_eft_pkmu`.
+            pars_b (list, optional): Nuisance parameters for tracer B. If omitted, auto mode is used.
+            cross_nuisance (list, optional): Pair-level EFT/stochastic parameters.
+            bias_scheme_b (str, optional): Bias scheme for tracer B. Defaults to bias_scheme.
+            cross_damping_mode (str, optional): Cross FolpsD damping mode,
+                either "single" (default) or "geometric"; ignored in auto mode.
 
         Returns:
             array: Power spectrum multipoles for each ell.
         """
         pars = self.set_bias_scheme(pars, bias_scheme=bias_scheme)
+        if pars_b is not None:
+            pars_b = self.set_bias_scheme(pars_b, bias_scheme=bias_scheme if bias_scheme_b is None else bias_scheme_b)
 
         def weights_leggauss(nx, sym=False):
             """Return weights for Gauss-Legendre integration."""
@@ -1747,8 +1937,11 @@ class RSDMultipolesPowerSpectrumCalculator:
         wmu = np.array([wmu * (2 * ell + 1) * legendre(ell)(muobs) for ell in ells])
         jac, kap, muap = (qpar * qper**2)**(-1), self.k_ap(kobs[:, None], muobs, qpar, qper), self.mu_ap(muobs, qpar, qper)[None, :]
         #print(muap[0])
-        pkmu = jac * self.get_rsd_pkmu(kap, muap, pars, table, table_now, IR_resummation, damping,
-                                       damping_method=damping_method, use_GTNS=use_GTNS)
+        pkmu = jac * self.get_rsd_pkmu(
+            kap, muap, pars, table, table_now, IR_resummation, damping, damping_method=damping_method, use_GTNS=use_GTNS,
+            pars_b=pars_b, cross_nuisance=cross_nuisance,
+            cross_damping_mode=cross_damping_mode,
+        )
         return np.sum(pkmu * wmu[:, None, :], axis=-1)
 
 
