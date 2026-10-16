@@ -2644,10 +2644,12 @@ class BispectrumCalculator:
 
         ## Noise
         # To match eq.3.14 of 2110.10161, one makes (1+Pshot) -> (1+Pshot)/bar-n; Bshot -> Bshot/bar-n
+        # One f mu^2 Pshot, not two: with Pshot = Bshot = 1/nbar this reduces to the Poisson
+        # contraction Z1^2 P / nbar + 1/nbar^2 (the two velocity placements sum to one f mu_i^2).
         shot = (
-                  (b1*Bshot + 2.0*Pshot*f1*mu1AP**2) * Z1eft1 * pkIR1
-                + (b1*Bshot + 2.0*Pshot*f2*mu2AP**2) * Z1eft2 * pkIR2
-                + (b1*Bshot + 2.0*Pshot*f3*mu3AP**2) * Z1eft3 * pkIR3
+                  (b1*Bshot + Pshot*f1*mu1AP**2) * Z1eft1 * pkIR1
+                + (b1*Bshot + Pshot*f2*mu2AP**2) * Z1eft2 * pkIR2
+                + (b1*Bshot + Pshot*f3*mu3AP**2) * Z1eft3 * pkIR3
                 + Pshot**2
         )
 
@@ -2693,7 +2695,7 @@ class BispectrumCalculator:
 
         return pk_out
 
-    def sigmas(self, kT,pklT):
+    def sigmas(self, kT, pklT, pklnwT=None):
 
         k_BAO = 1/104
         kS = 0.4
@@ -2701,18 +2703,17 @@ class BispectrumCalculator:
         sigma2v_  = simpson(pklT, x=kT) / (6 * np.pi**2)
         sigma2v_ *= 1.05  #correction due to k cut
 
-        # pklT_=pklT[kT<=0.4].copy()
-        # kT_=kT[kT<=0.4].copy()
-
-        mask = kT <= 0.4
-        pklT_= np.where(mask, pklT, 0.0)
-        kT_   = np.where(mask, kT, 0.0)
-
-        j0_small = spherical_jn_backend(0, kT_ / k_BAO)
-        j2_small = spherical_jn_backend(2, kT_ / k_BAO)
-        Sigma2_ = 1/(6 * np.pi**2)*simpson(pklT_*(1 - j0_small + 2*j2_small), x=kT_)
-        j2_full = spherical_jn_backend(2, kT / k_BAO)
-        deltaSigma2_ = 1/(2 * np.pi**2)*simpson(pklT*j2_full, x=kT)
+        # IR-resummation scales, computed as for the power spectrum
+        # (NonLinearPowerSpectrumCalculator: no-wiggle spectrum, both integrals on a log grid ending
+        # at kS). The previous version masked k > kS with np.where on the abscissa too, so Simpson
+        # integrated a spurious kS -> 0 step (Sigma2 ~6% low), used the wiggly spectrum, and took
+        # deltaSigma2 over the whole grid. The grid starts at kT[0] rather than the power spectrum's
+        # 1e-6 (no extrapolation of the input; the difference is < 1e-4 of Sigma2).
+        pnwT = pklT if pklnwT is None else pklnwT
+        p = np.geomspace(kT[0], kS, num=100)
+        pnw = interp(p, kT, pnwT)
+        Sigma2_ = 1/(6 * np.pi**2)*simpson(pnw*(1 - spherical_jn_backend(0, p / k_BAO) + 2*spherical_jn_backend(2, p / k_BAO)), x=p)
+        deltaSigma2_ = 1/(2 * np.pi**2)*simpson(pnw*spherical_jn_backend(2, p / k_BAO), x=p)
 
         return sigma2v_, Sigma2_, deltaSigma2_
 
@@ -2980,7 +2981,7 @@ class BispectrumCalculator:
         tablesGL = self.tablesGL_f(precision)
 
         # IR resummation scales
-        sigma2v, Sigma2, deltaSigma2 = self.sigmas(k_pkl_pklnw[0], k_pkl_pklnw[1])
+        sigma2v, Sigma2, deltaSigma2 = self.sigmas(k_pkl_pklnw[0], k_pkl_pklnw[1], k_pkl_pklnw[2])
 
         phiGL, xGL, muGL = tablesGL
         phi, wphi = phiGL[:, 0], phiGL[:, 1]
@@ -3204,7 +3205,7 @@ class BispectrumCalculator:
 
         # IR resummation scales
         kT, pklT = k_pkl_pklnw[0], k_pkl_pklnw[1]
-        sigma2v, Sigma2, deltaSigma2 = self.sigmas(kT, pklT)
+        sigma2v, Sigma2, deltaSigma2 = self.sigmas(kT, pklT, k_pkl_pklnw[2])
 
         # GL tables for (phi, mu)
         tablesGL = self.tablesGL2_f(precision)
@@ -3448,18 +3449,27 @@ class BispectrumCalculator_fk:
 
     #     return term1 + term2 + term3 + term4
 
-    def Z2(self, ki, kj, xij, mui, muj, f0, fi, fj, b1, b2, bs, calA=1., calAp=0.):
+    def Z2(self, ki, kj, xij, mui, muj, f0, fi, fj, b1, b2, bs, calA=1., calAp=0., calB=None, calBp=None):
+        # calB/calBp default to calA/calAp: the historical A=B behaviour, unchanged for
+        # any caller that doesn't supply calB explicitly. Real (non-degenerate) MG models
+        # generally have calA != calB away from the squeezed/large-scale limit -- see
+        # eq. (2.20)-(2.22) of arXiv:2012.05077, where F2/G2's x_ij^2 coefficient is
+        # governed by calB, not calA.
+        if calB is None:
+            calB = calA
+        if calBp is None:
+            calBp = calAp
 
         term1 = b2 / 2. + bs / 2. * (xij**2 - 1. / 3.)
         km = ki * mui + kj * muj
-        fij = (fi + fj) / 2.0  # This should be f(|ki+kj|)
-        term2 = km / 2. * fij * (mui / ki * (b1 + fj * muj**2) + muj / kj * (b1 + fi * mui**2))
-        F2 = 1. / 2. + 3. * calA / 14. + xij / 2. * (ki / kj + kj / ki) + (1. / 2. - 3. * calA / 14.) * xij**2
-        G2 = (3. * calA * (fi + fj) + 3. * calAp) / (14. * f0) + xij / 2. * (fi / f0 * ki / kj + fj / f0 * kj / ki) + ((fi + fj) / (2. * f0) - (3. * calA * (fi + fj) + 3. * calAp) / (14. * f0)) * xij**2
+        # Each linear velocity carries its own f(k); G2 below is normalized by f0.
+        term2 = km / 2. * (fi * mui / ki * (b1 + fj * muj**2) + fj * muj / kj * (b1 + fi * mui**2))
+        F2 = 1. / 2. + 3. * calA / 14. + xij / 2. * (ki / kj + kj / ki) + (1. / 2. - 3. * calB / 14.) * xij**2
+        G2 = (3. * calA * (fi + fj) + 3. * calAp) / (14. * f0) + xij / 2. * (fi / f0 * ki / kj + fj / f0 * kj / ki) + ((fi + fj) / (2. * f0) - (3. * calB * (fi + fj) + 3. * calBp) / (14. * f0)) * xij**2
         term3 = b1 * F2
         mu2 = km**2 / (ki**2 + kj**2 + 2. * ki * kj * xij)
-        term4 = fij * mu2 * G2
-    
+        term4 = f0 * mu2 * G2
+
         return term1 + term2 + term3 + term4
 
 
@@ -3467,7 +3477,8 @@ class BispectrumCalculator_fk:
 
 
     def bispectrum(self, k1, k2, x12, mu1, phi, f, sigma2v, Sigma2, deltaSigma2,
-                   bpars, qpar, qperp, k_pkl_pklnw_fk, damping = 'lor',interpolation_method= 'cubic'):
+                   bpars, qpar, qperp, k_pkl_pklnw_fk, damping = 'lor',interpolation_method= 'cubic',
+                   mg_kernel_fn=None):
 
         b1, b2, bs, c1, c2, Bshot, Pshot, X_FoG_b = bpars
 
@@ -3494,6 +3505,23 @@ class BispectrumCalculator_fk:
         else:
             calA = 1
             calAp=0
+
+        # Genuine, non-squeezed (per-triangle) calA/calB: if the caller supplies
+        # mg_kernel_fn(kf, k1, k2) -> (A, Ap, B, Bp) (e.g. a closure around
+        # fkptjax.MG_kernels.A_B_grid), evaluate it at the three AP-transformed legs
+        # this method already computed -- one call per cyclic term (B12/B23/B31), each
+        # with a different leg as the F2/G2 "output" mode kf, matching eq. (2.20)-(2.22)
+        # of arXiv:2012.05077. Falls back to the flat calA/calAp above (and calB=calA,
+        # the historical behaviour) when no callback is given.
+        if mg_kernel_fn is not None:
+            mgA12, mgAp12, mgB12, mgBp12 = mg_kernel_fn(k3AP, k1AP, k2AP)
+            mgA23, mgAp23, mgB23, mgBp23 = mg_kernel_fn(k1AP, k2AP, k3AP)
+            mgA31, mgAp31, mgB31, mgBp31 = mg_kernel_fn(k2AP, k3AP, k1AP)
+        else:
+            mgA12 = mgA23 = mgA31 = calA
+            mgAp12 = mgAp23 = mgAp31 = calAp
+            mgB12 = mgB23 = mgB31 = calA
+            mgBp12 = mgBp23 = mgBp31 = calAp
 
         interp_method = interpolation_method
         pk1   = self.interpolation_b(k1AP, k_, pkl_,   method=interp_method)
@@ -3526,9 +3554,9 @@ class BispectrumCalculator_fk:
         Z1eft3 = Z1_3 - (c1 * mu3AP**2 + c2 * mu3AP**4) * k3AP**2
 
 
-        B12 = (2 * self.Z2(k1AP, k2AP, x12AP, mu1AP, mu2AP, f, f1, f2, b1, b2, bs,calA,calAp) * Z1eft1*pkIR1 * Z1eft2*pkIR2)
-        B23 = (2 * self.Z2(k2AP, k3AP, x23AP, mu2AP, mu3AP, f, f2, f3, b1, b2, bs,calA,calAp) * Z1eft2*pkIR2 * Z1eft3*pkIR3)
-        B31 = (2 * self.Z2(k3AP, k1AP, x31AP, mu3AP, mu1AP, f, f3, f1, b1, b2, bs,calA,calAp) * Z1eft3*pkIR3 * Z1eft1*pkIR1)
+        B12 = (2 * self.Z2(k1AP, k2AP, x12AP, mu1AP, mu2AP, f, f1, f2, b1, b2, bs, mgA12, mgAp12, mgB12, mgBp12) * Z1eft1*pkIR1 * Z1eft2*pkIR2)
+        B23 = (2 * self.Z2(k2AP, k3AP, x23AP, mu2AP, mu3AP, f, f2, f3, b1, b2, bs, mgA23, mgAp23, mgB23, mgBp23) * Z1eft2*pkIR2 * Z1eft3*pkIR3)
+        B31 = (2 * self.Z2(k3AP, k1AP, x31AP, mu3AP, mu1AP, f, f3, f1, b1, b2, bs, mgA31, mgAp31, mgB31, mgBp31) * Z1eft3*pkIR3 * Z1eft1*pkIR1)
 
         W = fog_damping((k1AP * mu1AP, X_FoG_b), (k2AP * mu2AP, X_FoG_b), (k3AP * mu3AP, X_FoG_b),
                         f=f, sigma2v=sigma2v, damping=damping)
@@ -3577,10 +3605,12 @@ class BispectrumCalculator_fk:
 
         ## Noise
         # To match eq.3.14 of 2110.10161, one makes (1+Pshot) -> (1+Pshot)/bar-n; Bshot -> Bshot/bar-n
+        # One f mu^2 Pshot, not two: with Pshot = Bshot = 1/nbar this reduces to the Poisson
+        # contraction Z1^2 P / nbar + 1/nbar^2 (the two velocity placements sum to one f mu_i^2).
         shot = (
-                  (b1*Bshot + 2.0*Pshot*f1*mu1AP**2) * Z1eft1 * pkIR1
-                + (b1*Bshot + 2.0*Pshot*f2*mu2AP**2) * Z1eft2 * pkIR2
-                + (b1*Bshot + 2.0*Pshot*f3*mu3AP**2) * Z1eft3 * pkIR3
+                  (b1*Bshot + Pshot*f1*mu1AP**2) * Z1eft1 * pkIR1
+                + (b1*Bshot + Pshot*f2*mu2AP**2) * Z1eft2 * pkIR2
+                + (b1*Bshot + Pshot*f3*mu3AP**2) * Z1eft3 * pkIR3
                 + Pshot**2
         )
 
@@ -3626,7 +3656,7 @@ class BispectrumCalculator_fk:
 
         return pk_out
 
-    def sigmas(self, kT,pklT):
+    def sigmas(self, kT, pklT, pklnwT=None):
 
         k_BAO = 1/104
         kS = 0.4
@@ -3634,18 +3664,17 @@ class BispectrumCalculator_fk:
         sigma2v_  = simpson(pklT, x=kT) / (6 * np.pi**2)
         sigma2v_ *= 1.05  #correction due to k cut
 
-        # pklT_=pklT[kT<=0.4].copy()
-        # kT_=kT[kT<=0.4].copy()
-
-        mask = kT <= 0.4
-        pklT_= np.where(mask, pklT, 0.0)
-        kT_   = np.where(mask, kT, 0.0)
-
-        j0_small = spherical_jn_backend(0, kT_ / k_BAO)
-        j2_small = spherical_jn_backend(2, kT_ / k_BAO)
-        Sigma2_ = 1/(6 * np.pi**2)*simpson(pklT_*(1 - j0_small + 2*j2_small), x=kT_)
-        j2_full = spherical_jn_backend(2, kT / k_BAO)
-        deltaSigma2_ = 1/(2 * np.pi**2)*simpson(pklT*j2_full, x=kT)
+        # IR-resummation scales, computed as for the power spectrum
+        # (NonLinearPowerSpectrumCalculator: no-wiggle spectrum, both integrals on a log grid ending
+        # at kS). The previous version masked k > kS with np.where on the abscissa too, so Simpson
+        # integrated a spurious kS -> 0 step (Sigma2 ~6% low), used the wiggly spectrum, and took
+        # deltaSigma2 over the whole grid. The grid starts at kT[0] rather than the power spectrum's
+        # 1e-6 (no extrapolation of the input; the difference is < 1e-4 of Sigma2).
+        pnwT = pklT if pklnwT is None else pklnwT
+        p = np.geomspace(kT[0], kS, num=100)
+        pnw = interp(p, kT, pnwT)
+        Sigma2_ = 1/(6 * np.pi**2)*simpson(pnw*(1 - spherical_jn_backend(0, p / k_BAO) + 2*spherical_jn_backend(2, p / k_BAO)), x=p)
+        deltaSigma2_ = 1/(2 * np.pi**2)*simpson(pnw*spherical_jn_backend(2, p / k_BAO), x=p)
 
         return sigma2v_, Sigma2_, deltaSigma2_
 
@@ -3854,9 +3883,17 @@ class BispectrumCalculator_fk:
     def Sugiyama_Bell(self, f, bpars, k_pkl_pklnw_fk,
                       k1k2pairs, qpar, qper, precision=[8, 10, 10], damping='lor',
                       m_bin=None, k_thy=None, do_binning=False, multipoles=['B000', 'B202'],
-                      renormalize=True, interpolation_method='linear', bias_scheme='folps',do_interp_bk=False,kout=None):
+                      renormalize=True, interpolation_method='linear', bias_scheme='folps',do_interp_bk=False,kout=None,
+                      mg_kernel_fn=None):
         """
         Compute Sugiyama bispectrum multipoles for multiple k1k2 pairs.
+
+        mg_kernel_fn : callable, optional
+            ``mg_kernel_fn(kf, k1, k2) -> (A, Ap, B, Bp)``, evaluated by ``bispectrum()``
+            at the genuine (non-squeezed) AP-transformed triangle legs for each of its
+            three cyclic terms. When given, this replaces the flat ``calA``/``calAp``
+            (and the historical ``calB=calA``) read from ``k_pkl_pklnw_fk``'s optional
+            5th/6th rows. See ``bispectrum()``'s own docstring/comments.
 
         Parameters:
         -----------
@@ -3913,7 +3950,7 @@ class BispectrumCalculator_fk:
         tablesGL = self.tablesGL_f(precision)
 
         # IR resummation scales
-        sigma2v, Sigma2, deltaSigma2 = self.sigmas(k_pkl_pklnw_fk[0], k_pkl_pklnw_fk[1])
+        sigma2v, Sigma2, deltaSigma2 = self.sigmas(k_pkl_pklnw_fk[0], k_pkl_pklnw_fk[1], k_pkl_pklnw_fk[2])
 
         phiGL, xGL, muGL = tablesGL
         phi, wphi = phiGL[:, 0], phiGL[:, 1]
@@ -3935,6 +3972,7 @@ class BispectrumCalculator_fk:
             k_pkl_pklnw_fk,
             damping=damping,
             interpolation_method=interpolation_method,
+            mg_kernel_fn=mg_kernel_fn,
         )
 
         # Normalization factors for each multipole
@@ -4010,7 +4048,8 @@ class BispectrumCalculator_fk:
         k_pkl_pklnw_fk,
         damping = 'lor',
         interpolation_method='linear',
-        multipoles=['B0', 'B2', 'B4']
+        multipoles=['B0', 'B2', 'B4'],
+        mg_kernel_fn=None,
     ):
         """
         Computation of Scoccimarro B0, B2, B4
@@ -4051,8 +4090,9 @@ class BispectrumCalculator_fk:
             qpar,
             qperp,
             k_pkl_pklnw_fk,
-            damping = 'lor',
+            damping = damping,
             interpolation_method = interpolation_method,
+            mg_kernel_fn=mg_kernel_fn,
         )   # (N, Nμ, Nφ)
 
         # --- φ integration ---
@@ -4091,7 +4131,8 @@ class BispectrumCalculator_fk:
     def Scoccimarro_Bell(self, k1k2k3triplets, f, bpars, qpar, qperp,
                          k_pkl_pklnw_fk, precision=[10, 10], damping='lor',
                          interpolation_method='linear', m_bin=None, k_thy=None,
-                         do_binning=False, multipoles=['B0', 'B2', 'B4'], bias_scheme='folps'):
+                         do_binning=False, multipoles=['B0', 'B2', 'B4'], bias_scheme='folps',
+                         mg_kernel_fn=None):
         """
         Compute Scoccimarro bispectrum multipoles for multiple k1k2k3 triplets.
 
@@ -4135,7 +4176,7 @@ class BispectrumCalculator_fk:
 
         # IR resummation scales
         kT, pklT = k_pkl_pklnw_fk[0], k_pkl_pklnw_fk[1]
-        sigma2v, Sigma2, deltaSigma2 = self.sigmas(kT, pklT)
+        sigma2v, Sigma2, deltaSigma2 = self.sigmas(kT, pklT, k_pkl_pklnw_fk[2])
 
         # GL tables for (phi, mu)
         tablesGL = self.tablesGL2_f(precision)
@@ -4155,7 +4196,7 @@ class BispectrumCalculator_fk:
                         triplet, f, sigma2v, Sigma2, deltaSigma2, bpars, qpar, qperp,
                         tablesGL, k_pkl_pklnw_fk, damping=damping,
                         interpolation_method=interpolation_method,
-                        multipoles=multipoles
+                        multipoles=multipoles, mg_kernel_fn=mg_kernel_fn
                     )
 
                 vm = jax.vmap(_single)
@@ -4205,7 +4246,7 @@ class BispectrumCalculator_fk:
         B0, B2, B4, x = self.Scoccimarro_B024(
             k1k2k3triplets, f, sigma2v, Sigma2, deltaSigma2, bpars, qpar, qperp,
             tablesGL, k_pkl_pklnw_fk, damping, interpolation_method,
-            multipoles=multipoles
+            multipoles=multipoles, mg_kernel_fn=mg_kernel_fn
         )
 
         # Optional internal binning
