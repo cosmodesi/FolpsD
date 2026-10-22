@@ -2218,6 +2218,18 @@ else:
 
 
 
+def split_bispectrum_pars(pars):
+    """Bispectrum nuisance parameters ``(b1, b2, bs, c1, c2, Bshot, Pshot, Ashot, X_FoG)``, from
+    ``[b1, b2, bs, c1, c2, Bshot, Pshot, Ashot, X_FoG]`` or from the legacy ``[b1, b2, bs, c1, c2, Bshot, Pshot, X_FoG]``,
+    whose constant stochastic term is tied, ``Ashot = Pshot**2``."""
+    if len(pars) > 8:
+        b1, b2, bs, c1, c2, Bshot, Pshot, Ashot, X_FoG = pars[:9]
+    else:
+        b1, b2, bs, c1, c2, Bshot, Pshot, X_FoG = pars[:8]
+        Ashot = Pshot**2
+    return b1, b2, bs, c1, c2, Bshot, Pshot, Ashot, X_FoG
+
+
 class BispectrumCalculator:
     def __init__(self, model='EFT'):
         """
@@ -2235,27 +2247,27 @@ class BispectrumCalculator:
         if bias_scheme in ["folps", "pat", "mcdonald","FOLPS","FolpsD","FOLPSD"]:
             if pars is None:
                 pars = [1.0, 0.0, 0.0, 0.01, 0.01, 1, 1, 0]
-            (b1, b2, bs2, c1, c2, Bshot, Pshot, X_FoG_bk) = pars
+            b1, b2, bs2, c1, c2, Bshot, Pshot, Ashot, X_FoG_bk = split_bispectrum_pars(pars)
 
         elif bias_scheme in ["Assassi", "classpt","assassi"]:
             if pars is None:
                 raise ValueError("Nuisance parameters must be provided for Assassi/classpt bias scheme.")
-            (b1_classPT, b2_classPT, bG2_classPT, c1, c2, Bshot, Pshot, X_FoG_bk) = pars
+            b1_classPT, b2_classPT, bG2_classPT, c1, c2, Bshot, Pshot, Ashot, X_FoG_bk = split_bispectrum_pars(pars)
             b1 = b1_classPT
             b2 = b2_classPT - 4/3 * bG2_classPT
             bs2 = 2 * bG2_classPT
 
-            pars = [b1, b2, bs2, c1, c2, Bshot, Pshot, X_FoG_bk]
+            pars = [b1, b2, bs2, c1, c2, Bshot, Pshot, Ashot, X_FoG_bk]
 
         elif bias_scheme in ["DESI", "priordocument","DR2","priordoc"]:
             if pars is None:
                 raise ValueError("Nuisance parameters must be provided for 'priordoc' bias scheme.")
-            (b1_priordoc, b2_priordoc, bK2_priordoc, c1, c2, Bshot, Pshot, X_FoG_bk) = pars
+            b1_priordoc, b2_priordoc, bK2_priordoc, c1, c2, Bshot, Pshot, Ashot, X_FoG_bk = split_bispectrum_pars(pars)
             b1 = b1_priordoc
             b2 = b2_priordoc
             bs2 = 2.* bK2_priordoc
 
-            pars = [b1, b2, bs2, c1, c2, Bshot, Pshot, X_FoG_bk]
+            pars = [b1, b2, bs2, c1, c2, Bshot, Pshot, Ashot, X_FoG_bk]
 
         else:
             raise ValueError("Invalid bias scheme. Choose from 'folps' or 'classpt' or 'priordoc'.")
@@ -2362,7 +2374,7 @@ class BispectrumCalculator:
     def bispectrum(self, k1, k2, x12, mu1, phi, f, sigma2v, Sigma2, deltaSigma2,
                    bpars, qpar, qperp, k_pkl_pklnw, damping = 'lor',interpolation_method= 'cubic'):
 
-        b1, b2, bs, c1, c2, Bshot, Pshot, X_FoG_b = bpars
+        b1, b2, bs, c1, c2, Bshot, Pshot, Ashot, X_FoG_b = split_bispectrum_pars(bpars)
 
         cosphi = np.cos(phi)
         APtransf = self.APtransforms(k1, k2, x12, mu1, cosphi, qpar, qperp)
@@ -2451,13 +2463,14 @@ class BispectrumCalculator:
 
         ## Noise
         # To match eq.3.14 of 2110.10161, one makes (1+Pshot) -> (1+Pshot)/bar-n; Bshot -> Bshot/bar-n
-        # One f mu^2 Pshot, not two: with Pshot = Bshot = 1/nbar this reduces to the Poisson
+        # One f mu^2 Pshot, not two: with Pshot = Bshot = 1/nbar (and Ashot = 1/nbar^2) this reduces to the Poisson
         # contraction Z1^2 P / nbar + 1/nbar^2 (the two velocity placements sum to one f mu_i^2).
+        # Ashot is the constant term A_shot / nbar^2 (Pshot**2 with the legacy 8-parameter vector).
         shot = (
                   (b1*Bshot + Pshot*f1*mu1AP**2) * Z1eft1 * pkIR1
                 + (b1*Bshot + Pshot*f2*mu2AP**2) * Z1eft2 * pkIR2
                 + (b1*Bshot + Pshot*f3*mu3AP**2) * Z1eft3 * pkIR3
-                + Pshot**2
+                + Ashot
         )
 
         bispectrum = W*(B12 + B23 + B31) + shot
@@ -2648,7 +2661,7 @@ class BispectrumCalculator:
         sigma2v, Sigma2, deltaSigma2 : float
             IR resummation scales
         bpars : array-like
-            Bias parameters [b1, b2, bs, c1, c2, Bshot, Pshot, X_FoG_b]
+            Bias parameters [b1, b2, bs, c1, c2, Bshot, Pshot, Ashot, X_FoG_b], or the legacy [b1, b2, bs, c1, c2, Bshot, Pshot, X_FoG_b] (Ashot = Pshot**2)
         qpar, qper : float
             AP parameters
         tablesGL : list
@@ -2738,7 +2751,7 @@ class BispectrumCalculator:
         f : float
             Growth rate
         bpars : array-like
-            Bias parameters [b1, b2, bs, c1, c2, Bshot, Pshot, X_FoG_b]
+            Bias parameters [b1, b2, bs, c1, c2, Bshot, Pshot, Ashot, X_FoG_b], or the legacy [b1, b2, bs, c1, c2, Bshot, Pshot, X_FoG_b] (Ashot = Pshot**2)
         k_pkl_pklnw : list
             [k_array, pkl_array, pklnw_array]
         k1k2pairs : array-like
@@ -2981,7 +2994,7 @@ class BispectrumCalculator:
         f : float
             Growth rate
         bpars : array-like
-            Bias parameters [b1, b2, bs, c1, c2, Bshot, Pshot, X_FoG_b]
+            Bias parameters [b1, b2, bs, c1, c2, Bshot, Pshot, Ashot, X_FoG_b], or the legacy [b1, b2, bs, c1, c2, Bshot, Pshot, X_FoG_b] (Ashot = Pshot**2)
         qpar, qperp : float
             AP parameters
         k_pkl_pklnw : list
@@ -3132,27 +3145,27 @@ class BispectrumCalculator_fk:
         if bias_scheme in ["folps", "pat", "mcdonald","FOLPS","FolpsD","FOLPSD"]:
             if pars is None:
                 pars = [1.0, 0.0, 0.0, 0.01, 0.01, 1, 1, 0]
-            (b1, b2, bs2, c1, c2, Bshot, Pshot, X_FoG_bk) = pars
+            b1, b2, bs2, c1, c2, Bshot, Pshot, Ashot, X_FoG_bk = split_bispectrum_pars(pars)
 
         elif bias_scheme in ["Assassi", "classpt","assassi"]:
             if pars is None:
                 raise ValueError("Nuisance parameters must be provided for Assassi/classpt bias scheme.")
-            (b1_classPT, b2_classPT, bG2_classPT, c1, c2, Bshot, Pshot, X_FoG_bk) = pars
+            b1_classPT, b2_classPT, bG2_classPT, c1, c2, Bshot, Pshot, Ashot, X_FoG_bk = split_bispectrum_pars(pars)
             b1 = b1_classPT
             b2 = b2_classPT - 4/3 * bG2_classPT
             bs2 = 2 * bG2_classPT
 
-            pars = [b1, b2, bs2, c1, c2, Bshot, Pshot, X_FoG_bk]
+            pars = [b1, b2, bs2, c1, c2, Bshot, Pshot, Ashot, X_FoG_bk]
 
         elif bias_scheme in ["DESI", "priordocument","DR2","priordoc"]:
             if pars is None:
                 raise ValueError("Nuisance parameters must be provided for 'priordoc' bias scheme.")
-            (b1_priordoc, b2_priordoc, bK2_priordoc, c1, c2, Bshot, Pshot, X_FoG_bk) = pars
+            b1_priordoc, b2_priordoc, bK2_priordoc, c1, c2, Bshot, Pshot, Ashot, X_FoG_bk = split_bispectrum_pars(pars)
             b1 = b1_priordoc
             b2 = b2_priordoc
             bs2 = 2.* bK2_priordoc
 
-            pars = [b1, b2, bs2, c1, c2, Bshot, Pshot, X_FoG_bk]
+            pars = [b1, b2, bs2, c1, c2, Bshot, Pshot, Ashot, X_FoG_bk]
 
         else:
             raise ValueError("Invalid bias scheme. Choose from 'folps' or 'classpt' or 'priordoc'.")
@@ -3287,7 +3300,7 @@ class BispectrumCalculator_fk:
                    bpars, qpar, qperp, k_pkl_pklnw_fk, damping = 'lor',interpolation_method= 'cubic',
                    mg_kernel_fn=None):
 
-        b1, b2, bs, c1, c2, Bshot, Pshot, X_FoG_b = bpars
+        b1, b2, bs, c1, c2, Bshot, Pshot, Ashot, X_FoG_b = split_bispectrum_pars(bpars)
 
         cosphi = np.cos(phi)
         APtransf = self.APtransforms(k1, k2, x12, mu1, cosphi, qpar, qperp)
@@ -3412,13 +3425,14 @@ class BispectrumCalculator_fk:
 
         ## Noise
         # To match eq.3.14 of 2110.10161, one makes (1+Pshot) -> (1+Pshot)/bar-n; Bshot -> Bshot/bar-n
-        # One f mu^2 Pshot, not two: with Pshot = Bshot = 1/nbar this reduces to the Poisson
+        # One f mu^2 Pshot, not two: with Pshot = Bshot = 1/nbar (and Ashot = 1/nbar^2) this reduces to the Poisson
         # contraction Z1^2 P / nbar + 1/nbar^2 (the two velocity placements sum to one f mu_i^2).
+        # Ashot is the constant term A_shot / nbar^2 (Pshot**2 with the legacy 8-parameter vector).
         shot = (
                   (b1*Bshot + Pshot*f1*mu1AP**2) * Z1eft1 * pkIR1
                 + (b1*Bshot + Pshot*f2*mu2AP**2) * Z1eft2 * pkIR2
                 + (b1*Bshot + Pshot*f3*mu3AP**2) * Z1eft3 * pkIR3
-                + Pshot**2
+                + Ashot
         )
 
         bispectrum = W*(B12 + B23 + B31) + shot
@@ -3609,7 +3623,7 @@ class BispectrumCalculator_fk:
         sigma2v, Sigma2, deltaSigma2 : float
             IR resummation scales
         bpars : array-like
-            Bias parameters [b1, b2, bs, c1, c2, Bshot, Pshot, X_FoG_b]
+            Bias parameters [b1, b2, bs, c1, c2, Bshot, Pshot, Ashot, X_FoG_b], or the legacy [b1, b2, bs, c1, c2, Bshot, Pshot, X_FoG_b] (Ashot = Pshot**2)
         qpar, qper : float
             AP parameters
         tablesGL : list
@@ -3707,7 +3721,7 @@ class BispectrumCalculator_fk:
         f : float
             Growth rate
         bpars : array-like
-            Bias parameters [b1, b2, bs, c1, c2, Bshot, Pshot, X_FoG_b]
+            Bias parameters [b1, b2, bs, c1, c2, Bshot, Pshot, Ashot, X_FoG_b], or the legacy [b1, b2, bs, c1, c2, Bshot, Pshot, X_FoG_b] (Ashot = Pshot**2)
         k_pkl_pklnw : list
             [k_array, pkl_array, pklnw_array]
         k1k2pairs : array-like
@@ -3952,7 +3966,7 @@ class BispectrumCalculator_fk:
         f : float
             Growth rate
         bpars : array-like
-            Bias parameters [b1, b2, bs, c1, c2, Bshot, Pshot, X_FoG_b]
+            Bias parameters [b1, b2, bs, c1, c2, Bshot, Pshot, Ashot, X_FoG_b], or the legacy [b1, b2, bs, c1, c2, Bshot, Pshot, X_FoG_b] (Ashot = Pshot**2)
         qpar, qperp : float
             AP parameters
         k_pkl_pklnw_fk : list
