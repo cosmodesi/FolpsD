@@ -1829,8 +1829,12 @@ class RSDMultipolesPowerSpectrumCalculator:
 
     def get_rsd_pkmu(
             self, k, mu, pars, table, table_now, IR_resummation=True, damping='lor',
-            damping_method=None, use_GTNS=None, *, pars_b=None, cross_nuisance=None, cross_damping_mode="single"):
+            damping_method=None, use_GTNS=None, *, pars_b=None, cross_nuisance=None, cross_damping_mode="single", bA=None):
         """Return redshift space P(k, mu) given input tables.
+
+        bA: optional anisotropic linear bias of each tracer, (bA_a, bA_b) (a single value for both): the tree-level kernel of tracer X
+        becomes b1_X + f(k) mu^2 + bA_X (mu^2 - 1/3), the linear form of a selection-dependent (e.g. intrinsic-alignment) anisotropic
+        bias. It enters the (IR-resummed) tree-level Kaiser term only, not the loops. None (default) leaves P(k, mu) unchanged.
 
         damping_method: which terms the FoG damping kernel multiplies. 'tree+loop' damps
         the tree-level Kaiser term and the loop bracket only; 'tree+loop+ctr' (default;
@@ -1876,7 +1880,11 @@ class RSDMultipolesPowerSpectrumCalculator:
         else:
             sigma2t = 0
         exp_ir = np.exp(-k**2 * sigma2t)
-        PKaiserLs = (b1_a + fk * mu**2) * (b1_b + fk * mu**2)
+        if bA is None:
+            PKaiserLs = (b1_a + fk * mu**2) * (b1_b + fk * mu**2)
+        else:
+            bA_a, bA_b = bA if isinstance(bA, (tuple, list)) else (bA, bA)
+            PKaiserLs = (b1_a + fk * mu**2 + bA_a * (mu**2 - 1. / 3.)) * (b1_b + fk * mu**2 + bA_b * (mu**2 - 1. / 3.))
         pkmu = (W_tree * PKaiserLs * (pkl_now + exp_ir * (pkl - pkl_now) * (1 + k**2 * sigma2t))
                  + exp_ir * self.get_eft_pkmu(
                     k, mu, pars, table, damping=damping,
