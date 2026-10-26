@@ -93,6 +93,8 @@ environment (`../.venv`, see "Environment").
     script 321 PASS; test_folps_jax outputs bit-identical between base and branch.
 18. Fisher adapter example (toy covariance only), integration doc. Commits b4e75ed, 9f9fa4d.
 19. Branch not pushed: the HTTPS remote has no credentials; no PR opened.
+20. Full from-scratch regeneration (`generate_selection_coefficients.py --check`, no cache):
+    byte-identical data file.
 
 ## Commands (main ones)
 

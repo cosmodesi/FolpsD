@@ -71,6 +71,8 @@ double displacement. This is the reason for the bare bridge in section 4.
 
 `scripts/generate_selection_coefficients.py` (2947 s, one core); report
 `docs/selection_1loop_generation_report.json`; data sha256 `b8db1b3b…be42537`.
+**Reproducibility:** a second, complete regeneration from scratch (`--check`, no cached
+intermediate decompositions) produced a byte-identical data file.
 
 * P22: exact SymPy reduction; the generated set equals the 23 DJS functions (asserted). The
   pair classification (no UV constant with a soft-singular kernel; no UV \(k^2\) for
