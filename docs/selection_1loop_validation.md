@@ -26,7 +26,7 @@ regenerated with the commands given in each section. Equations and conventions:
 ## 1. How to run
 
 ```bash
-python -m pytest tests -q                    # 54 tests (4 slow skipped), ~2 min; JAX tests in subprocesses
+python -m pytest tests -q                    # 55 run + 3 slow skipped, ~2 min; JAX tests in subprocesses
 python -m pytest tests -q --runslow          # all 58, ~3 min
 python scripts/validate_selection_reference.py          # direct quadrature fixture, ~25 min
 python scripts/selection_convergence.py                 # FFTLog resolution / tilt / domain, ~10 min

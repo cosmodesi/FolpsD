@@ -16,7 +16,6 @@ import hashlib
 import json
 import re
 import sys
-from fractions import Fraction
 from pathlib import Path
 
 import sympy as sp

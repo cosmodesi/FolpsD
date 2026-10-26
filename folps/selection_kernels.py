@@ -494,7 +494,7 @@ def reduced_cubic_operator_fields():
     lib = _operator_library()
     d, e, Kt, P2 = lib["delta"], lib["eta"], lib["K"], lib["Pi2"]
     up = lib["u_par"]
-    d1, d2 = truncate_order(d, (1,)), truncate_order(d, (2,))
+    d1 = truncate_order(d, (1,))
     e1, e2, e3 = truncate_order(e, (1,)), truncate_order(e, (2,)), truncate_order(e, (3,))
     K1, K2_ = truncate_order(Kt, (1,)), truncate_order(Kt, (2,))
     u1, u2 = truncate_order(up, (1,)), truncate_order(up, (2,))

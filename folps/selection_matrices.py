@@ -32,7 +32,7 @@ import hashlib
 import json
 import os
 from fractions import Fraction
-from math import comb, factorial
+from math import factorial
 
 import numpy as _np
 from scipy import special as _special
