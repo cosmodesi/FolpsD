@@ -54,6 +54,11 @@ P_ell = calc.get_rsd_pkell(kobs, qpar, qper, pars, table, table_now, bias_scheme
      convention used for the eight nonlinear coordinates explicitly (e.g. all zero, or a
      named coevolution relation, which is not provided as a default).
 
+A minimal adapter implementing the three models on one parameter dictionary, with
+ell-major data vectors and finite-difference Jacobians, is
+`scripts/selection_fisher_adapter_example.py` (`SelectionPowerSpectrumModel`). Its `__main__`
+runs a demo with a **toy** diagonal covariance only.
+
 ## 3. Analytical marginalization
 
 `get_rsd_pkell_marg_const(..., selection=..., selection_tables=..., eft_extension=...)` and
