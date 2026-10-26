@@ -26,8 +26,8 @@ regenerated with the commands given in each section. Equations and conventions:
 ## 1. How to run
 
 ```bash
-python -m pytest tests -q                    # 53 tests (4 slow skipped), ~2 min; JAX tests in subprocesses
-python -m pytest tests -q --runslow          # all 57, ~3 min
+python -m pytest tests -q                    # 54 tests (4 slow skipped), ~2 min; JAX tests in subprocesses
+python -m pytest tests -q --runslow          # all 58, ~3 min
 python scripts/validate_selection_reference.py          # direct quadrature fixture, ~25 min
 python scripts/selection_convergence.py                 # FFTLog resolution / tilt / domain, ~10 min
 python scripts/generate_selection_coefficients.py --check   # regenerate the coefficient data and diff, ~50 min
@@ -189,6 +189,10 @@ scale), \(\mu\in\{0.1,0.6,1\}\):
 
 ## 9. IR, AP and angular quadrature
 
+* One-loop re-expansion: scaling \(\Sigma^2,\delta\Sigma^2\) by \(\epsilon^2\) in the table, the selected
+  \(P_{\rm IR}(\epsilon)-P_{\rm IR\ off}\) has relative size 5.5e-4, 1.5e-4, 3.8e-5, 9.6e-6 for \(\epsilon=0.2,0.1,
+  0.05,0.025\) (ratios 3.70, 3.92, 3.98 → 4). The resummation changes the selected prediction only
+  beyond one loop, exactly as for the legacy model (5.3e-4, …, 9.1e-6).
 * With IR on, selected − unselected = the IR-mixed tree and loop increments (to 1e-10).
   \(\Sigma_s\) is computed from the physical \(f\) only. Components sum to the total (1e-12).
 * \(\max|L[P_L]-L[P_{\rm nw}]-L[P_w]|/\max|L[P_L]-L[P_{\rm nw}]|=1.0016\) at \(\mu=0.6\): the

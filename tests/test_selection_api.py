@@ -212,3 +212,25 @@ def test_bA_legacy_path_still_works(eds_setup, calc):
     a = calc.get_rsd_pkmu(k, mu, PARS, eds_setup["table"], eds_setup["table_now"], damping=None, bA=0.2)
     b = calc.get_rsd_pkmu(k, mu, PARS, eds_setup["table"], eds_setup["table_now"], damping=None)
     assert np.all(np.isfinite(a)) and not np.allclose(a, b)
+
+
+def test_ir_resummation_reexpands_to_one_loop(eds_setup, calc, generic_selection):
+    """Scaling the BAO displacement variances Sigma^2, delta Sigma^2 by eps^2 (table entries),
+    P_IR(eps) - P_IR=off vanishes as eps^2 for the selected model: IR resummation only
+    reorganizes beyond one loop (tree, loop and counterterm mixing together)."""
+    t, tn, tabs = eds_setup["table"], eds_setup["table_now"], eds_setup["tabs"]
+    k = np.geomspace(0.02, 0.3, 30)[:, None] * np.ones((1, 3))
+    mu = np.array([0.2, 0.6, 0.95])[None, :] * np.ones((30, 1))
+    kw = dict(damping=None, selection=generic_selection, selection_tables=tabs)
+    off = calc.get_rsd_pkmu(k, mu, PARS, t, tn, IR_resummation=False, **kw)
+
+    def scaled(eps):
+        tn_eps = list(tn)
+        tn_eps[-3] = tn[-3] * eps ** 2
+        tn_eps[-2] = tn[-2] * eps ** 2
+        return calc.get_rsd_pkmu(k, mu, PARS, t, tuple(tn_eps), IR_resummation=True, **kw) - off
+    norms = [np.max(np.abs(scaled(e))) for e in (0.1, 0.05, 0.025)]
+    assert norms[0] < 1e-3 * np.max(np.abs(off))
+    r1, r2 = norms[0] / norms[1], norms[1] / norms[2]
+    # O(eps^2): halving eps divides by 4, up to the O(eps^4) remainder (measured 3.92, 3.98)
+    assert abs(r2 - 4.0) < abs(r1 - 4.0) and abs(r2 - 4.0) < 0.05, (r1, r2)
