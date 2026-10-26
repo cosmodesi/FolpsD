@@ -1,0 +1,30 @@
+{
+ "note": "Reconstructed audit checks (not the production implementation).",
+ "Z2_standard_vs_ten_kernel_max_abs": 1.7763568394002505e-15,
+ "bA_linear_identity_max_abs": 4.440892098500626e-16,
+ "Pi2_recursion_vs_explicit_max_abs": 4.218847493575595e-15,
+ "derivative_sector_max_abs": 1.3322676295501878e-15,
+ "collapsed_identities": {
+  "0.12": {
+   "F3_abs_diff": 7.630072788866737e-18,
+   "G3_abs_diff": 3.4287893704854078e-18,
+   "eta_over_fmu2_from_G3": 4.608533191164291e-05,
+   "eta_over_fmu2_printed_F7": 5.6114463126414814e-05,
+   "eta_over_fmu2_adopted_row": 4.608533191163948e-05
+  },
+  "0.4": {
+   "F3_abs_diff": 1.089623183347932e-17,
+   "G3_abs_diff": 6.288372600415926e-18,
+   "eta_over_fmu2_from_G3": 0.00038289944633777123,
+   "eta_over_fmu2_printed_F7": 0.0006178783797857861,
+   "eta_over_fmu2_adopted_row": 0.0003828994463377649
+  },
+  "1.0": {
+   "F3_abs_diff": 2.7755575615628914e-17,
+   "G3_abs_diff": 2.42861286636753e-17,
+   "eta_over_fmu2_from_G3": 0.0009856419168300552,
+   "eta_over_fmu2_printed_F7": 0.0029610547857111505,
+   "eta_over_fmu2_adopted_row": 0.0009856419168300312
+  }
+ }
+}

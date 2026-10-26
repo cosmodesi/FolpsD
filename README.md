@@ -119,6 +119,47 @@ print("Pk:", P0.shape, P2.shape, P4.shape)
 print("Sugiyama Bk:", B000.shape, B202.shape)
 ```
 
+## One-loop line-of-sight selection (EdS, `model="EFT"`)
+
+The branch `feature/selection-1loop-eds` adds the complete renormalized one-loop galaxy
+auto power spectrum with all nine independent line-of-sight (LOS) selection operators
+through third order (P22 and P13, including their interference with ordinary bias and
+RSD), for **EdS kernels with scale-independent growth** in the undamped EFT branch, with
+BAO IR resummation and AP projection. Calls without `selection` are unchanged.
+
+```python
+import os
+os.environ["FOLPS_BACKEND"] = "numpy"
+import numpy as np
+from folps import (MatrixCalculator, NonLinearPowerSpectrumCalculator, RSDMultipolesPowerSpectrumCalculator,
+                   SelectionBias, build_selection_tables)
+
+k, pk = np.loadtxt("folps/inputpkT.txt", unpack=True)
+cosmo = dict(z=0.3, h=0.6711, Omega_m=0.3211636237981114, f0=0.6880638641959066, fnu=0.004453689063655854)
+nonlinear = NonLinearPowerSpectrumCalculator(mmatrices=MatrixCalculator(A_full=True).get_mmatrices(),
+                                             kernels="EdS", **cosmo)
+table, table_now = nonlinear.calculate_loop_table(k=k, pklin=pk, cosmo=None, **cosmo)
+sel_tables = build_selection_tables(nonlinear)            # named full + no-wiggle selection templates
+
+pars = [1.645, -0.46, -0.3686, 0.0655, 3.0, -28.9, 1.5, 0.0, 0.08, -8.1, 1 / 0.0002118763, 0.0]
+selection = SelectionBias(s_eta=0.15, s_delta_eta=-0.3, s_eta2=0.2, s_KK_par=0.4, s_Pi2_par=-0.5,
+                          s_delta_Pi2_par=0.3, s_eta_Pi2_par=-0.2, s_KPi2_par=0.3, s_Pi3_par=0.2)
+P0, P2, P4 = RSDMultipolesPowerSpectrumCalculator(model="EFT").get_rsd_pkell(
+    np.geomspace(0.01, 0.3, 50), 1.0, 1.0, pars, table, table_now, damping=None,
+    selection=selection, selection_tables=sel_tables)
+```
+
+`SelectionBias()` (all zero) reproduces the unselected prediction bit for bit. Optional
+`EFTExtension(alpha6, alphashot2_iso, alphashot2_mu4)` and `PhysicalDerivativeBias` extend
+the derivative and noise sectors. Selected cross spectra, `kernels="fk"` and FoG-damped
+models raise errors in selection mode. The historical tree-only `bA` argument is kept as is.
+
+* tutorial: [notebooks/selection_1loop_tutorial.ipynb](notebooks/selection_1loop_tutorial.ipynb)
+* equations and conventions: [docs/selection_1loop_equations.md](docs/selection_1loop_equations.md)
+* validation report: [docs/selection_1loop_validation.md](docs/selection_1loop_validation.md)
+* sources and recorded corrections: [docs/selection_1loop_sources.md](docs/selection_1loop_sources.md)
+* tests: `python -m pytest tests` (add `--runslow` for the direct-quadrature checks)
+
 ## Tests and Timing Benchmarks
 
 The [folps](folps/) directory includes several `test_*.py` scripts that demonstrate end-to-end execution for both the power spectrum and bispectrum using NumPy and JAX.

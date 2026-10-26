@@ -42,3 +42,10 @@ include = ["folps*"]
 
 [tool.setuptools]
 include-package-data = true
+[tool.pytest.ini_options]
+# The legacy folps/test_*.py files are standalone scripts (run them from inside folps/);
+# pytest collects only the tests/ directory.
+testpaths = ["tests"]
+markers = [
+    "slow: independent direct-quadrature validation (minutes); run with --runslow",
+]

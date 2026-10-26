@@ -1829,8 +1829,24 @@ class RSDMultipolesPowerSpectrumCalculator:
 
     def get_rsd_pkmu(
             self, k, mu, pars, table, table_now, IR_resummation=True, damping='lor',
-            damping_method=None, use_GTNS=None, *, pars_b=None, cross_nuisance=None, cross_damping_mode="single", bA=None):
+            damping_method=None, use_GTNS=None, *, pars_b=None, cross_nuisance=None, cross_damping_mode="single", bA=None,
+            selection=None, selection_tables=None, eft_extension=None, physical_derivatives=None,
+            return_components=False):
         """Return redshift space P(k, mu) given input tables.
+
+        Full one-loop LOS selection (EdS, model='EFT', auto spectra; see
+        docs/selection_1loop_equations.md and folps.selection_model):
+
+        selection: folps.SelectionBias with the nine additional selection coordinates
+        (None = legacy path, untouched). An explicit SelectionBias() runs the full
+        selection machinery and reproduces the legacy prediction.
+        selection_tables: folps.SelectionLoopTables from folps.build_selection_tables(nonlinear),
+        built from the same EdS calculator call as table/table_now.
+        eft_extension: folps.EFTExtension(alpha6, alphashot2_iso, alphashot2_mu4), optional terms beyond legacy.
+        physical_derivatives: folps.PhysicalDerivativeBias, replaces alpha0..alpha6 (never added to them).
+        The selected P22 has only its zero-lag constant removed (absorbed in the shot noise).
+        return_components: return a dict of named components instead of the total.
+        Nonzero selection with bA, cross spectra, fk tables or model != 'EFT' raises.
 
         bA: optional anisotropic linear bias of each tracer, (bA_a, bA_b) (a single value for both): the tree-level kernel of tracer X
         becomes b1_X + f(k) mu^2 + bA_X (mu^2 - 1/3), the linear form of a selection-dependent (e.g. intrinsic-alignment) anisotropic
@@ -1847,6 +1863,17 @@ class RSDMultipolesPowerSpectrumCalculator:
         See :meth:`get_eft_pkmu`. Note use_GTNS is orthogonal to the tree-level damping, so
         damping_method='tree+loop+ctr' with use_GTNS=True damps the tree *and* keeps GTNS.
         """
+        if (selection is not None or eft_extension is not None or physical_derivatives is not None
+                or return_components):
+            from .selection_model import selected_rsd_pkmu, validate_selection_request
+            validate_selection_request(
+                self, selection=selection, selection_tables=selection_tables, bA=bA, pars_b=pars_b,
+                damping_method=damping_method, eft_extension=eft_extension,
+                physical_derivatives=physical_derivatives)
+            return selected_rsd_pkmu(
+                self, k, mu, pars, table, table_now, IR_resummation, use_GTNS=use_GTNS,
+                selection=selection, selection_tables=selection_tables, eft_extension=eft_extension,
+                physical_derivatives=physical_derivatives, return_components=return_components)
         damping_method = _normalize_damping_method(damping_method)
         if self.model == "EFT":
             # EFT ignores FoG damping entirely (see get_eft_pkmu): tree-level Kaiser undamped, GTNS kept.
@@ -1903,7 +1930,8 @@ class RSDMultipolesPowerSpectrumCalculator:
     def get_rsd_pkell(self, kobs, qpar, qper, pars, table, table_now,
                       bias_scheme="folps", damping='lor', nmu=6, ells=(0, 2, 4), IR_resummation=True, damping_method=None, use_GTNS=None,
                       *, pars_b=None, cross_nuisance=None, bias_scheme_b=None,
-                      cross_damping_mode="single"):
+                      cross_damping_mode="single", selection=None, selection_tables=None,
+                      eft_extension=None, physical_derivatives=None, return_components=False):
         """
         Computes the redshift-space power spectrum multipoles P_ell(k).
 
@@ -1925,6 +1953,10 @@ class RSDMultipolesPowerSpectrumCalculator:
             bias_scheme_b (str, optional): Bias scheme for tracer B. Defaults to bias_scheme.
             cross_damping_mode (str, optional): Cross FolpsD damping mode,
                 either "single" (default) or "geometric"; ignored in auto mode.
+            selection, selection_tables, eft_extension, physical_derivatives,
+            return_components: full one-loop LOS selection options,
+                see :meth:`get_rsd_pkmu`. With return_components=True a dict of projected
+                components (each of shape (len(ells), len(kobs))) is returned.
 
         Returns:
             array: Power spectrum multipoles for each ell.
@@ -1945,11 +1977,21 @@ class RSDMultipolesPowerSpectrumCalculator:
         wmu = np.array([wmu * (2 * ell + 1) * legendre(ell)(muobs) for ell in ells])
         jac, kap, muap = (qpar * qper**2)**(-1), self.k_ap(kobs[:, None], muobs, qpar, qper), self.mu_ap(muobs, qpar, qper)[None, :]
         #print(muap[0])
-        pkmu = jac * self.get_rsd_pkmu(
+        selection_kw = {}
+        if (selection is not None or eft_extension is not None or physical_derivatives is not None
+                or return_components):
+            selection_kw = dict(selection=selection, selection_tables=selection_tables,
+                                eft_extension=eft_extension, physical_derivatives=physical_derivatives,
+                                return_components=return_components)
+        pkmu = self.get_rsd_pkmu(
             kap, muap, pars, table, table_now, IR_resummation, damping, damping_method=damping_method, use_GTNS=use_GTNS,
             pars_b=pars_b, cross_nuisance=cross_nuisance,
-            cross_damping_mode=cross_damping_mode,
+            cross_damping_mode=cross_damping_mode, **selection_kw,
         )
+        if return_components:
+            return {name: (np.sum(jac * val * wmu[:, None, :], axis=-1) if not isinstance(val, str) else val)
+                    for name, val in pkmu.items()}
+        pkmu = jac * pkmu
         return np.sum(pkmu * wmu[:, None, :], axis=-1)
 
 
@@ -1959,11 +2001,23 @@ class RSDMultipolesPowerSpectrumCalculator:
 def get_rsd_pkell_marg_const(
     kobs, qpar, qper, pars, table, table_now,
     bias_scheme="folps", damping='lor', nmu=6, ells=(0, 2, 4), IR_resummation=True,
-    model='EFT'
+    model='EFT', *, selection=None, selection_tables=None, eft_extension=None
     ):
     """
     Computes the multipoles of the RSD power spectrum marginalizing over EFT and stochastic parameters.
+
+    With ``selection`` / ``eft_extension`` (full one-loop LOS selection, model='EFT') the
+    constant part is computed from the complete selected model with the linear EFT and
+    stochastic parameters set to zero (see folps.selection_model).
     """
+    if selection is not None or eft_extension is not None:
+        from .selection_model import selected_pkell_linear_decomposition
+        calc = RSDMultipolesPowerSpectrumCalculator(model=model)
+        pconst, _, _ = selected_pkell_linear_decomposition(
+            calc, kobs, qpar, qper, pars, table, table_now, bias_scheme=bias_scheme, nmu=nmu, ells=ells,
+            IR_resummation=IR_resummation, selection=selection, selection_tables=selection_tables,
+            eft_extension=eft_extension)
+        return pconst
 
     multipoles = RSDMultipolesPowerSpectrumCalculator(model=model)
 
@@ -2085,12 +2139,26 @@ def PEFTs_derivatives(k, mu, pkl, PshotP):
 def get_rsd_pkell_marg_derivatives(
     kobs, qpar, qper, pars, table, table_now,
     bias_scheme="folps", damping='lor', nmu=6, ells=(0, 2, 4), IR_resummation=True,
-    model='EFT'
+    model='EFT', *, selection=None, selection_tables=None, eft_extension=None
     ):
     """
     Redshift space power spectrum multipoles 'derivatives': Pℓ,i=∂Pℓ/∂α_i
     (derivatives with respect to the EFT and stochastic parameters).
+
+    With ``selection`` / ``eft_extension`` the design vectors are exact differences of the
+    complete selected model (AP, IR mixing and selection included); the returned structure
+    is the legacy one, one array of shape (n_param, len(kobs)) per multipole, with
+    n_param = 5 (alpha0, alpha2, alpha4, alphashot0, alphashot2) plus (alpha6,
+    alphashot2_iso, alphashot2_mu4) when ``eft_extension`` is given.
     """
+    if selection is not None or eft_extension is not None:
+        from .selection_model import selected_pkell_linear_decomposition
+        calc = RSDMultipolesPowerSpectrumCalculator(model=model)
+        _, temps, _ = selected_pkell_linear_decomposition(
+            calc, kobs, qpar, qper, pars, table, table_now, bias_scheme=bias_scheme, nmu=nmu, ells=ells,
+            IR_resummation=IR_resummation, selection=selection, selection_tables=selection_tables,
+            eft_extension=eft_extension)
+        return tuple(temps[:, i, :] for i in range(len(ells)))
     multipoles = RSDMultipolesPowerSpectrumCalculator(model=model)
 
     def get_rsd_pkmu_derivatives(k, mu, pars, table, table_now, IR_resummation, damping):

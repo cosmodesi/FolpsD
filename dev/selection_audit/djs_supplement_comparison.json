@@ -1,0 +1,22 @@
+{
+ "notebook_sha256": "638af6d8afa2367d10c625e1394a3ad302f1b8806ab0db528b8f2b12149e3f14",
+ "Anmp_dims": [
+  5,
+  9,
+  7
+ ],
+ "index_convention": "Anmp[[n+1, m+1, r+1]] = mu^2n nu^m I_mr",
+ "hypotheses_worst_mismatch": {
+  "identity": 105.3386329951086,
+  "flip F2": 104.05736056435472,
+  "flip eta^(2)": 193.2729432512948,
+  "flip delta^2": 115.05523313637696,
+  "flip K^2": 107.83385580376378,
+  "flip delta eta": 201.0941814090613,
+  "flip eta^2": 1309.2849673183246,
+  "flip (KK)_par": 100.07823851772558,
+  "flip Pi2_par": 72.77579020806316,
+  "flip u_par d_par delta": 4.5207062276321733e-14,
+  "flip u_par d_par eta": 751.9443706127832
+ }
+}
