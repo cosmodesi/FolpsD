@@ -76,6 +76,37 @@ environment (`../.venv`, see "Environment").
 11. Reconstructed audit script dev/selection_audit/audit_checks.py reproduces the audit
     numbers (eta response at k=0.4: 3.82899e-4 vs printed-F.7 6.1788e-4).
 
+12. Official coefficient generation (2947 s): A/B J parts vs reduced list 5.3e-9/4.6e-9,
+    bridge closed form 8.5e-14; data sha256 b8db1b3b...be42537. Commit d1defa9.
+13. External: GeneralBiasPk M13 identical (16/16); DJS supplement Anmp identical iff the
+    u_par d_par delta kernel sign is flipped (all other hypotheses fail) -> supplement sign
+    inconsistency recorded; our sign validated against standard Z2 and FolpsD.
+14. Direct-quadrature fixture (24 points, generic 9-coordinate selection): N=256 P22 1.7e-5,
+    P13 2.2e-7, increment 3.9e-5; N=128 limited by FFTLog resolution (P22 3.7e-3 at k>0.25).
+    The reference P13 radial rule had to be raised 300 -> 800 nodes (int P dq under-resolved
+    by 6e-5 at k=0.008).
+15. Convergence study (N, tilt, input domain), spectrum-level IR bump test (residual ~ q0^2),
+    IR one-loop re-expansion (eps^2 scaling, ratios -> 4), ell=6,8 diagnostics, AP Jacobian check.
+16. Tutorial executed headless in a fresh kernel (quick: 22 pass / 0 fail / 1 skipped;
+    slow mode: 23 pass / 0 fail / 0 skipped). Commits 42f4497, 4213803.
+17. Upstream scripts: test_folps_numpy outputs bit-identical to pre-edit; cross-spectrum
+    script 321 PASS; test_folps_jax outputs bit-identical between base and branch.
+18. Fisher adapter example (toy covariance only), integration doc. Commits b4e75ed, 9f9fa4d.
+19. Branch not pushed: the HTTPS remote has no credentials; no PR opened.
+
+## Commands (main ones)
+
+```bash
+python -m pytest tests -q [--runslow]
+python scripts/generate_selection_coefficients.py [--check] [--resume-dir DIR]
+python scripts/validate_selection_reference.py
+python scripts/selection_convergence.py
+python scripts/build_selection_tutorial.py && cd notebooks && python -m jupyter nbconvert --to notebook \
+    --execute selection_1loop_tutorial.ipynb --output selection_1loop_tutorial.ipynb --ExecutePreprocessor.timeout=1800
+python -I dev/selection_audit/audit_checks.py
+python -I dev/selection_audit/compare_djs_supplement.py PATH/pkgs_supplement.nb
+```
+
 ## Decisions
 
 
@@ -107,3 +138,7 @@ environment (`../.venv`, see "Environment").
   limitation; documented, not changed.
 - U2. k^2 mu^4 UV-sensitive content of selected P22 (all selection coordinates): not in the
   DJS / GeneralBiasPk stochastic basis (P0eps, P2eps, P2eps_eta). Needs theory confirmation.
+- U3. FFTLog range [1e-7, 100] is fixed by FolpsD and was not varied (resolution, tilt and
+  input domain were).
+- U4. Fisher (LRG2) and NERSC simulation runs: not performed; pipelines not provided.
+- U5. `fk` selection kernels: not derived (rejected in selection mode).
