@@ -19,7 +19,7 @@ regenerated with the commands given in each section. Equations and conventions:
 | D. legacy calls unchanged; IR on/off, AP unity/non-unity; invalid modes fail | **passed** | sections 8–9 |
 | D. marginalization helpers gated and checked against numerical derivatives | **passed** | section 10 |
 | backend parity and derivatives | **passed** | section 11 |
-| E. tutorial: fresh-kernel execution, real outputs | **passed**: 21 passed, 0 failed, 1 skipped (slow) | section 13 |
+| E. tutorial: fresh-kernel execution, real outputs | **passed**: 22 passed, 0 failed, 1 skipped (slow) | section 13 |
 | F. Fisher / NERSC runs | **not run** (pipelines not available) | `selection_1loop_integration.md` |
 | `fk` kernels with selection | **not implemented** (rejected) | section 14 |
 
@@ -194,8 +194,14 @@ scale), \(\mu\in\{0.1,0.6,1\}\):
 * \(\max|L[P_L]-L[P_{\rm nw}]-L[P_w]|/\max|L[P_L]-L[P_{\rm nw}]|=1.0016\) at \(\mu=0.6\): the
   loop of the wiggles alone is negligible, and the smooth×wiggle cross terms carry the whole
   wiggle loop (tutorial section 13).
-* AP: true \(k\) stays within the template domain \([0.001,0.5]\) for the tested
-  \((q_\parallel,q_\perp)=(1.04,0.97)\). The NumPy route's AP derivatives converge as \(h^2\).
+* AP: an explicit evaluation of \(P(k(k_{\rm obs},\mu_{\rm obs}),\mu(\mu_{\rm obs}))/(q_\parallel q_\perp^2)\)
+  projected with a 64-node rule reproduces `get_rsd_pkell` for the selected model to ≤ 9.2e-7 at
+  \((q_\parallel,q_\perp)=(1.04,0.97)\). True \(k\) stays within the template domain \([0.001,0.5]\).
+  The NumPy route's AP derivatives converge as \(h^2\).
+* \(\ell=6,8\) diagnostics (projected from `get_rsd_pkmu`, since FolpsD's `legendre` helper stops at
+  \(\ell=4\)): \(\max|P_6|/\max|P_0|=8.8\times10^{-4}\), \(\max|P_8|/\max|P_0|=4.8\times10^{-5}\) without IR at
+  unity AP. With IR and AP \((1.04,0.97)\) they are \(2.6\times10^{-3}\) and \(1.8\times10^{-4}\), with a
+  12-node (default) angular error of \(2.5\times10^{-5}\) and \(7.3\times10^{-4}\) relative to their own size.
 * Angular quadrature (tutorial section 16, IR on, AP ≠ 1), relative to `nmu=96`:
   `nmu=3`: (4e-7, 2e-5, 3.2e-3) for (P0, P2, P4); default `nmu=6` (12 full-range nodes):
   (5.8e-9, 3.6e-8, 9.2e-7); `nmu=12`: ≤ 4e-8.
@@ -263,7 +269,7 @@ cd notebooks && python -m jupyter nbconvert --to notebook --execute selection_1l
 ```
 
 Execution date 2026-10-26, wall time 1 min 57 s, 13 figures, no errors or stderr output.
-Validation summary in the notebook: 21 passed, 0 failed, 1 skipped (recomputation of a
+Validation summary in the notebook: 22 passed, 0 failed, 1 skipped (recomputation of a
 direct-quadrature point; enabled with `FOLPS_RUN_SLOW=1`). The JAX parity section ran (JAX
 installed) in subprocesses.
 

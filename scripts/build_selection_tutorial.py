@@ -564,6 +564,14 @@ kap = calc.k_ap(kobs[:, None], muobs[None, :], qpar, qper)
 check("AP true-k inside template domain", (kap.min() >= T.k[0]) and (kap.max() <= T.k[-1]),
       f"k_true in [{kap.min():.4f}, {kap.max():.4f}] vs [{T.k[0]}, {T.k[-1]}]")
 P_ap = calc.get_rsd_pkell(kobs, qpar, qper, pars, table, table_now, damping=None, selection=selection, selection_tables=sel_tables)
+# explicit mapping + volume factor: P_ell(k_obs) = (2l+1)/2 int dmu_obs L_l(mu_obs) P(k(k_obs,mu_obs), mu(mu_obs)) / (qpar qper^2)
+mu_full, w_full = np.polynomial.legendre.leggauss(64)
+kk_ = kobs[:, None] * np.ones((1, mu_full.size))
+pk_true = calc.get_rsd_pkmu(calc.k_ap(kk_, mu_full[None, :], qpar, qper), calc.mu_ap(mu_full, qpar, qper)[None, :] * np.ones_like(kk_),
+                            pars, table, table_now, damping=None, selection=selection, selection_tables=sel_tables)
+P_manual = np.array([(2*l + 1) / 2 * np.sum(w_full * eval_legendre(l, mu_full) * pk_true, axis=-1) / (qpar * qper**2) for l in (0, 2, 4)])
+err_ap = np.max(np.abs(P_manual - P_ap), axis=1) / np.max(np.abs(P_ap), axis=1)
+check("AP mapping and 1/(qpar qper^2) volume factor (selected model)", np.all(err_ap < 1e-5), f"max rel diff per ell {np.array2string(err_ap, precision=1)}")
 fig, ax = plt.subplots(figsize=(6.5, 4))
 for P, Q, l in zip(P_sel, P_ap, (0, 2, 4)):
     ax.plot(kobs, kobs * P, f"C{l//2}", label=fr"$\ell={l}$, $q=1$"); ax.plot(kobs, kobs * Q, f"C{l//2}--", label=fr"$q_\parallel={qpar},q_\perp={qper}$")
@@ -576,10 +584,11 @@ md(r"""
 ## 16. Angular convergence
 
 `get_rsd_pkell(nmu=n)` uses \(n\) Gauss–Legendre nodes on \([0,1]\) obtained by symmetrizing a
-\(2n\)-node full-range rule (\(P(k,\mu)\) is even in \(\mu\)). Without IR and at unity AP the
-selected \(P(k,\mu)\) is a polynomial of degree 8 in \(\mu\), integrated exactly by 5 nodes. With
-IR resummation or AP it is not a polynomial. We compare \(n=3,6,12,24,48\) (6–96 full-range
-nodes) with \(n=96\).
+\(2n\)-node full-range rule (\(P(k,\mu)\) is even in \(\mu\)), exact for polynomial integrands of
+degree \(\le4n-1\). Without IR and at unity AP the selected \(P(k,\mu)\) is a polynomial of degree 8
+in \(\mu\), so the \(\ell=4\) projection integrand has degree 12 and is exact for \(n\ge4\). With IR
+resummation or AP it is not a polynomial. We compare \(n=3,6,12,24,48\) (6–96 full-range nodes)
+with \(n=96\).
 """)
 
 code(r"""
@@ -595,6 +604,21 @@ ax.set(xlabel=r"$\ell$", ylabel="relative error", title="angular quadrature (IR 
 fig.tight_layout(); fig.savefig(OUTPUT_DIR / "angular_convergence.png")
 P6 = calc.get_rsd_pkell(kobs, qpar, qper, pars, table, table_now, damping=None, nmu=6, selection=selection, selection_tables=sel_tables)
 check("default nmu=6 angular error < 1e-4", np.all(np.max(np.abs(P6 - ref_mu), axis=1) / scale_ < 1e-4), "")
+# ell = 6, 8 diagnostics.  FolpsD's legendre() helper only provides ell <= 4, so project
+# get_rsd_pkmu directly (Gauss-Legendre over [-1, 1]; 12 nodes = the default nmu=6 rule).
+def project(ells_, nfull, qp_, qq_, ir_):
+    x_, w_ = np.polynomial.legendre.leggauss(nfull)
+    kk2 = kobs[:, None] * np.ones((1, nfull))
+    pk_ = calc.get_rsd_pkmu(calc.k_ap(kk2, x_[None, :], qp_, qq_), calc.mu_ap(x_, qp_, qq_)[None, :] * np.ones_like(kk2),
+                            pars, table, table_now, IR_resummation=ir_, damping=None, selection=selection, selection_tables=sel_tables)
+    return np.array([(2*l + 1) / 2 * np.sum(w_ * eval_legendre(l, x_) * pk_, axis=-1) / (qp_ * qq_**2) for l in ells_])
+ells_hi = (0, 2, 4, 6, 8)
+for ir_, (qp_, qq_) in ((False, (1.0, 1.0)), (True, (qpar, qper))):
+    hi_ref, hi_12 = project(ells_hi, 192, qp_, qq_, ir_), project(ells_hi, 12, qp_, qq_, ir_)
+    ratio = np.max(np.abs(hi_ref), axis=1) / np.max(np.abs(hi_ref[0]))
+    err = np.max(np.abs(hi_12 - hi_ref), axis=1) / np.max(np.abs(hi_ref), axis=1)
+    print(f"IR={ir_}, AP={(qp_, qq_)}: max|P_ell|/max|P_0| for ell=0..8:", np.array2string(ratio, precision=2),
+          "; 12-node error:", np.array2string(err, precision=1))
 """)
 
 md(r"""
