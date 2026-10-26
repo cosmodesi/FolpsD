@@ -1666,8 +1666,12 @@ class RSDMultipolesPowerSpectrumCalculator:
         return PK + W_ctr * (Pcts(mu, alpha0, alpha2, alpha4) + PctNLOs(mu, b1, ctilde))
 
     def get_rsd_pkmu(self, k, mu, pars, table, table_now, IR_resummation=True, damping='lor',
-                     damping_method=None, use_GTNS=None):
+                     damping_method=None, use_GTNS=None, *, bA=None):
         """Return redshift space P(k, mu) given input tables.
+
+        bA: optional anisotropic linear bias: the tree-level kernel becomes b1 + f(k) mu^2 + bA (mu^2 - 1/3), the linear form of a
+        selection-dependent (e.g. intrinsic-alignment) anisotropic bias. It enters the (IR-resummed) tree-level Kaiser term only, not the
+        loops. None (default) leaves P(k, mu) unchanged.
 
         damping_method: which terms the FoG damping kernel multiplies. 'tree+loop' damps
         the tree-level Kaiser term and the loop bracket only; 'tree+loop+ctr' (default;
@@ -1705,7 +1709,8 @@ class RSDMultipolesPowerSpectrumCalculator:
             sigma2t = (1 + f0*mu**2 * (2 + f0))*sigma2 + (f0*mu)**2 * (mu**2 - 1) * delta_sigma2
         else:
             sigma2t = 0
-        pkmu = (W_tree * (b1 + fk * mu**2)**2 * (pkl_now + np.exp(-k**2 * sigma2t)*(pkl - pkl_now)*(1 + k**2 * sigma2t))
+        kernel = b1 + fk * mu**2 if bA is None else b1 + fk * mu**2 + bA * (mu**2 - 1. / 3.)
+        pkmu = (W_tree * kernel**2 * (pkl_now + np.exp(-k**2 * sigma2t)*(pkl - pkl_now)*(1 + k**2 * sigma2t))
                  + np.exp(-k**2 * sigma2t) * self.get_eft_pkmu(k, mu, pars, table, damping, damping_method=damping_method, use_GTNS=use_GTNS)
                  + (1 - np.exp(-k**2 * sigma2t)) * self.get_eft_pkmu(k, mu, pars, table_now, damping, damping_method=damping_method, use_GTNS=use_GTNS))
         return pkmu
