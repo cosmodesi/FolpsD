@@ -217,8 +217,12 @@ P_{22}(k,\mu)=\sum_{a,b}c'_ac'_bf^{n_a+n_b}\sum_{n=0}^{4}\mu^{2n}\sum_{(m,r)}T_{
 \qquad n_{a}=(0,1,0,0,1,2,0,0,1,2).
 \]
 
-\(T\) (`P22_T`, 1962 nonzero rationals) is symmetric in \(a,b\); the double sum counts
-off-diagonal pairs twice.
+\(T\) (`P22_T`, 1358 nonzero rationals in the stored basis) is symmetric in \(a,b\); the double sum counts
+off-diagonal pairs twice. Checks: it reproduces the oracle's azimuthally averaged \(Z_2^2\) at
+random configurations to \(3\times10^{-13}\). It also equals the DJS supplement's `Anmp` (all 315
+entries, parsed symbolically) to \(4.5\times10^{-14}\) *after flipping the sign of the
+\(u_\parallel\partial_\parallel\delta\) kernel only*. Our sign is the one that gives the standard
+redshift-space \(Z_2\) and FolpsD's P22 at zero selection (sources document).
 
 **UV content.** At order \(k^2\) the large-\(q\) expansion of the selected P22 is
 \(k^2(a_0+a_2\mu^2+a_4\mu^4)\) with \(a_4\neq0\) whenever any selection coordinate is nonzero;

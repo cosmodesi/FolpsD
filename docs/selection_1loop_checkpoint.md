@@ -78,6 +78,7 @@ environment (`../.venv`, see "Environment").
 
 ## Decisions
 
+
 - D1 (P22 numerics). Evaluating UV-constant kernels at the matter tilt (-0.1) and restoring
   the dropped k^2 piece analytically is correct (restored coefficient matches direct
   quadrature to 5e-4) but ill-conditioned (restored piece ~5x the answer). Adopted instead:
@@ -88,13 +89,6 @@ environment (`../.venv`, see "Environment").
   No restoration terms; the 'continued' scheme option was removed from the API.
 - D2 (comparisons): always compare at FolpsD output-grid points (linear interpolation of the
   tables produced spurious 5e-4..5e-3 "errors" early on).
-
-## Unresolved issues
-
-- U1. FolpsD's default `nfftlog=128` gives ~3e-3 oscillating errors at k >~ 0.25 in P22
-  (FolpsD's own P22dd vs converged direct quadrature: -3.2e-3 at k=0.28, +2.8e-3 at k=0.41);
-  `nfftlog=256` reduces this to 1e-5 for both baseline and selection. Pre-existing baseline
-  limitation; documented, not changed.
 - D3 (local tilt): -0.8 left a ghost-image k^2 error (-0.98 k^2 for K^2xK^2); measured tilt
   scan matched the (kmax/kmin)^(1+2b) estimate; adopted P22_TILT_LOCAL = -0.9.
 - D4 (bare P13): production P13 uses the exact-map bare bridge (FolpsD-compatible, IR-safe),
@@ -104,5 +98,12 @@ environment (`../.venv`, see "Environment").
 - D6 (legacy marginalization): gated helpers compute exact templates from the full model;
   legacy derivative helper's nmu full-range nodes vs model's 2*nmu symmetric nodes noted
   (3e-4 in ell=4 with IR), legacy behaviour left unchanged.
+
+## Unresolved issues
+
+- U1. FolpsD's default `nfftlog=128` gives ~3e-3 oscillating errors at k >~ 0.25 in P22
+  (FolpsD's own P22dd vs converged direct quadrature: -3.2e-3 at k=0.28, +2.8e-3 at k=0.41);
+  `nfftlog=256` reduces this to 1e-5 for both baseline and selection. Pre-existing baseline
+  limitation; documented, not changed.
 - U2. k^2 mu^4 UV-sensitive content of selected P22 (all selection coordinates): not in the
   DJS / GeneralBiasPk stochastic basis (P0eps, P2eps, P2eps_eta). Needs theory confirmation.

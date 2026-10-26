@@ -6,7 +6,7 @@ The default run compares with the shipped fixture ``tests/data/selection_referen
 
 Tolerances are set from the measured convergence (validation report): at FolpsD's default
 ``nfftlog=128`` the FFTLog resolution limits P22 to ~3e-3 for k > 0.25; with 256 it is ~1e-5.
-Residuals are normalized by the maximum |loop| (or |increment|) over k at fixed mu.
+Residuals are normalized by each component's maximum |X| over k at fixed mu.
 """
 import json
 
@@ -37,6 +37,10 @@ def test_fixture_provenance(fixture):
 
 
 def test_fast_templates_vs_direct_quadrature(fixture, eds_setup):
+    """Residuals relative to each component's own max |X| over k at fixed mu (P22 + P13 partly
+    cancels, so the sum is not a stable denominator).  Tolerances from the measured
+    convergence: FFTLog resolution at nfftlog=128 limits P22 to ~6e-4 (k < 0.25) and
+    ~4e-3 (k > 0.25); P13 is ~3.5e-5 at worst."""
     d, meta = fixture
     T = eds_setup["tabs"].full
     sel = SelectionBias(**meta["selection"])
@@ -44,23 +48,22 @@ def test_fast_templates_vs_direct_quadrature(fixture, eds_setup):
     c, c0 = djs_coefficients(*b, sel), djs_coefficients(*b, SelectionBias())
     for mu in np.unique(d["mu"]):
         sub = np.where(d["mu"] == mu)[0]
-        loop_scale = np.max(np.abs(d["ref_p22"][sub] + d["ref_p13"][sub]))
+        s22, s13 = np.max(np.abs(d["ref_p22"][sub])), np.max(np.abs(d["ref_p13"][sub]))
         inc_ref = (d["ref_p22"] + d["ref_p13"] - d["ref_p22_0"] - d["ref_p13_0"])[sub]
-        inc_scale = np.max(np.abs(inc_ref))
+        sinc = np.max(np.abs(inc_ref))
         for j, inc in zip(sub, inc_ref):
             i = int(d["i"][j])
             a22, a13 = _fast(T, i, mu, c)
             z22, z13 = _fast(T, i, mu, c0)
             tol = 1e-3 if T.k[i] < 0.25 else 5e-3          # nfftlog = 128
-            assert abs(a22 - d["ref_p22"][j]) < tol * loop_scale, (T.k[i], mu, "P22")
-            assert abs(a13 - d["ref_p13"][j]) < tol * loop_scale, (T.k[i], mu, "P13")
-            assert abs((a22 + a13 - z22 - z13) - inc) < 2 * tol * inc_scale, (T.k[i], mu, "increment")
-    # the fixture itself stores the nfftlog=256 comparison: much tighter
-    for comp in ("p22", "p13"):
-        rel = np.abs(d[f"fast256_{comp}"] - d[f"ref_{comp}"])
-        for mu in np.unique(d["mu"]):
-            sub = d["mu"] == mu
-            assert np.max(rel[sub]) < 2e-4 * np.max(np.abs(d["ref_p22"][sub] + d["ref_p13"][sub])), comp
+            assert abs(a22 - d["ref_p22"][j]) < tol * s22, (T.k[i], mu, "P22")
+            assert abs(a13 - d["ref_p13"][j]) < 1e-4 * s13, (T.k[i], mu, "P13")
+            assert abs((a22 + a13 - z22 - z13) - inc) < tol * sinc, (T.k[i], mu, "increment")
+            # the fixture stores the same comparison at nfftlog=256: much tighter
+            assert abs(d["fast256_p22"][j] - d["ref_p22"][j]) < 5e-5 * s22
+            assert abs(d["fast256_p13"][j] - d["ref_p13"][j]) < 1e-6 * s13
+            inc256 = d["fast256_p22"][j] + d["fast256_p13"][j] - d["fast256_p22_0"][j] - d["fast256_p13_0"][j]
+            assert abs(inc256 - inc) < 1e-4 * sinc
 
 
 @pytest.mark.slow

@@ -188,18 +188,18 @@ code(r"""
 import hashlib
 assert np.all(np.diff(k_in) > 0) and np.all(k_in > 0), "k must be positive and increasing"
 assert np.all(np.isfinite(pk_in)) and np.all(pk_in > 0), "P(k) must be finite and positive"
-print("input range: k = %.1e .. %.2f h/Mpc, %d points, sha256 %s"
-      % (k_in[0], k_in[-1], k_in.size, hashlib.sha256((REPO / 'folps/inputpkT.txt').read_bytes()).hexdigest()[:16]))
+sha_in = hashlib.sha256((REPO / "folps/inputpkT.txt").read_bytes()).hexdigest()[:16]
+print(f"input range: k = {k_in[0]:.1e} .. {k_in[-1]:.2f} h/Mpc, {k_in.size} points, sha256 {sha_in}")
 lin = nonlinear.get_linear(k_in, pk_in, cosmo=None, **cosmo)
 kT, PL, Pnw = lin["k"], lin["pk_l"], lin["pk_l_NW"]
-print("FolpsD output grid kTout: %.3f .. %.3f h/Mpc, %d log points (template validity domain)" % (kT[0], kT[-1], kT.size))
+print(f"FolpsD output grid kTout: {kT[0]:.3f} .. {kT[-1]:.3f} h/Mpc, {kT.size} log points (template validity domain)")
 fig, ax = plt.subplots(1, 2, figsize=(11, 3.8))
 ax[0].loglog(kT, PL, label=r"$P_L$"); ax[0].loglog(kT, Pnw, "--", label=r"$P_{\rm nw}$")
 ax[0].set(xlabel=r"$k\ [h\,{\rm Mpc}^{-1}]$", ylabel=r"$P\ [(h^{-1}{\rm Mpc})^3]$", title="linear input"); ax[0].legend()
 ax[1].semilogx(kT, PL / Pnw - 1); ax[1].set(xlabel=r"$k\ [h\,{\rm Mpc}^{-1}]$", ylabel=r"$P_L/P_{\rm nw}-1$", title="BAO wiggles")
 fig.tight_layout(); fig.savefig(OUTPUT_DIR / "linear_input.png")
 """)
-md("*Figure: linear spectrum and FolpsD's no-wiggle spectrum on the output grid (left), and the BAO wiggles (right).*")
+md(r"*Figure: linear spectrum and FolpsD's no-wiggle spectrum on the output grid (left), and the BAO wiggles (right).*")
 
 md(r"""
 ## 4. Standard FolpsD EFT baseline
@@ -218,7 +218,7 @@ for P, l in zip((P0, P2, P4), (0, 2, 4)):
 ax.set(xlabel=r"$k\ [h\,{\rm Mpc}^{-1}]$", ylabel=r"$k P_\ell\ [(h^{-1}{\rm Mpc})^2]$", title="FolpsD EFT baseline (EdS, no selection)")
 ax.legend(); fig.tight_layout(); fig.savefig(OUTPUT_DIR / "baseline_multipoles.png")
 """)
-md("*Figure: baseline EFT multipoles (no FoG damping; IR resummation on; unity AP).*")
+md(r"*Figure: baseline EFT multipoles (no FoG damping; IR resummation on; unity AP).*")
 
 md(r"""
 ## 5. Bias conventions
@@ -270,7 +270,7 @@ for lab, Z1fun in (("no selection", lambda m: pars[0] + f0*m**2), ("tree bA", la
 ax[1].set(xlabel=r"$\ell$", ylabel=r"tree $P_\ell / P_L$"); ax[1].legend()
 fig.tight_layout(); fig.savefig(OUTPUT_DIR / "linear_intuition.png")
 """)
-md("*Figure: linear kernel versus μ (left) and the tree-level multipole weights \(P_\ell/P_L\) (right).*")
+md(r"*Figure: linear kernel versus μ (left) and the tree-level multipole weights \(P_\ell/P_L\) (right).*")
 
 md(r"""
 ## 7. Quadratic kernels
@@ -308,7 +308,7 @@ fig, ax = plt.subplots(figsize=(5.5, 4))
 ax.scatter(Z20, Z2, s=6); ax.set(xlabel=r"$Z_2$ no selection", ylabel=r"$Z_2$ selected", title="quadratic kernel at 200 random triangles")
 fig.tight_layout()
 """)
-md("*Figure: the selected and unselected quadratic kernels at the same random configurations.*")
+md(r"*Figure: the selected and unselected quadratic kernels at the same random configurations.*")
 
 md(r"""
 ## 8. Selection templates
@@ -326,7 +326,7 @@ code(r"""
 T = sel_tables.full
 print(sel_tables)
 print("I22:", T.I22.shape, "(tilt class, 23 basis functions, k) [(Mpc/h)^3];  J13:", T.J13.shape, "dimensionless")
-print("sigma_-1^2 = %.3f (Mpc/h)^2 ;  f0 = %.4f" % (T.sigma_m1_sq, T.f0))
+print(f"sigma_-1^2 = {T.sigma_m1_sq:.3f} (Mpc/h)^2 ;  f0 = {T.f0:.4f}")
 print("P22 basis (m, r):", sc.P22_BASIS)
 for key in ("kernels", "template_format", "generator", "nfftlog", "b_nu", "p22_tilt_local", "k_min", "k_max", "template_key"):
     print(f"  {key:16s} {T.metadata[key]}")
@@ -358,7 +358,7 @@ ax[0].set(xlabel=r"$k\ [h\,{\rm Mpc}^{-1}]$", ylabel=r"$kP_\ell\ [(h^{-1}{\rm Mp
 ax[1].set(xlabel=r"$k\ [h\,{\rm Mpc}^{-1}]$", ylabel=r"$k\,\Delta P_\ell$", title="selection increment"); ax[0].legend(fontsize=8); ax[1].legend()
 fig.tight_layout(); fig.savefig(OUTPUT_DIR / "selected_multipoles.png")
 """)
-md("*Figure: selected multipoles (left) and the increment with respect to the unselected prediction at identical ordinary biases (right).*")
+md(r"*Figure: selected multipoles (left) and the increment with respect to the unselected prediction at identical ordinary biases (right).*")
 
 md(r"""
 ## 10. Spectrum components
@@ -387,7 +387,7 @@ recon = comp["tree_baseline"] + comp["loop_baseline"] + comp["counterterms"] + c
         + comp["delta_tree"] + comp["delta_loop"] + comp["delta_ctilde"]
 check("components add up to total", np.allclose(recon, comp["total"], rtol=1e-12, atol=1e-8), "")
 """)
-md("*Figure: components of the selected multipoles. The P22 and P13 template curves are the full selected loop pieces; `loop` is the total loop (FolpsD baseline loop plus selection increment).*")
+md(r"*Figure: components of the selected multipoles. The P22 and P13 template curves are the full selected loop pieces; `loop` is the total loop (FolpsD baseline loop plus selection increment).*")
 
 md(r"""
 ## 11. Model comparison at matched linear kernel
@@ -422,7 +422,7 @@ for i, l in enumerate((0, 2, 4)):
 axs[0].legend(fontsize=8); fig.tight_layout(); fig.savefig(OUTPUT_DIR / "model_comparison.png")
 print("max |(c)-(b)| / max|P_ell|:", [float(np.max(abs(P_c[i] - P_b[i])) / np.max(abs(P_b[i]))) for i in range(3)])
 """)
-md("*Figure: unselected, historical tree-only \(b_A\), and full one-loop selection with the matched linear kernel (nonlinear selection coefficients set to zero).*")
+md(r"*Figure: unselected, historical tree-only \(b_A\), and full one-loop selection with the matched linear kernel (nonlinear selection coefficients set to zero).*")
 
 md(r"""
 ## 12. Parameter responses
@@ -462,7 +462,7 @@ axs[0, 0].legend(fontsize=7); fig.tight_layout(); fig.savefig(OUTPUT_DIR / "para
 lin_cubic = all(np.max(abs(curv[f_])) < 1e-8 * np.max(abs(resp0[f_])) for f_ in fields[5:])
 check("cubic coordinates enter linearly", lin_cubic, "curvature/response < 1e-8 for the four cubic coordinates")
 """)
-md("*Figure: responses of \(P_0\) and \(P_2\) to each selection coordinate at \(\mathbf s=0\) (solid) and at the generic point (dashed), and the purely quadratic part (dotted; zero for the cubic coordinates, which enter only through P13).*")
+md(r"*Figure: responses of \(P_0\) and \(P_2\) to each selection coordinate at \(\mathbf s=0\) (solid) and at the generic point (dashed), and the purely quadratic part (dotted; zero for the cubic coordinates, which enter only through P13).*")
 
 md(r"""
 ## 13. IR resummation and the wiggle loop
@@ -498,7 +498,7 @@ ax[1].set(xscale="log", xlabel=r"$k\ [h\,{\rm Mpc}^{-1}]$", ylabel=r"loop wiggle
 fig.tight_layout(); fig.savefig(OUTPUT_DIR / "ir_resummation.png")
 print("max |L[P_L]-L[P_nw] - L[P_w]| / max|L[P_L]-L[P_nw]| =", float(np.max(abs(L_full - L_nw - L_w)) / np.max(abs(L_full - L_nw))))
 """)
-md("*Figure: IR on/off for the selected model (left); the wiggle part of the selected loop versus the incorrect loop-of-wiggles (right).*")
+md(r"*Figure: IR on/off for the selected model (left); the wiggle part of the selected loop versus the incorrect loop-of-wiggles (right).*")
 
 code(r"""
 # one-loop re-expansion: with IR on, P_IR(sel) - P_IR(nosel) must equal the IR-mixed tree and loop
@@ -570,7 +570,7 @@ for P, Q, l in zip(P_sel, P_ap, (0, 2, 4)):
 ax.set(xlabel=r"$k_{\rm obs}\ [h\,{\rm Mpc}^{-1}]$", ylabel=r"$kP_\ell$", title="AP projection (selected)"); ax.legend(fontsize=7)
 fig.tight_layout(); fig.savefig(OUTPUT_DIR / "ap_projection.png")
 """)
-md("*Figure: selected multipoles at unity AP (solid) and for \(q_\parallel=1.04, q_\perp=0.97\) (dashed).*")
+md(r"*Figure: selected multipoles at unity AP (solid) and for \(q_\parallel=1.04, q_\perp=0.97\) (dashed).*")
 
 md(r"""
 ## 16. Angular convergence
@@ -629,7 +629,7 @@ for i in range(3):
 ax.set(xlabel=r"$k\ [h\,{\rm Mpc}^{-1}]$", ylabel=r"$|\Delta P_\ell|/\max|P_\ell|$ (floor $10^{-18}$)", title="explicit zero vs frozen baseline")
 ax.legend(); fig.tight_layout()
 """)
-md("*Figure: explicit zero selection minus the frozen pre-edit baseline, relative to \(\max|P_\ell|\). All values sit at the plotting floor because the difference is exactly zero.*")
+md(r"*Figure: explicit zero selection minus the frozen pre-edit baseline, relative to \(\max|P_\ell|\). All values sit at the plotting floor because the difference is exactly zero.*")
 
 md(r"""
 ## 18. Independent nonzero-selection test
@@ -660,17 +660,21 @@ worst = {}
 for j in range(fx["k"].size):
     i, mu_ = int(fx["i"][j]), float(fx["mu"][j])
     a22, a13 = fast(i, mu_, cF); z22, z13 = fast(i, mu_, cF0)
-    sub = fx["mu"] == mu_
-    scale_loop = np.max(np.abs(fx["ref_p22"][sub] + fx["ref_p13"][sub]))
+    sub = fx["mu"] == mu_            # stable denominators: each component's max over k at this mu
+    s22, s13 = np.max(np.abs(fx["ref_p22"][sub])), np.max(np.abs(fx["ref_p13"][sub]))
     dref = (fx["ref_p22"][j] + fx["ref_p13"][j]) - (fx["ref_p22_0"][j] + fx["ref_p13_0"][j])
     dscale = np.max(np.abs((fx["ref_p22"] + fx["ref_p13"] - fx["ref_p22_0"] - fx["ref_p13_0"])[sub]))
-    e22, e13 = abs(a22 - fx["ref_p22"][j]) / scale_loop, abs(a13 - fx["ref_p13"][j]) / scale_loop
+    e22, e13 = abs(a22 - fx["ref_p22"][j]) / s22, abs(a13 - fx["ref_p13"][j]) / s13
     ed = abs((a22 + a13 - z22 - z13) - dref) / dscale
     worst[(i, mu_)] = (e22, e13, ed)
     print(f"{fx['k'][j]:7.4f} {mu_:5.2f} {fx['ref_p22'][j]:11.3f} {e22:9.1e} {fx['ref_p13'][j]:11.3f} {e13:9.1e} {dref:10.3f} {ed:9.1e}")
 lowk = [v for (i, m), v in worst.items() if T.k[i] < 0.25]
 check("fast vs direct quadrature, k<0.25 (nfftlog=128)", max(max(v) for v in lowk) < 2e-3,
-      f"worst {max(max(v) for v in lowk):.1e} (relative to the loop / increment scale at that mu)")
+      f"worst {max(max(v) for v in lowk):.1e} (relative to each component's scale at that mu)")
+highk = [v for (i, m), v in worst.items() if T.k[i] >= 0.25]
+check("fast vs direct quadrature, k>=0.25 (nfftlog=128, FFTLog-resolution limited)", max(max(v) for v in highk) < 5e-3,
+      f"worst {max(max(v) for v in highk):.1e}; the fixture's nfftlog=256 column: "
+      f"P22 {np.max(np.abs(fx['fast256_p22'] - fx['ref_p22'])) / np.max(np.abs(fx['ref_p22'])):.1e}")
 if RUN_SLOW_VALIDATION:
     from folps.selection_reference import LinearSpectrum, direct_p22
     Plin = LinearSpectrum(*nonlinear.inputpkT)
@@ -779,7 +783,7 @@ d_ = [(calc.get_rsd_pkell(kobs, 1.02 + s_, 0.99, pars, table, table_now, damping
        - calc.get_rsd_pkell(kobs, 1.02 - s_, 0.99, pars, table, table_now, damping=None, selection=selection, selection_tables=sel_tables)) / (2 * s_) for s_ in steps]
 print("NumPy FD dP/dqpar, successive step differences:", [float(np.max(abs(d_[i+1] - d_[i])) / np.max(abs(d_[-1]))) for i in range(3)])
 """)
-md("*Figure: agreement of central finite differences with JAX forward-mode derivatives for each supported direction and step size (polynomial directions are exact at any step up to round-off; AP converges as \(h^2\)).*")
+md(r"*Figure: agreement of central finite differences with JAX forward-mode derivatives for each supported direction and step size (polynomial directions are exact at any step up to round-off; AP converges as \(h^2\)).*")
 
 md(r"""
 ## 22. Fisher handoff (toy example)

@@ -4,8 +4,9 @@
 Varies the FFTLog resolution (nfftlog = 128, 256, 512), the local-class P22 tilt, and the
 input-spectrum domain (truncating the tabulated input at k_max = 1 instead of 2 h/Mpc so that
 FolpsD's power-law extrapolation takes over), for both the full-shape and no-wiggle tables.
-Reference: nfftlog = 512 with the default tilt.  Residuals are max |delta L| / max |L| over
-0.005 < k < 0.45 at mu = 0.1, 0.6, 1.0 for the complete selected loop L = P22 + P13.
+Reference: nfftlog = 512 with the default tilt.  Residuals are reported separately for the
+selected P22 and P13 as max |delta X| / max |X| over the k range at mu = 0.1, 0.6, 1.0 (the sum
+P22 + P13 partly cancels, so it is not a stable denominator).
 
 Usage::  python scripts/selection_convergence.py [--out docs/selection_1loop_convergence.json]
 """
@@ -54,7 +55,8 @@ def loops(N, kcut=None, tilt=None):
     for role, T in (("full", tabs.full), ("nowiggle", tabs.nowiggle)):
         for mu in MUS:
             p22, p13 = st.selection_loop(T.k, np.full_like(T.k, mu), T, c)
-            out[(role, mu)] = p22 + p13
+            out[(role, "P22", mu)] = p22
+            out[(role, "P13", mu)] = p13
     return T.k, out, dict(legacy_tables_s=t1 - t0, selection_tables_s=t2 - t1)
 
 
@@ -73,10 +75,10 @@ def main():
         smod._MEMORY_CACHE.clear()
         _, L, tm = loops(**kw)
         timings[name + "_cold"] = tm
-        for (role, mu), v in L.items():
-            r = ref[(role, mu)]
-            summary[f"{name}|{role}|mu={mu}|0.005<k<0.45"] = float(np.max(np.abs(v - r)[sel]) / np.max(np.abs(r)[sel]))
-            summary[f"{name}|{role}|mu={mu}|0.005<k<0.25"] = float(np.max(np.abs(v - r)[lowk]) / np.max(np.abs(r)[lowk]))
+        for (role, comp, mu), v in L.items():
+            r = ref[(role, comp, mu)]
+            summary[f"{name}|{role}|{comp}|mu={mu}|0.005<k<0.45"] = float(np.max(np.abs(v - r)[sel]) / np.max(np.abs(r)[sel]))
+            summary[f"{name}|{role}|{comp}|mu={mu}|0.005<k<0.25"] = float(np.max(np.abs(v - r)[lowk]) / np.max(np.abs(r)[lowk]))
     # timing of the prediction itself (warm)
     k, pk = np.loadtxt(ROOT / "folps" / "inputpkT.txt", unpack=True)
     mm = MatrixCalculator(A_full=True).get_mmatrices()

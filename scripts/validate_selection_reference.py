@@ -39,7 +39,7 @@ SELECTION = SelectionBias(s_eta=0.21, s_delta_eta=-0.33, s_eta2=0.27, s_KK_par=0
                           s_delta_Pi2_par=0.31, s_eta_Pi2_par=-0.23, s_KPi2_par=0.36, s_Pi3_par=0.19)
 K_INDEX = (40, 60, 75, 85, 95, 103, 110, 115)
 MUS = (0.15, 0.6, 0.95)
-QUAD = dict(p22=dict(nq=300, nnu=40, nphi=24), p13=dict(nq=300, nnu=96, nphi=16))
+QUAD = dict(p22=dict(nq=300, nnu=40, nphi=24), p13=dict(nq=800, nnu=96, nphi=16))
 
 
 def tables(nfftlog):
