@@ -136,6 +136,14 @@ def _hash_arrays(*arrs):
     return h.hexdigest()[:16]
 
 
+def _concrete_float(x):
+    """``float(x)``, or None for traced values (JAX tracing, e.g. emulator fitting): metadata only."""
+    try:
+        return float(_np.asarray(x, dtype=float))
+    except Exception:
+        return None
+
+
 def build_selection_tables(nonlinear, matrices=None, cache_dir=None):
     """Build :class:`SelectionLoopTables` from a ``NonLinearPowerSpectrumCalculator``.
 
@@ -191,7 +199,7 @@ def build_selection_tables(nonlinear, matrices=None, cache_dir=None):
                     matrix_keys=(mats_sing.key, mats_loc.key), nfftlog=int(nonlinear.nfftlog),
                     b_nu=float(nonlinear.b_nu), p22_tilt_local=P22_TILT_LOCAL,
                     input_sha=_hash_arrays(q, P), pair_id=pair_id,
-                    k_min=float(_np.asarray(K)[0]), k_max=float(_np.asarray(K)[-1]))
+                    k_min=_concrete_float(K[0]), k_max=_concrete_float(K[-1]))
         meta["template_key"] = hashlib.sha256(repr(sorted(meta.items())).encode()).hexdigest()[:16]
         return SelectionLoopTable(K, pk_out, I22, J13, sigma_m1_sq, R0, S, nonlinear.f0, meta)
     full = one(nonlinear.cmT, nonlinear.inputpkT, nonlinear.pk_l, "full")
