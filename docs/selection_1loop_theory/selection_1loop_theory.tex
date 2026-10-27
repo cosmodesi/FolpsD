@@ -1,0 +1,394 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb,amsthm,bm,mathtools}
+\usepackage[margin=25mm]{geometry}
+\usepackage{booktabs,tabularx,array,multirow}
+\usepackage{graphicx,xcolor}
+\usepackage[font=small,labelfont=bf]{caption}
+\usepackage{hyperref}
+\usepackage{microtype}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\hypersetup{colorlinks=true,linkcolor=blue!55!black,citecolor=blue!55!black,urlcolor=blue!55!black}
+\pagestyle{fancy}\fancyhf{}\lhead{One-loop LOS selection in FolpsD}\rhead{Theory and implementation}\cfoot{\thepage}
+\setlength{\headheight}{14pt}
+\setlength{\parskip}{4pt}
+\setlength{\parindent}{0pt}
+\newcommand{\dd}{\mathrm d}
+\newcommand{\intq}{\int\!\frac{\dd^3 q}{(2\pi)^3}}
+\newcommand{\Pl}{P_{\rm L}}
+\newcommand{\bn}{\bm n}
+\newcommand{\bk}{\bm k}
+\newcommand{\bq}{\bm q}
+\newcommand{\br}{\bm r}
+\newcommand{\muo}{\mu_{\rm obs}}
+\newcommand{\bK}{\bm K}
+\newcommand{\dL}{\delta_{\rm L}}
+\newcommand{\Prs}{P_{\rm s}}
+\newcommand{\wn}{\mathrm{nw}}
+\newcommand{\etal}{\eta}
+\newcommand{\Otd}{O_{\rm td}}
+\newcommand{\sigs}{\sigma_{-1}^2}
+\newcommand{\tr}{\operatorname{tr}}
+\newcommand{\sym}{\operatorname{Sym}}
+\newcommand{\sourcefig}[3]{%
+\begin{figure}[htbp]\centering
+\includegraphics[width=#2\linewidth]{figures/#1.png}
+\caption{#3\label{fig:#1}}\end{figure}}
+\title{\bfseries Full one-loop line-of-sight selection in FolpsD\\[4pt]
+\large Theory, kernels, EFT renormalization and numerical implementation}
+\author{Technical research note for the FolpsD selection extension}
+\date{26 October 2026\\[3pt]\small Source: \href{https://github.com/cosmodesi/FolpsD/tree/feature/selection-1loop-eds}{\texttt{cosmodesi/FolpsD}, branch \texttt{feature/selection-1loop-eds}}}
+\begin{document}
+\maketitle
+\begin{abstract}
+We document the implementation of the renormalized one-loop galaxy auto-power spectrum in redshift space with the nine independent deterministic line-of-sight (LOS) selection biases through cubic order. The calculation employs Einstein--de Sitter (EdS) kernels, a scale-independent linear growth rate, an exact redshift-space mapping for the renormalized cubic displacement contribution, and FFTLog-based $P_{22}$ and $P_{13}$ templates. It is assembled as an exactly vanishing-at-zero-selection correction to the existing FolpsD EFT one-loop prediction. The full perturbative $G_{\rm TNS}$ contributions are retained; no phenomenological Fingers-of-God damping function is used. BAO infrared (IR) resummation, Alcock--Paczynski distortions, EFT counterterms and stochastic terms are described with the conventions actually implemented in the feature branch. We distinguish algebraic/kernel-level identities from numerical evidence reported by the accompanying notebook, and identify the remaining inference-level caveats.
+\end{abstract}
+\tableofcontents
+\clearpage
+
+\section{Scope and conventions}
+We consider a single pressureless matter fluid with Gaussian initial conditions in the plane-parallel approximation. The LOS is the fixed unit vector $\bn$. The relevant time dependence is captured using EdS perturbation kernels and a scale-independent $f=\dd\ln D/\dd\ln a$; although the underlying background can differ from EdS, we do not claim that this realizes the exact scale-dependent-growth or massive-neutrino (`fk') extension.
+Our Fourier convention is
+\begin{align}
+X(\bk)&=\int \dd^3x\,e^{-i\bk\cdot\bm x}X(\bm x), &
+\langle\dL(\bk)\dL(\bk')\rangle&=(2\pi)^3\delta_D(\bk+\bk')\Pl(k),\\
+\mu&=\hat{\bk}\cdot\bn, &\eta&=\partial_\parallel u_\parallel,\qquad u_i=v_i/\mathcal H,\quad \mathcal H=aH.
+\end{align}
+The velocity divergence variable is $\vartheta=-\nabla\cdot\bm v/(\mathcal H f)$. With $\vartheta^{(n)}=G_n\prod\dL$, it follows that
+\begin{equation}
+ u_i^{(n)}(\bm K)=if\frac{K_i}{K^2}G_n,
+ \qquad \eta^{(n)}(\bm K)=-f\mu_K^2G_n,
+ \qquad \mu_K=\hat{\bm K}\cdot\bn.
+\end{equation}
+The traceless tidal tensor and scalar tidal invariant are
+\begin{equation}
+ K_{ij}=\left(\frac{\partial_i\partial_j}{\nabla^2}-\frac13\delta_{ij}\right)\delta,
+ \qquad K^2=K_{ij}K_{ij},\qquad (AB)_\parallel=n_iA_{ij}B_{jk}n_k.
+\end{equation}
+Kernels are symmetrized with unit-normalized averages over permutations, and the perturbative series has no external $1/n!$. The loop moments, kept distinct throughout, are
+\begin{equation}
+ \sigma_0^2=\intq\Pl(q),\qquad
+ \sigs=\intq\frac{\Pl(q)}{q^2}=\frac{1}{2\pi^2}\int_0^\infty\dd q\,\Pl(q),\qquad
+ \sigma_\psi^2=\frac13\sigs.
+\end{equation}
+
+\section{Galaxy bias and the nine additional LOS coefficients}
+\subsection{The operator hierarchy}
+A useful organization through cubic order is
+\begin{align}
+\mathfrak O_1&=\{\delta,\eta\},\\
+\mathfrak O_2&=\{\delta^2,K^2,\delta\eta,\eta^2,(KK)_\parallel,\Pi^{[2]}_\parallel\},\\
+\mathfrak O_3&=\{\Otd,\delta\Pi^{[2]}_\parallel,\eta\Pi^{[2]}_\parallel,
+ (K\Pi^{[2]})_\parallel,\Pi^{[3]}_\parallel\}.
+\end{align}
+Here $\Pi^{[a]}_{ij}$ is the convective tidal hierarchy described in Sec.~\ref{sec:kernels}; $\Otd$ is the usual third-order tidal operator, normalized as
+\begin{equation}
+ \Otd=\frac8{21}K_{ij}\left(\frac{\partial_i\partial_j}{\nabla^2}-\frac13\delta_{ij}\right)
+ \left(\delta^2-\frac32K^2\right),
+\end{equation}
+where, for the independent third-order operator, the factors on the right are linear fields. The pure cubic local-bias operators $\delta^3,\delta K^2,K^3$ do not introduce additional independent one-loop power-spectrum shapes after renormalization.
+
+\subsection{Parameter conventions and recovery of ordinary RSD}
+The core FolpsD biases are $(b_1,b_2,b_{s^2},b_{3\mathrm{nl}})$. The adapter to the bias convention used for the LOS calculation is
+\begin{equation}
+ b_{K^2}=\frac{b_{s^2}}2,\qquad
+ b_{\rm td}=-\frac{105}{64}b_{3\rm nl}-\frac52 b_{K^2}.
+\end{equation}
+The nine new code parameters are \texttt{s\_eta}, \texttt{s\_delta\_eta}, \texttt{s\_eta2}, \texttt{s\_KK\_par}, \texttt{s\_Pi2\_par}, \texttt{s\_delta\_Pi2\_par}, \texttt{s\_eta\_Pi2\_par}, \texttt{s\_KPi2\_par}, and \texttt{s\_Pi3\_par}. Table~\ref{tab:sel} displays their associated operators.
+\begin{table}[htbp]\centering\small
+\begin{tabularx}{\linewidth}{@{}lXc@{}}\toprule
+Code parameter & Operator & Order\\\midrule
+\texttt{s\_eta} & $\eta$ & 1\\
+\texttt{s\_delta\_eta} & $\delta\eta$ & 2\\
+\texttt{s\_eta2} & $\eta^2$ & 2\\
+\texttt{s\_KK\_par} & $(KK)_\parallel$ & 2\\
+\texttt{s\_Pi2\_par} & $\Pi^{[2]}_\parallel$ & 2\\
+\texttt{s\_delta\_Pi2\_par} & $\delta\Pi^{[2]}_\parallel$ & 3\\
+\texttt{s\_eta\_Pi2\_par} & $\eta\Pi^{[2]}_\parallel$ & 3\\
+\texttt{s\_KPi2\_par} & $(K\Pi^{[2]})_\parallel$ & 3\\
+\texttt{s\_Pi3\_par} & $\Pi^{[3]}_\parallel$ & 3\\\bottomrule
+\end{tabularx}
+\caption{The nine independent additional deterministic selection coordinates. They are \emph{zero} for ordinary redshift-space galaxy clustering, not for real-space clustering.}\label{tab:sel}\end{table}
+Because the Desjacques--Jeong--Schmidt (DJS) redshift-space bias coefficients already contain the mapping Jacobian, the actual operator coefficients are
+\begin{equation}\label{eq:mapping}
+ b_\eta=-1+s_\eta,\qquad b_{\delta\eta}=-b_1+s_{\delta\eta},\qquad
+ b_{\eta^2}=1+s_{\eta^2},\qquad b_{O_{\rm LOS}}=s_{O_{\rm LOS}}\ \text{for the remaining six}.
+\end{equation}
+Thus
+\begin{equation}\label{eq:z1}
+ Z_1(k,\mu)=b_1-b_\eta f\mu^2=b_1+(1-s_\eta)f\mu^2,
+ \qquad Z_{1,0}=b_1+f\mu^2.
+\end{equation}
+The historical tree-only anisotropic $b_A$ term satisfies $Z_{1,A}=b_{1,F}+f\mu^2+b_A(\mu^2-1/3)$, and consequently at linear order
+\begin{equation}
+ b_{1,D}=b_{1,F}-\frac{b_A}{3},\qquad s_\eta=-\frac{b_A}{f}.
+\end{equation}
+This is not a prescription for the eight independent nonlinear selection coefficients. The code rejects simultaneously setting \texttt{bA} and the full \texttt{selection} mode.
+\sourcefig{03_linear_selection}{0.77}{Notebook illustration of the linear selection response and the translation between the historical tree-only $b_A$ parameter and the linear DJS coefficient.}
+
+\section{Perturbative kernels and convective tensors}\label{sec:kernels}
+The standard density and normalized velocity kernels are generated recursively using
+\begin{equation}
+ \alpha(\bm p,\bm r)=\frac{(\bm p+\bm r)\cdot\bm p}{p^2},\qquad
+ \beta(\bm p,\bm r)=\frac{|\bm p+\bm r|^2\bm p\cdot\bm r}{2p^2r^2}.
+\end{equation}
+For illustration, at quadratic order, writing $\nu=\hat{\bm k}_1\cdot\hat{\bm k}_2$ and $r=k_1/k_2$,
+\begin{align}
+ F_2(\bm k_1,\bm k_2)&=\frac57+\frac12\nu(r+r^{-1})+\frac27\nu^2,\\
+ G_2(\bm k_1,\bm k_2)&=\frac37+\frac12\nu(r+r^{-1})+\frac47\nu^2.
+\end{align}
+The tidal convective hierarchy is defined by
+\begin{align}
+ \Pi^{[1]}_{ij}&=\frac{\partial_i\partial_j}{\nabla^2}\delta,\\
+ \Pi^{[a]}_{ij}&=\frac1{(a-1)!}\left[\frac{1}{\mathcal Hf}\frac{D\Pi^{[a-1]}_{ij}}{D\tau}-(a-1)\Pi^{[a-1]}_{ij}\right],\qquad a\ge2,
+ \label{eq:convective}
+\end{align}
+with $D/D\tau=\partial_\tau+\bm v\cdot\nabla$. In the code, this is evaluated at the level of tensor kernels, including the convective terms. For example,
+\begin{equation}
+ T^{[a](n)}=\frac1{(a-1)!}\left[(n-a+1)T^{[a-1](n)}
+ -\sum_{m=1}^{n-1}\sym\left(\frac{\bm p\cdot\bm r}{p^2}G_m^s T^{[a-1](n-m)}\right)\right],
+\end{equation}
+where $T^{[1](n)}=R_{ij}(\bm K)F_n^s$ and $R_{ij}(\bm K)=K_iK_j/K^2$. One important second-order identity is
+\begin{equation}
+ \Pi^{[2](2)}=\left[\Pi^{[1]}\Pi^{[1]}\right]^{(2)}
+ +\frac{10}{21}R(\bm K)\left[\delta^2-\frac32K^2\right]^{(2)}.
+\end{equation}
+The nonlinear operator kernels are assembled from this hierarchy, matrix products, traces, LOS projections and \emph{full} spatial advection $s^i\partial_i$. Replacing the latter by $s_\parallel\partial_\parallel$ is incorrect. The notebook tests several such identities on randomly sampled momentum configurations.
+\sourcefig{04_quadratic_kernel_check}{0.78}{Quadratic-kernel numerical cross-checks from the notebook. The calculation generates operator kernels from the field algebra rather than storing nine separately hand-coded expressions.}
+
+\section{Reduced mapped field versus the exact redshift-space map}
+An economical third-order field for the renormalized one-loop spectrum is
+\begin{equation}\label{eq:djs}
+ \delta_{g,s}\big|_{P_{1\ell}}=\sum_O b_O[O]
+ -u_\parallel\partial_\parallel\bigl(b_1\delta+b_\eta\eta+b_{\Pi^{[2]}_\parallel}\Pi^{[2]}_\parallel\bigr),
+\end{equation}
+with the nonlinear components of each operator understood. This DJS representation is convenient for enumerating kernels and making the $P_{22}$ tensor finite and compact. However, it should not be confused with the \emph{bare} exact map of rest-frame galaxy density $D$:
+\begin{equation}\label{eq:exact}
+ \delta_s(\bk)=\int \dd^3x\,e^{-i\bk\cdot\bm x}\left[(1+D(\bm x))e^{-ik_\parallel u_\parallel(\bm x)}-1\right].
+\end{equation}
+Let $U_a$ denote the $a$th-order $u_\parallel$ kernel. Expanding Eq.~\eqref{eq:exact} gives
+\begin{align}
+ Z_2={}&D_2-ik_\parallel[U_2+\sym(D_1U_1)]-\frac12k_\parallel^2U_1U_1,\\
+ Z_3={}&D_3-ik_\parallel[U_3+\sym(D_1U_2)+\sym(D_2U_1)]\\
+ &-k_\parallel^2[\sym(U_1U_2)+\tfrac12\sym(D_1U_1U_1)]+\frac{i}{6}k_\parallel^3U_1U_1U_1.
+\end{align}
+The rest-frame selection coefficients are related to the mapped ones by
+\begin{equation}
+ b^R_\eta=s_\eta,\quad b^R_{\delta\eta}=s_{\delta\eta},\quad
+ b^R_{\eta^2}=s_{\eta^2}+s_\eta,\quad
+ b^R_{\eta\Pi^{[2]}}=b_{\eta\Pi^{[2]}}+b_{\Pi^{[2]}},
+\end{equation}
+with the other coefficients unchanged. Both representations produce identical $Z_1$ and $Z_2$; their contracted $Z_3$ expressions can differ by $k^2\sigs$ and constant $\sigma_0^2$ shapes. The missing double displacement in Eq.~\eqref{eq:djs} must be restored when retaining the FolpsD-compatible bare derivative convention.
+
+\section{One-loop spectrum: $P_{22}$}
+At tree and one-loop level, using symmetrized redshift-space kernels,
+\begin{equation}\label{eq:loopdecomp}
+ P_s^{\mathrm{tree+1loop}}(k,\mu)=Z_1^2\Pl(k)+P_{22}(k,\mu)+P_{13}(k,\mu).
+\end{equation}
+The regularized quadratic contraction implemented by the selection module is
+\begin{equation}\label{eq:p22}
+ P_{22}(k,\mu)=2\intq\bigg[Z_2(\bq,\bk-\bq)^2\Pl(q)\Pl(|\bk-\bq|)
+ -Z_2(\bq,-\bq)^2\Pl(q)^2\bigg].
+\end{equation}
+Only the zero-lag constant is subtracted and absorbed into stochastic white noise. Selection-sensitive $k^2$ pieces are \emph{retained}.
+
+\subsection{Ten quadratic kernels and 23 FFTLog functions}
+The implementation uses the ten-vector
+\begin{equation}
+ \bm c_2=(b_1,b_\eta,b_2/2,b_{K^2},b_{\delta\eta},b_{\eta^2},b_{(KK)_\parallel},b_{\Pi^{[2]}_\parallel},-b_1,-b_\eta),
+\end{equation}
+corresponding respectively to density, velocity LOS gradient, the four quadratic selection/local-bias scalars, and the two LOS advection structures. For numerical stability the advection kernels are stored in Galilean-safe combinations $S_9'=S_9+S_5$ and $S_{10}'=S_{10}+S_6$. This makes their UV behavior $O(k^2/q^2)$ rather than constant in a hard loop momentum.
+The azimuthally averaged products are reduced, exactly in rational arithmetic, to the 23 integrals
+\begin{equation}\label{eq:Imr}
+ \mathcal I_{mr}(k)=2\intq\frac{q^{r-2}k^{6-r}}{|\bk-\bq|^4}
+ (\hat\bk\cdot\hat\bq)^m\Pl(q)\Pl(|\bk-\bq|),
+\end{equation}
+where $0\le r\le6$, $0\le m\le r+2$, and $r-m$ is even. Hence
+\begin{equation}\label{eq:p22tensor}
+ P_{22}(k,\mu)=\sum_{a,b=1}^{10}c'_{2a}c'_{2b}f^{n_a+n_b}
+ \sum_{j=0}^{4}\mu^{2j}\sum_{(m,r)}T_{abjmr}\,\mathcal I_{mr}(k)\big|_{\text{zero-lag removed}},
+\end{equation}
+with $\bm n=(0,1,0,0,1,2,0,0,1,2)$. $T_{abjmr}=T_{bajmr}$, so the sum already contains both members of each off-diagonal pair. The exact rational entries are maintained in \texttt{folps/\_selection\_coefficients\_data.py}, not copied into this note.
+
+\subsection{Ultraviolet behavior}
+For a hard loop $q\gg k$, the selected quadratic contraction generically includes
+\begin{equation}
+ P_{22}^{\rm UV}\sim k^2\left(a_0+a_2\mu^2+a_4\mu^4\right)+O(k^4),
+\end{equation}
+where $a_4$ vanishes for ordinary RSD in this subtraction convention but need not vanish with selection. The reported algebraic reduction yields no $k^2\mu^{6,8}$ UV terms. This motivates considering a $k^2\mu^4$ stochastic completion, but whether it is appropriate as a separate independently fitted nuisance coefficient must be assessed in the chosen renormalization and inference scheme (Sec.~\ref{sec:eft}).
+
+\section{One-loop spectrum: $P_{13}$ and the displacement bridge}
+The single third-order contraction is $R\equiv3\intq Z_3(\bk,\bq,-\bq)\Pl(q)$. Both Wick contractions contribute to the power spectrum:
+\begin{equation}\label{eq:p13}
+ P_{13}^{\rm total}=6Z_1\Pl(k)\intq Z_3(\bk,\bq,-\bq)\Pl(q)=2Z_1\Pl(k)R.
+\end{equation}
+The factor two is thus present \emph{once}; multiplying a second time would overcount. All 16 relevant cubic/advection structures are expressed using five functions, which we define by
+\begin{align}
+ J_1&=k^2\intq\frac{\bk\cdot\bq}{q^2|\bk-\bq|^2}(1-\nu^2)\Pl(q),\\
+ J_2&=k^2\intq\frac{1-\nu^2}{|\bk-\bq|^2}\Pl(q),\\
+ J_3&=\intq\left[\frac{q^2(1-\nu^2)}{|\bk-\bq|^2}-\frac23\right]\Pl(q),\\
+ J_4&=\intq\left[\frac{q^2\nu^2(1-\nu^2)}{|\bk-\bq|^2}-\frac2{15}\right]\Pl(q),\\
+ J_5&=\intq\left[\frac{q^2\nu^4(1-\nu^2)}{|\bk-\bq|^2}-\frac2{35}\right]\Pl(q),\quad\nu=\hat\bk\cdot\hat\bq.
+\end{align}
+The third-order coefficient vector has 16 entries, and the reduced rational matrices $M^a_{ni}$ define
+\begin{equation}\label{eq:p13matrix}
+ R_{J}(k,\mu)=\sum_{a=1}^{16}c_{13,a}f^{n_a}
+ \sum_{j=0}^{2}\mu^{2j}\sum_{i=1}^{5}M^a_{ji}J_i(k).
+\end{equation}
+The finite $J$ functions are evaluated by FFTLog's analytic continuation. In the convention adopted by FolpsD, the $k^2\sigs$ terms removed by continuation must be accounted for:
+\begin{equation}
+ J_i^{\rm true}=J_i^{\rm cont}+\delta J_i\,k^2\sigs,
+ \qquad\delta\bm J=\left(0,\frac23,-\frac2{15},\frac2{21},\frac{22}{315}\right).
+\end{equation}
+The \emph{exact} redshift-space map of Sec.~4 fixes the remaining bare-derivative contribution to the single contraction to be
+\begin{equation}\label{eq:bridge}
+ D_B(\mu)=-\frac16\big[1+f\mu^2(2+f)\big]Z_1(\mu).
+\end{equation}
+It does not contain independently adjustable quadratic/cubic LOS selection coefficients. Therefore the implemented $P_{13}$ is
+\begin{align}\label{eq:p13final}
+ P_{13}={}&2Z_1\Pl(k)\bigg\{\sum_{a=1}^{16}c_{13,a}f^{n_a}
+ \sum_{j=0}^{2}\mu^{2j}\sum_{i=1}^{5}M^a_{ji}\left[J_i^{\rm cont}+\delta J_i\,k^2\sigs\right]\\
+ &\hspace{38mm}-\frac16\big[1+f\mu^2(2+f)\big]Z_1 k^2\sigs\bigg\}.
+\end{align}
+The displacement part alone becomes
+\begin{equation}\label{eq:displacement}
+ P_{13}^{\rm disp}=-k^2\sigma_\psi^2\big[1+f\mu^2(2+f)\big]Z_1^2\Pl(k).
+\end{equation}
+This expression is IR sensitive and necessary for the proper soft cancellation between $P_{22}$ and $P_{13}$. The one-loop constants proportional to $\sigma_0^2\Pl$ renormalize the linear bias coefficients and are not retained separately. An important audit distinction is that the 16-column DJS basis fixes the \emph{shape} of the finite integrals, while the displacement bridge fixes the FolpsD-compatible bare derivative convention.
+
+\section{Adding selection to the full FolpsD EFT model}\label{sec:assembly}
+Let $\bm b$ denote ordinary galaxy biases plus the nine selected parameters, and $\bm b_0$ the same ordinary biases with all selection coordinates set to zero. Define
+\begin{equation}
+ L(\bm b)=P_{22}(\bm b)+P_{13}(\bm b),\qquad
+ \Delta L=L(\bm b)-L(\bm b_0),\qquad
+ \Delta T=(Z_1^2-Z_{1,0}^2)\Pl.
+\end{equation}
+The actual model is not an unrelated reimplementation of ordinary galaxy EFT. It is
+\begin{equation}\label{eq:assembly}
+ \boxed{\ P_{\rm selected}=P_{\rm FolpsD,\,EFT}^{\rm baseline}+\Delta T+\Delta L
+ +\Delta P_{\rm ct}+\Delta P_{\rm higher}\ }.
+\end{equation}
+The last two terms represent only the change in derivative sectors when appropriate; stochastic terms are kept in the baseline/extended EFT sector with their declared parametrization. The loop increment is evaluated through factorizations such as
+\begin{equation}
+ \bm c\bm c^\intercal-\bm c_0\bm c_0^\intercal
+ =\Delta\bm c\,\bm c^\intercal+\bm c_0\Delta\bm c^\intercal,
+\end{equation}
+which makes the increment identically zero at zero selection, rather than relying on subtraction between large, numerically close sums. The design also provides a sensitive regression test against the pre-existing FolpsD branch.
+
+\subsection{The role of $G_{\rm TNS}$}
+The full perturbative redshift-space one-loop prediction includes the mapping, velocity, and density--velocity terms sometimes grouped in the TNS or generalized-TNS (`$G_{\rm TNS}$') sector. They are \emph{not} a phenomenological damping ansatz. In the supported EFT configuration they remain enabled:
+\begin{equation}
+ \texttt{model=	extquotedbl{}EFT	extquotedbl{}},\qquad \texttt{damping=None},\qquad
+ \texttt{use\_GTNS=True}.
+\end{equation}
+The standard one-loop baseline already includes these terms; the selected \emph{difference} $\Delta L$ contains their selected response. Adding another independent $G_{\rm TNS}$ term would double-count mapping contributions. Selection with $\texttt{use\_GTNS=False}$ would generally be inconsistent with the difference construction and is not the EFT setup analyzed here.
+\sourcefig{05_selected_multipoles}{0.94}{Executed-notebook example comparing selected and ordinary one-loop EFT multipoles. This is a theory-model comparison, not an observational fit.}
+\sourcefig{07_matched_tree_vs_one_loop}{0.94}{Three models matched at linear $Z_1$: ordinary clustering, the historical tree-only anisotropy, and the full one-loop LOS-selection calculation. The nonlinear differences isolate information absent from the old $b_A$ deformation.}
+
+\section{Derivative counterterms, stochasticity and priors}\label{sec:eft}
+The legacy and extended polynomial counterterms can be parameterized as
+\begin{equation}\label{eq:ct}
+ P_{\rm ct}(k,\mu)=k^2\Pl(k)\left[\alpha_0+\alpha_2\mu^2+\alpha_4\mu^4+\alpha_6\mu^6\right].
+\end{equation}
+The extension allows $\alpha_6$ in addition to the three legacy angular powers. As an alternative, not an additive sector, a physical derivative-bias parametrization is
+\begin{equation}\label{eq:physical}
+ P_{\rm hd}=-2k^2\Pl Z_1\left[b_{\nabla^2\delta}-b_\eta f\mu^2\left(\beta_{\nabla^2v}+\beta_{\partial_\parallel^2v}\mu^2\right)\right].
+\end{equation}
+Writing $a=b_\eta f$, $d=b_{\nabla^2\delta}$, $v=\beta_{\nabla^2v}$ and $w=\beta_{\partial_\parallel^2v}$ gives
+\begin{equation}
+ (\alpha_0,\alpha_2,\alpha_4,\alpha_6)=\big(-2b_1d,\;2a(d+b_1v),\;2b_1aw-2a^2v,\;-2a^2w\big).
+\end{equation}
+One may not simultaneously treat both coefficient sets as independent without redundancy.
+The extended stochastic model reads
+\begin{equation}\label{eq:stoch}
+ P_{\rm stoch}=P_{\rm shot}\left[\alpha_{\rm shot,0}
+ +k^2\left(\alpha_{\rm shot,2}^{\rm iso}
+ +\alpha_{\rm shot,2}\mu^2+\alpha_{\rm shot,2}^{\mu^4}\mu^4\right)\right].
+\end{equation}
+The $k^2\mu^4$ term is an \emph{optional proposed extension}; its necessity and appropriate prior should be checked using stochastic residuals and a consistent renormalized operator basis, not simply inferred from the existence of an angular $k^2$ UV term. No white-noise $\mu^2$ term is added at order $k^0$.
+
+The implementation thus exposes 13 deterministic coefficients (four ordinary + nine additional LOS selection), up to four polynomial EFT $k^2$ coefficients, and four stochastic coefficients, before the cosmological parameters and optional higher-order \texttt{ctilde}. For inference, this count is an \emph{available} parameter basis, not an assertion that all parameters are separately identifiable from $(P_0,P_2,P_4)$.
+
+\section{FFTLog reduction and stored tables}
+The code decomposes each input linear spectrum using an FFTLog expansion $\Pl(k)=\sum_m c_m k^{-2\nu_m}$. Each matrix element reduces to the known convolution
+\begin{equation}\label{eq:fftlog}
+ \intq q^{-2a}|\bk-\bq|^{-2b}=
+ \frac{k^{3-2a-2b}}{8\pi^{3/2}}
+ \frac{\Gamma(\tfrac32-a)\Gamma(\tfrac32-b)\Gamma(a+b-\tfrac32)}
+ {\Gamma(a)\Gamma(b)\Gamma(3-a-b)},
+\end{equation}
+up to analytic continuation. The dependence on cosmological input resides in the FFTLog coefficients and linear spectrum; the angular and polynomial parts reside in cosmology-independent stored matrices. The selected $P_{22}$ uses two tilts: the ordinary matter tilt $b=-0.1$ for pairs of two soft-singular but UV-safe kernels, and $b=-0.9$ for the remaining pairs. The latter scheme drops only the zero-lag constant while retaining the desired $k^2$ terms. The five $J_i$ integrals use the matter tilt.
+
+The output tables hold $k$, $\Pl(k)$, $\mathcal I_{mr}$ (two tilt classes), $J_{1..5}$, $\sigs$, growth $f$, and metadata including the coefficient checksum, generator version, input hash, FFTLog parameters, and a full/no-wiggle pairing identifier. Matrices are reusable across spectra when the grid and conventions match. A further production-level guard should ensure that \emph{the ordinary FolpsD baseline tables} and the selection tables correspond to the same cosmology and input $\Pl$, not just equal growth scalars; mismatching them can invalidate Eq.~\eqref{eq:assembly}.
+
+\section{IR resummation, Alcock--Paczynski mapping and multipoles}
+Write $\Pl=P_{\wn}+P_{\rm w}$, $A=k^2\Sigma_s^2(\mu)$ and $E=e^{-A}$, where
+\begin{equation}
+ \Sigma_s^2(\mu)=\big[1+f\mu^2(2+f)\big]\Sigma^2+f^2\mu^2(\mu^2-1)\Delta\Sigma^2.
+\end{equation}
+In the FolpsD mixing convention, the renormalized selected spectrum is schematically
+\begin{align}\label{eq:ir}
+ P_{\rm IR}={}&Z_1^2\big[P_{\wn}+E(1+A)P_{\rm w}\big]
+ +L[P_{\wn}]+E\big[L[\Pl]-L[P_{\wn}]\big]\\
+ &+C[P_{\wn}]+E\big[C[\Pl]-C[P_{\wn}]\big]+P_{\rm stoch},\nonumber
+\end{align}
+with the selected $Z_1$ and selected $L$; $C$ denotes the counterterm sector. The wiggle-loop contribution is the \emph{difference} of loop functionals, not the functional evaluated on $P_{\rm w}$ alone, since loops are nonlinear in the input. Selection changes the amplitude $Z_1^2$ and the loops, not the matter displacement variance $\Sigma_s^2$.
+
+AP parameters $(q_\parallel,q_\perp)$ transform an observed $(k_{\rm obs},\mu_{\rm obs})$ into
+\begin{align}
+ k&=k_{\rm obs}\sqrt{\frac{\muo^2}{q_\parallel^2}+\frac{1-\muo^2}{q_\perp^2}},\\
+ \mu&=\frac{\muo/q_\parallel}{\sqrt{\muo^2/q_\parallel^2+(1-\muo^2)/q_\perp^2}},\qquad
+ P_{\rm obs}=\frac{P_{\rm IR}(k,\mu)}{q_\parallel q_\perp^2}.
+\end{align}
+The even multipoles are computed as
+\begin{equation}\label{eq:multipoles}
+ P_\ell(k_{\rm obs})=(2\ell+1)\int_0^1\dd\muo\,P_{\rm obs}(k_{\rm obs},\muo)\mathcal L_\ell(\muo),
+ \qquad \ell=0,2,4,\ldots
+\end{equation}
+using symmetric Gauss--Legendre quadrature. Angular truncation at $\mu^8$ applies to the unresummed, unity-AP deterministic polynomial; IR/AP effects generate a nonpolynomial angular dependence.
+\sourcefig{09_ir_resummation}{0.88}{Notebook comparison of spectra with and without BAO infrared resummation; the displayed split explicitly treats smooth and oscillatory loop pieces.}
+\sourcefig{10_ap_projection}{0.80}{Notebook check of the Alcock--Paczynski mapping and its domain of interpolation.}
+
+\section{Verification and experimental program}
+\subsection{Numerical and analytic checks}
+The accompanying branch includes an algebraic coefficient generator, direct kernel evaluation, matrix-template cross-checks, zero-selection regression tests, and a tutorial notebook. The documented checks include agreement of $Z_1,Z_2$ from the compact and exact maps, reproduction of the azimuthally averaged quadratic kernels, pointwise identification of the 16 cubic structures, IR consistency after the displacement bridge, zero-selection equivalence to pre-existing FolpsD EFT, and multipole/JAX/finite-difference tests. These are \emph{reported test outcomes from the repository}; they have not been independently rerun for the preparation of this note.
+\sourcefig{08_selection_responses}{0.94}{Notebook derivative responses for all nine additional selection parameters. These responses illustrate the different angular and scale dependences and the potential near-degeneracies in a multipole analysis.}
+\sourcefig{11_angular_convergence}{0.75}{Notebook test of Gauss--Legendre convergence, relevant when differentiating models for Fisher forecasts.}
+\sourcefig{12_zero_selection_regression}{0.75}{Notebook regression of the zero-selection limit against an independently frozen pre-extension reference.}
+
+\subsection{Boundaries of the present implementation}
+The code implements the \emph{auto} power spectrum, not selected tracer cross spectra or the bispectrum. It is limited to EdS selection kernels with scale-independent growth, and rejects combining full one-loop selection with FoG-damped models. Survey window convolution, realistic DR2 covariance, data vector, fiber assignment and NERSC mock comparisons are tasks of the downstream inference pipeline, not of these analytic kernels. The example Fisher adapter holds the cosmological linear input fixed when differentiating nuisance/selection/AP parameters; cosmological-parameter derivatives require consistently rebuilding or emulating the spectrum and both sets of loop tables.
+
+\subsection{Recommended fitting sequence}
+Start with $(b_1,b_2,b_{K^2},b_{\rm td})$ and the standard EFT/stochastic sector, then introduce $s_\eta$ and the four quadratic selection operators, and finally allow the four cubic selection operators. Treat any hierarchy in their amplitudes as a \emph{hypothesis to test}, rather than an EFT theorem. Compare $(P_0,P_2,P_4)$ with $(P_0)$-only and, where possible, $(P_0,P_4)$-only analyses, emphasizing residual property-split trends and posterior/Fisher degeneracies. The existing notebook provides illustrative model derivatives, not empirical prior constraints.
+
+\section{Code--equation map}
+\begin{table}[htbp]\small\centering
+\begin{tabularx}{\linewidth}{@{}p{0.35\linewidth}X@{}}\toprule
+File & Responsibility\\\midrule
+\texttt{folps/selection\_operators.py} & Nine additional coordinates, mapped/rest-frame coefficients, $b_A$ adapter, quadratic and cubic coefficient vectors.\\
+\texttt{folps/selection\_kernels.py} & EdS field algebra, convective $\Pi$ hierarchy, exact-map and reduced kernels.\\
+\texttt{folps/selection\_coefficients.py} & Exact reduced rational coefficient arrays and their metadata.\\
+\texttt{folps/\_selection\_coefficients\_data.py} & Regenerable generated tensors and tables ($P_{22}$, $P_{13}$, displacement bridge).\\
+\texttt{folps/selection\_matrices.py} & Cosmology-independent FFTLog integrals and numerical matrix cache.\\
+\texttt{folps/selection\_templates.py} & Full and no-wiggle selection loop tables; evaluation of $\Delta P_{22}+\Delta P_{13}$.\\
+\texttt{folps/selection\_model.py} & Assembly with the baseline EFT, derivative/stochastic extensions, IR/AP interaction and return-components interface.\\
+\texttt{notebooks/selection\_1loop\_tutorial.ipynb} & Executed tutorial, example plots, regression tests and derivative checks.\\
+\texttt{scripts/export\_selection\_notebook\_figures.py} & Export the unchanged notebook PNG outputs into the figure folder used by this note.\\\bottomrule
+\end{tabularx}
+\caption{Crosswalk between analytic results and the files on \texttt{feature/selection-1loop-eds}.}\label{tab:map}
+\end{table}
+
+\section{Conclusions}
+The selected FolpsD EFT model is a controlled extension at one loop: nine independent LOS biases modify $Z_1$, $Z_2$, and the renormalized cubic contraction, but the ordinary FolpsD EFT prediction remains intact when all nine are zero. The decisive theoretical features are the exact redshift-space map's cubic displacement bridge, the retention of UV-sensitive $k^2$ terms in the selected quadratic loop, consistent full/no-wiggle IR mixing, and the preservation of the full perturbative $G_{\rm TNS}$ sector \emph{without} additional phenomenological damping. The next physics step is not to add more operators, but to test which combinations can be constrained by the DESI multipoles, how inference responds to higher-derivative and stochastic completions, and whether the same model resolves the property-split behavior in data and simulations.
+
+\begin{thebibliography}{9}
+\bibitem{DJS} V.~Desjacques, D.~Jeong and F.~Schmidt, \emph{The galaxy power spectrum and bispectrum in redshift space}, arXiv:\href{https://arxiv.org/abs/1806.04015}{1806.04015}.
+\bibitem{TGGJ} S.~Tomlinson, S.~Grasshorn Gebhardt and D.~Jeong, \emph{Anisotropic galaxy clustering in redshift space}, arXiv:\href{https://arxiv.org/abs/2004.03629}{2004.03629}.
+\bibitem{Folps} Folps and one-loop EFT RSD development, arXiv:\href{https://arxiv.org/abs/2208.02791}{2208.02791}.
+\bibitem{FolpsD} FolpsD: hybrid EFT and velocity-damping modeling, arXiv:\href{https://arxiv.org/abs/2604.08895}{2604.08895}.
+\bibitem{repo} \href{https://github.com/cosmodesi/FolpsD/tree/feature/selection-1loop-eds}{FolpsD one-loop LOS-selection feature branch}, especially \texttt{docs/selection\_1loop\_equations.md}, \texttt{docs/selection\_1loop\_validation.md}, and \texttt{docs/selection\_1loop\_sources.md}.
+\end{thebibliography}
+\end{document}

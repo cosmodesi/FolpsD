@@ -1,0 +1,51 @@
+name: Build one-loop selection theory PDF
+
+on:
+  push:
+    branches:
+      - feature/selection-1loop-eds
+    paths:
+      - 'docs/selection_1loop_theory/selection_1loop_theory.tex'
+      - '.github/workflows/selection-theory-pdf.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch with notebook figures
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Verify original notebook figures exist
+        run: |
+          test -s docs/selection_1loop_theory/figures/03_linear_selection.png
+          test -s docs/selection_1loop_theory/figures/05_selected_multipoles.png
+          test -s docs/selection_1loop_theory/figures/08_selection_responses.png
+          test -s docs/selection_1loop_theory/figures/12_zero_selection_regression.png
+      - name: Compile PDF with real notebook figures embedded
+        uses: xu-cheng/latex-action@v3
+        with:
+          root_file: selection_1loop_theory.tex
+          working_directory: docs/selection_1loop_theory
+          args: -pdf -file-line-error -interaction=nonstopmode -halt-on-error
+      - name: Upload downloadable PDF as build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: selection-1loop-theory-with-figures
+          path: docs/selection_1loop_theory/selection_1loop_theory.pdf
+      - name: Commit compiled PDF into feature branch
+        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f docs/selection_1loop_theory/selection_1loop_theory.pdf
+          if git diff --cached --quiet; then
+            echo "PDF identical; no commit needed"
+          else
+            git commit -m "Build selection one-loop theory PDF with notebook figures [skip ci]"
+            git push origin "HEAD:${GITHUB_REF_NAME}"
+          fi
