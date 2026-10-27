@@ -44,6 +44,7 @@ from .selection_operators import (cubic_coefficient_vector, quadratic_coefficien
 
 __all__ = ["SelectionLoopTable", "SelectionLoopTables", "build_selection_tables",
            "selection_loop", "selection_loop_increment", "interp_selection_table",
+           "selection_loop_cross", "selection_loop_cross_increment",
            "TEMPLATE_FORMAT_VERSION", "P22_TILT_LOCAL", "p22_uv_k2_content"]
 
 TEMPLATE_FORMAT_VERSION = "selection-template-2"
@@ -307,6 +308,87 @@ def _components(pk, I22, J13, tab, c, c0, k, mu):
     Z10 = c0.b1 - c0.b_eta * f * mu ** 2
     dP13 = 2.0 * pk * ((Z1 - Z10) * R0 + Z1 * dR)
     return dP22, dP13
+
+
+def _p13_response(c, f, mu, k2, Jt, tab, mup, c0=None):
+    """``R = 3 int Z3 P_L`` of one tracer (single contraction, bare exact-map scheme), or with
+    ``c0`` the exact difference ``R(c) - R(c0)``: ``c13`` is linear in the coefficients, the
+    bridge affine in the rest-frame ones (its matter part cancels in the difference)."""
+    bnp = _backend_np()
+    c13 = cubic_coefficient_vector(c)
+    rest = rest_frame_coefficients(c)
+    if c0 is not None:
+        c13 = [a - b for a, b in zip(c13, cubic_coefficient_vector(c0))]
+        rest = [a - b for a, b in zip(rest, rest_frame_coefficients(c0))]
+    V = _p13_weights(c13, f)
+    return (bnp.einsum("ni,n...,i...->...", V, mup[:3], Jt)
+            + k2 * tab.sigma_m1_sq * _bridge(rest, f, mu, include_matter=c0 is None))
+
+
+def _components_cross(pk, I22, J13, tab, cA, cB, cA0=None, cB0=None, k=None, mu=None):
+    r"""Two-tracer (A x B) one-loop selection contraction in the same scheme as :func:`_components`.
+
+    ``P22_AB = 2 int Z2_A Z2_B P P`` is the bilinear form of the symmetric tensor ``T`` with the
+    two coefficient vectors (symmetrized, ``(c_A c_B^T + c_B c_A^T) / 2``), and
+    ``P13_AB = P_L (Z1_A R_B + Z1_B R_A)`` with ``R_X = 3 int Z3_X(k, q, -q) P_L(q)`` the single
+    contraction of tracer X (the auto spectrum ``2 Z1 P_L R`` is the case A = B).  The bare
+    ``k^2 sigma_{-1}^2`` bridge enters each ``R_X`` with that tracer's own rest-frame
+    coefficients; its matter part gives ``-k^2 sigma_psi^2 [1 + f mu^2 (2 + f)] Z1_A Z1_B P_L``.
+
+    With ``cA0, cB0`` given, returns the exact increments
+    ``(P22_AB(cA, cB) - P22_AB(cA0, cB0), P13_AB(cA, cB) - P13_AB(cA0, cB0))``, formed from
+    coefficient differences (no cancellation; identically zero when ``cA == cA0`` and ``cB == cB0``).
+    """
+    bnp = _backend_np()
+    f = tab.f0
+    k2 = k ** 2
+    Jt = J13 + bnp.asarray(_sc.J_UV).reshape((-1,) + (1,) * k.ndim) * (k2 * tab.sigma_m1_sq)[None]
+    mup = bnp.stack([mu ** (2 * n) for n in range(5)])
+    c2A = bnp.stack(quadratic_coefficient_vector(cA))
+    c2B = bnp.stack(quadratic_coefficient_vector(cB))
+    Z1A = cA.b1 - cA.b_eta * f * mu ** 2
+    Z1B = cB.b1 - cB.b_eta * f * mu ** 2
+
+    def sym(x, y):
+        return 0.5 * (bnp.outer(x, y) + bnp.outer(y, x))
+
+    if cA0 is None:
+        P22 = _p22_contract(_p22_weights(sym(c2A, c2B), f), mup, I22)
+        RA = _p13_response(cA, f, mu, k2, Jt, tab, mup)
+        RB = _p13_response(cB, f, mu, k2, Jt, tab, mup)
+        return P22, pk * (Z1A * RB + Z1B * RA)
+    c2A0 = bnp.stack(quadratic_coefficient_vector(cA0))
+    c2B0 = bnp.stack(quadratic_coefficient_vector(cB0))
+    # c_A c_B^T - c_A0 c_B0^T = dc_A c_B^T + c_A0 dc_B^T, then symmetrized
+    dC = sym(c2A - c2A0, c2B) + sym(c2A0, c2B - c2B0)
+    dP22 = _p22_contract(_p22_weights(dC, f), mup, I22)
+    RA0 = _p13_response(cA0, f, mu, k2, Jt, tab, mup)
+    RB0 = _p13_response(cB0, f, mu, k2, Jt, tab, mup)
+    dRA = _p13_response(cA, f, mu, k2, Jt, tab, mup, c0=cA0)
+    dRB = _p13_response(cB, f, mu, k2, Jt, tab, mup, c0=cB0)
+    Z1A0 = cA0.b1 - cA0.b_eta * f * mu ** 2
+    Z1B0 = cB0.b1 - cB0.b_eta * f * mu ** 2
+    # Z1_A R_B - Z1_A0 R_B0 = (Z1_A - Z1_A0) R_B0 + Z1_A dR_B, and A <-> B
+    dP13 = pk * ((Z1A - Z1A0) * RB0 + Z1A * dRB + (Z1B - Z1B0) * RA0 + Z1B * dRA)
+    return dP22, dP13
+
+
+def selection_loop_cross(k, mu, table, cA, cB, interpolated=None):
+    """Complete renormalized one-loop selected cross contribution ``(P22_AB, P13_AB)``."""
+    bnp = _backend_np()
+    k = bnp.asarray(k)
+    mu = bnp.asarray(mu)
+    pk, I22, J13 = interpolated if interpolated is not None else interp_selection_table(k, table)
+    return _components_cross(pk, I22, J13, table, cA, cB, k=k, mu=mu)
+
+
+def selection_loop_cross_increment(k, mu, table, cA, cB, cA0, cB0, interpolated=None):
+    """Selected-minus-unselected cross increments; exactly zero when ``cA == cA0`` and ``cB == cB0``."""
+    bnp = _backend_np()
+    k = bnp.asarray(k)
+    mu = bnp.asarray(mu)
+    pk, I22, J13 = interpolated if interpolated is not None else interp_selection_table(k, table)
+    return _components_cross(pk, I22, J13, table, cA, cB, cA0, cB0, k=k, mu=mu)
 
 
 def selection_loop(k, mu, table, c, interpolated=None):

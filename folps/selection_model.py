@@ -39,11 +39,31 @@ def _is_concrete(x):
 
 
 def validate_selection_request(calc, *, selection, selection_tables, bA, pars_b, damping_method,
-                               eft_extension, physical_derivatives, use_GTNS=None):
-    """Static validation of a selection-mode request (never inspects traced values)."""
+                               eft_extension, physical_derivatives, use_GTNS=None, selection_b=None,
+                               cross_nuisance=None, return_components=False):
+    """Static validation of a selection-mode request (never inspects traced values).
+
+    Cross spectra (``pars_b`` given) take one :class:`SelectionBias` per tracer, ``selection``
+    for A and ``selection_b`` for B, both explicit (``SelectionBias()`` for an unselected
+    tracer), and an explicit pair-level ``cross_nuisance``."""
     from . import folps as _f
     if selection is not None and not isinstance(selection, SelectionBias):
         raise TypeError("selection must be a folps.SelectionBias (use SelectionBias() for an explicit zero)")
+    if selection_b is not None and not isinstance(selection_b, SelectionBias):
+        raise TypeError("selection_b must be a folps.SelectionBias (use SelectionBias() for an explicit zero)")
+    if pars_b is None and selection_b is not None:
+        raise ValueError("selection_b is the selection of tracer B of a cross spectrum: pass pars_b and cross_nuisance")
+    if pars_b is not None:
+        if cross_nuisance is None:
+            raise ValueError("a selected cross spectrum needs an explicit pair-level cross_nuisance")
+        if (selection is None) != (selection_b is None):
+            raise ValueError("a selected cross spectrum needs one SelectionBias per tracer: pass both selection (A) "
+                             "and selection_b (B); use SelectionBias() for an unselected tracer, never omit one")
+        if physical_derivatives is not None:
+            raise NotImplementedError("physical_derivatives is not implemented for cross spectra (the physical "
+                                      "derivative sector is per tracer); use the pair-level polynomial counterterms")
+        if return_components:
+            raise NotImplementedError("return_components is not implemented for selected cross spectra")
     if eft_extension is not None and not isinstance(eft_extension, EFTExtension):
         raise TypeError("eft_extension must be a folps.EFTExtension")
     if physical_derivatives is not None and not isinstance(physical_derivatives, PhysicalDerivativeBias):
@@ -52,10 +72,6 @@ def validate_selection_request(calc, *, selection, selection_tables, bA, pars_b,
         raise NotImplementedError(
             f"The one-loop selection model is implemented for model='EFT' only (no FoG damping); "
             f"got model={calc.model!r}.")
-    if pars_b is not None:
-        raise NotImplementedError(
-            "Selected cross spectra are not implemented; the auto-spectrum selection formula must not "
-            "be reused for cross spectra. Call without selection/eft_extension for legacy cross spectra.")
     if bA is not None:
         raise ValueError(
             "bA (historical tree-only anisotropic bias) cannot be combined with selection/eft_extension/"
@@ -128,11 +144,82 @@ def _check_tables_compatible(table, selection_tables, table_now=None):
                              "selection_tables from the same NonLinearPowerSpectrumCalculator.calculate_loop_table call")
 
 
+def _selected_cross_rsd_pkmu(calc, k, mu, pars, pars_b, cross_nuisance, table, table_now, IR_resummation=True,
+                             use_GTNS=None, *, selection=None, selection_b=None, selection_tables=None,
+                            eft_extension=None):
+    r"""Selected two-tracer (A x B) redshift-space ``P_AB(k, mu)``.
+
+    The validated legacy (Ruiyang) cross spectrum at the same ordinary biases, with the
+    pair-level ``cross_nuisance``, plus selected-minus-unselected increments in the matched
+    scheme of the auto model:
+
+        + (Z1_A Z1_B - Z1_A0 Z1_B0) {P_nw + E (1 + A) P_w}                    tree
+        + Delta L_AB[P_nw] + E (Delta L_AB[P_L] - Delta L_AB[P_nw])            loop
+        + ctilde_AB (mu k f)^4 (Z1_A Z1_B - Z1_A0 Z1_B0) sigma2w^2 P          ctilde
+        + pair-level alpha6 / alphashot2_iso / alphashot2_mu4 (EFTExtension)
+
+    ``Delta L_AB`` are the two-tracer contractions of :func:`selection_templates._components_cross`
+    (proper mixed P22/P13, never built from the autos).  Counterterms and noise are the pair's
+    own (``cross_nuisance``): never averaged from the auto vectors.  ``Sigma_s^2`` is physical.
+    """
+    from . import folps as _f
+    np = _f.np
+    params_a = calc._split_power_pars(pars)
+    params_b = calc._split_power_pars(pars_b)
+    nuis = calc._split_cross_nuisance(cross_nuisance)
+    ext = eft_extension if eft_extension is not None else EFTExtension()
+
+    tab = calc.interp_table(k, table, _f.A_full_status)
+    tab_now = calc.interp_table(k, table_now, _f.A_full_status)
+    f0 = tab[-1]
+    pkl, pkl_now = tab[0], tab_now[0]
+    sigma2, delta_sigma2 = tab_now[-3:-1]
+    sigma2w, sigma2w_now = tab[-2], tab_now[-4]
+    if IR_resummation:
+        sigma2t = (1 + f0 * mu ** 2 * (2 + f0)) * sigma2 + (f0 * mu) ** 2 * (mu ** 2 - 1) * delta_sigma2
+    else:
+        sigma2t = 0.0 * mu
+    E = np.exp(-k ** 2 * sigma2t)
+    tree_ir = pkl_now + E * (pkl - pkl_now) * (1 + k ** 2 * sigma2t)
+
+    base = calc.get_rsd_pkmu(k, mu, pars, table, table_now, IR_resummation, damping=None, damping_method=None,
+                             use_GTNS=use_GTNS, pars_b=pars_b, cross_nuisance=cross_nuisance)
+    ct6 = ext.alpha6 * mu ** 6 * k ** 2 * (E * pkl + (1 - E) * pkl_now)
+    noise_ext = nuis.PshotP * (ext.alphashot2_iso + ext.alphashot2_mu4 * mu ** 4) * k ** 2
+    out = base + ct6 + noise_ext
+    if selection is None:
+        return out
+
+    _check_tables_compatible(table, selection_tables, table_now)
+    coeffs = []
+    for params, sel in ((params_a, selection), (params_b, selection_b)):
+        b1d, b2d, bK2, btd = folps_bias_to_djs(*params.bias)
+        coeffs.append((djs_coefficients(b1d, b2d, bK2, btd, sel), djs_coefficients(b1d, b2d, bK2, btd, SelectionBias())))
+    (cA, cA0), (cB, cB0) = coeffs
+    Z1A, Z1A0 = cA.b1 - cA.b_eta * f0 * mu ** 2, cA0.b1 - cA0.b_eta * f0 * mu ** 2
+    Z1B, Z1B0 = cB.b1 - cB.b_eta * f0 * mu ** 2, cB0.b1 - cB0.b_eta * f0 * mu ** 2
+    dZZ = (Z1A - Z1A0) * Z1B + Z1A0 * (Z1B - Z1B0)       # Z1_A Z1_B - Z1_A0 Z1_B0
+    d_tree = dZZ * tree_ir
+    from .selection_templates import selection_loop_cross_increment
+    ip_full = interp_selection_table(k, selection_tables.full)
+    ip_now = interp_selection_table(k, selection_tables.nowiggle)
+    d22_w, d13_w = selection_loop_cross_increment(k, mu, selection_tables.full, cA, cB, cA0, cB0, ip_full)
+    d22_n, d13_n = selection_loop_cross_increment(k, mu, selection_tables.nowiggle, cA, cB, cA0, cB0, ip_now)
+    d_loop = (d22_n + d13_n) + E * ((d22_w + d13_w) - (d22_n + d13_n))
+    d_ctilde = nuis.ctilde * (mu * k * f0) ** 4 * dZZ * (E * sigma2w ** 2 * pkl + (1 - E) * sigma2w_now ** 2 * pkl_now)
+    return out + d_tree + d_loop + d_ctilde
+
+
 def selected_rsd_pkmu(calc, k, mu, pars, table, table_now, IR_resummation=True, use_GTNS=None, *,
                       selection=None, selection_tables=None, eft_extension=None, physical_derivatives=None,
-                      return_components=False):
+                      return_components=False, pars_b=None, cross_nuisance=None, selection_b=None):
     """Selected redshift-space ``P(k, mu)`` (see module docstring).  ``pars`` are FolpsD-basis
-    parameters (after ``set_bias_scheme``)."""
+    parameters (after ``set_bias_scheme``).  With ``pars_b`` the selected cross spectrum
+    (:func:`_selected_cross_rsd_pkmu`)."""
+    if pars_b is not None:
+        return _selected_cross_rsd_pkmu(calc, k, mu, pars, pars_b, cross_nuisance, table, table_now, IR_resummation,
+                                        use_GTNS, selection=selection, selection_b=selection_b,
+                                        selection_tables=selection_tables, eft_extension=eft_extension)
     from . import folps as _f
     np = _f.np
     params = calc._split_power_pars(pars)
