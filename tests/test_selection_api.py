@@ -176,7 +176,9 @@ def test_legacy_marginalization_unchanged_without_selection(eds_setup):
 @pytest.mark.parametrize("bad,exc,msg", [
     (dict(selection_tables=None), ValueError, "selection_tables"),
     (dict(bA=0.1), ValueError, "bA"),
-    (dict(pars_b=PARS, cross_nuisance=PARS[4:]), NotImplementedError, "cross"),
+    # selected cross spectra are supported (tests/test_selection_cross.py), but only with one explicit
+    # SelectionBias per tracer: omitting tracer B's selection must still raise
+    (dict(pars_b=PARS, cross_nuisance=PARS[4:]), ValueError, "one SelectionBias per tracer"),
 ])
 def test_invalid_modes_raise(eds_setup, calc, generic_selection, bad, exc, msg):
     kw = dict(selection=generic_selection, selection_tables=eds_setup["tabs"])
