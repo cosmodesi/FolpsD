@@ -36,7 +36,10 @@ LEGACY_ORDER = ("b1", "b2", "bs2", "b3nl", "alpha0", "alpha2", "alpha4", "ctilde
 
 
 class SelectionPowerSpectrumModel:
-    """Build tables once per cosmology; evaluate multipoles per parameter point."""
+    """Build tables once for ONE cosmology; evaluate multipoles per parameter point at that cosmology.
+
+    Not a cosmological model: construct a new instance (or use the DESI pipeline, which rebuilds or
+    emulates both table families per cosmology) for derivatives in h, omega_cdm, ln A_s, n_s, ..."""
 
     def __init__(self, k_lin, pk_lin, cosmo, nfftlog=128, ells=(0, 2, 4), nmu=6, pknow=None):
         mm = MatrixCalculator(nfftlog=nfftlog, A_full=True, use_TNS_model=False).get_mmatrices()
@@ -76,6 +79,16 @@ class SelectionPowerSpectrumModel:
         return self.multipoles(kobs, p, mode).ravel()     # ell-major
 
     def jacobian(self, kobs, p, names, mode="full", step=1e-3):
+        """Finite differences at FIXED cosmology: the tables are built once in ``__init__``, so only
+        bias, selection, EFT/noise and AP (qpar, qper) directions are meaningful.  Cosmological
+        derivatives need every table recomputed per cosmology (see the DESI pipeline integration
+        in docs/selection_1loop_integration.md); other names are rejected rather than giving a
+        silently zero column."""
+        allowed = set(LEGACY_ORDER) | {"qpar", "qper", "bA"} | set(SelectionBias._fields)
+        unknown = [n for n in names if n not in allowed]
+        if unknown:
+            raise ValueError(f"{unknown}: not a parameter of this fixed-cosmology adapter (cosmological "
+                             "parameters need the tables rebuilt per cosmology; use the full pipeline)")
         cols = []
         for n in names:
             pp, pm = dict(p), dict(p)

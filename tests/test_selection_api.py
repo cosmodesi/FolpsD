@@ -234,3 +234,99 @@ def test_ir_resummation_reexpands_to_one_loop(eds_setup, calc, generic_selection
     r1, r2 = norms[0] / norms[1], norms[1] / norms[2]
     # O(eps^2): halving eps divides by 4, up to the O(eps^4) remainder (measured 3.92, 3.98)
     assert abs(r2 - 4.0) < abs(r1 - 4.0) and abs(r2 - 4.0) < 0.05, (r1, r2)
+
+
+# ------------------------------------------------------------------ audit 2026-10-26 (A-01 .. A-03)
+def _tables_for(linear_input, scale=1.0, pknow=None):
+    from folps import MatrixCalculator, NonLinearPowerSpectrumCalculator, build_selection_tables
+    from tests.conftest import COSMO
+    k, pk = linear_input
+    nl = NonLinearPowerSpectrumCalculator(mmatrices=MatrixCalculator(A_full=True, use_TNS_model=False).get_mmatrices(),
+                                          kernels="EdS", **COSMO)
+    t, tn = nl.calculate_loop_table(k=k, pklin=scale * pk, pknow=pknow, cosmo=None, **COSMO)
+    return t, tn, build_selection_tables(nl)
+
+
+def test_a01_rejects_baseline_from_another_linear_input(eds_setup, calc, linear_input, generic_selection):
+    """Same f0, linear spectrum scaled by 1.1: the baseline/selection pair must be rejected."""
+    kobs = np.geomspace(0.02, 0.25, 10)
+    t_b, tn_b, _ = _tables_for(linear_input, scale=1.1)
+    with pytest.raises(ValueError, match="linear spectrum of the full table differs"):
+        calc.get_rsd_pkell(kobs, 1.0, 1.0, PARS, t_b, tn_b, damping=None, selection=generic_selection,
+                           selection_tables=eds_setup["tabs"])
+    # matched pair still works
+    calc.get_rsd_pkell(kobs, 1.0, 1.0, PARS, t_b, tn_b, damping=None, selection=generic_selection,
+                       selection_tables=_tables_for(linear_input, scale=1.1)[2])
+
+
+def test_a01_rejects_swapped_nowiggle_table(eds_setup, calc, linear_input, generic_selection):
+    """Same full table, no-wiggle table from a different no-wiggle input: rejected."""
+    k, pk = linear_input
+    kobs = np.geomspace(0.02, 0.25, 10)
+    smooth = np.exp(np.convolve(np.log(pk), np.ones(9) / 9, mode="same"))     # a different no-wiggle shape
+    _, tn_other, _ = _tables_for(linear_input, pknow=smooth)
+    with pytest.raises(ValueError, match="no-wiggle linear spectrum differs"):
+        calc.get_rsd_pkell(kobs, 1.0, 1.0, PARS, eds_setup["table"], tn_other, damping=None,
+                           selection=generic_selection, selection_tables=eds_setup["tabs"])
+
+
+def test_a02_use_gtns_false_rejected_with_selection(eds_setup, calc, generic_selection):
+    k = np.geomspace(0.02, 0.25, 6)[:, None] * np.ones((1, 2))
+    mu = np.array([0.3, 0.8])[None, :] * np.ones((6, 1))
+    with pytest.raises(NotImplementedError, match="use_GTNS=False"):
+        calc.get_rsd_pkmu(k, mu, PARS, eds_setup["table"], eds_setup["table_now"], damping=None, use_GTNS=False,
+                          selection=generic_selection, selection_tables=eds_setup["tabs"])
+    # explicit True is the EFT default (GTNS kept) and gives the same prediction as None
+    a = calc.get_rsd_pkmu(k, mu, PARS, eds_setup["table"], eds_setup["table_now"], damping=None, use_GTNS=True,
+                          selection=generic_selection, selection_tables=eds_setup["tabs"])
+    b = calc.get_rsd_pkmu(k, mu, PARS, eds_setup["table"], eds_setup["table_now"], damping=None,
+                          selection=generic_selection, selection_tables=eds_setup["tabs"])
+    assert np.array_equal(a, b)
+
+
+@pytest.mark.parametrize("use_gtns", [None, False])
+def test_a02_components_sum_to_total_without_selection(eds_setup, calc, use_gtns):
+    """Component reconstruction forwards use_GTNS (extension-only mode, where use_GTNS=False is allowed)."""
+    k = np.geomspace(0.01, 0.3, 12)[:, None] * np.ones((1, 3))
+    mu = np.array([0.2, 0.6, 0.9])[None, :] * np.ones((12, 1))
+    comp = calc.get_rsd_pkmu(k, mu, PARS, eds_setup["table"], eds_setup["table_now"], damping=None,
+                             use_GTNS=use_gtns, eft_extension=EFTExtension(alpha6=1.0), return_components=True)
+    total = comp["tree_baseline"] + comp["loop_baseline"] + comp["counterterms"] + comp["stochastic"] + comp["ctilde"]
+    assert np.allclose(total, comp["total"], rtol=1e-12, atol=1e-9)
+
+
+def test_a03_traced_counterterm_rejected_in_physical_derivative_mode():
+    """Under jax.jit a traced alpha0 cannot be checked, so it must raise instead of being silently replaced."""
+    import subprocess
+    import sys
+    code = r'''
+import os, sys
+os.environ["FOLPS_BACKEND"] = "jax"
+import jax
+jax.config.update("jax_enable_x64", True)
+import numpy as onp
+sys.path.insert(0, sys.argv[1])
+from tests.conftest import COSMO, PARS
+from folps import (MatrixCalculator, NonLinearPowerSpectrumCalculator, RSDMultipolesPowerSpectrumCalculator,
+                   SelectionBias, PhysicalDerivativeBias, build_selection_tables)
+k, pk = onp.loadtxt(os.path.join(sys.argv[1], "folps", "inputpkT.txt"), unpack=True)
+nl = NonLinearPowerSpectrumCalculator(mmatrices=MatrixCalculator(A_full=True).get_mmatrices(), kernels="EdS", **COSMO)
+t, tn = nl.calculate_loop_table(k=k, pklin=pk, cosmo=None, **COSMO)
+tabs = build_selection_tables(nl)
+calc = RSDMultipolesPowerSpectrumCalculator(model="EFT")
+phys = PhysicalDerivativeBias(b_nabla2delta=1.0)
+kobs = onp.geomspace(0.02, 0.2, 5)
+def f(a0):
+    p = list(PARS); p[4] = a0; p[5] = p[6] = 0.0
+    return calc.get_rsd_pkell(kobs, 1.0, 1.0, p, t, tn, damping=None, selection=SelectionBias(s_eta=0.1),
+                              selection_tables=tabs, physical_derivatives=phys)
+try:
+    jax.jit(f)(2.0)
+except TypeError as exc:
+    assert "concrete 0" in str(exc), exc
+    print("RAISED")
+else:
+    print("NOT RAISED")
+'''
+    r = subprocess.run([sys.executable, "-c", code, str(ROOT)], capture_output=True, text=True, timeout=600)
+    assert "RAISED" in r.stdout and "NOT RAISED" not in r.stdout, r.stdout[-2000:] + r.stderr[-2000:]

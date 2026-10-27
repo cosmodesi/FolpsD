@@ -1869,7 +1869,7 @@ class RSDMultipolesPowerSpectrumCalculator:
             validate_selection_request(
                 self, selection=selection, selection_tables=selection_tables, bA=bA, pars_b=pars_b,
                 damping_method=damping_method, eft_extension=eft_extension,
-                physical_derivatives=physical_derivatives)
+                physical_derivatives=physical_derivatives, use_GTNS=use_GTNS)
             return selected_rsd_pkmu(
                 self, k, mu, pars, table, table_now, IR_resummation, use_GTNS=use_GTNS,
                 selection=selection, selection_tables=selection_tables, eft_extension=eft_extension,

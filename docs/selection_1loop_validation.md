@@ -304,3 +304,18 @@ installed) in subprocesses.
    covariance.
 9. The shipped linear spectrum includes massive neutrinos but is used with EdS kernels
    and constant \(f\): a mathematical benchmark, not a self-consistent forecast.
+
+## 15. Independent static audit (2026-10-26, commit 8b4fd07) and response
+
+An independent static review of `8b4fd07` found no sign, normalization or missing-operator error in the P22/P13
+construction, and listed integration findings. Status after the follow-up commit:
+
+| finding | severity | status |
+|---|---|---|
+| A-01 baseline/selection table pairing not enforced (only f0 compared) | high | **fixed**: `_check_tables_compatible` compares the wavenumber grid, the full linear spectrum, the no-wiggle grid and spectrum, and f0 between the legacy tables and the selection tables (round-off tolerance; they are the same arrays when built from one `calculate_loop_table` call). Under JAX tracing only shapes can be checked; pairing is then the caller's responsibility (the desilike wrapper builds both from the same call). Tests: `test_a01_rejects_baseline_from_another_linear_input` (P_L x 1.1, same f0), `test_a01_rejects_swapped_nowiggle_table` |
+| A-02 `use_GTNS=False` changed the baseline but not the selected increment; component reconstruction ignored `use_GTNS` | medium | **fixed (restricted)**: `use_GTNS=False` with `selection` raises (the selection-dependent GTNS subtraction is not implemented); `use_GTNS=True` equals the default. Component reconstruction forwards `use_GTNS` and the EFT `damping_method`. Tests: `test_a02_*` |
+| A-03 traced counterterms silently replaced in physical-derivative mode | medium | **fixed**: with `physical_derivatives`, alpha0/2/4 and alpha6 must be concrete zeros; a traced value raises `TypeError`. Test: `test_a03_traced_counterterm_rejected_in_physical_derivative_mode` (jax.jit subprocess) |
+| A-04 example adapter has no cosmological derivatives | medium (integration) | **guarded**: `SelectionPowerSpectrumModel.jacobian` rejects parameter names it cannot vary at fixed cosmology. The cosmology-dependent Fisher and mock fits were done in the DESI pipeline instead (`Abacus_A_HOD/fisher_eta`, branch `full-selection-1loop`: desilike wrapper rebuilding / emulating both table families per cosmology, real covariance and window; see `README_full_selection.md` there) |
+| A-05 k^2 mu^4 stochastic UV term | theory | open (as U2/D5): needs an independent derivation of the noise basis under selection and a prior study for `alphashot2_mu4` |
+| A-06 legacy marginalization helper angular rule | pre-existing | unchanged; the pipeline uses desilike's own analytic marginalization of the full model, and the gated helpers use full-model differences |
+| A-07 default FFTLog accuracy (nfftlog=128) | numerical | documented (sections 6–7); the pipeline currently uses the desilike default (128) for k <= 0.18–0.20, where the loop error is ~1e-3 of the loop; the impact relative to the data errors there has not yet been measured |

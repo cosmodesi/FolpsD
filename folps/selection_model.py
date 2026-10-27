@@ -39,7 +39,7 @@ def _is_concrete(x):
 
 
 def validate_selection_request(calc, *, selection, selection_tables, bA, pars_b, damping_method,
-                               eft_extension, physical_derivatives):
+                               eft_extension, physical_derivatives, use_GTNS=None):
     """Static validation of a selection-mode request (never inspects traced values)."""
     from . import folps as _f
     if selection is not None and not isinstance(selection, SelectionBias):
@@ -65,6 +65,13 @@ def validate_selection_request(calc, *, selection, selection_tables, bA, pars_b,
                          "added to the complete perturbative baseline")
     if getattr(_f, "use_TNS_model_status", False):
         raise ValueError("selection mode requires MatrixCalculator(use_TNS_model=False) (complete one-loop baseline)")
+    if selection is not None and use_GTNS is False:
+        # The selected-minus-unselected loop increment is built from the complete exact-map loop, which contains
+        # the selection response of the perturbative velocity-dispersion (GTNS) term; removing GTNS from the
+        # baseline alone would be inconsistent, and the selection-dependent GTNS subtraction is not implemented.
+        raise NotImplementedError(
+            "use_GTNS=False is not supported with selection: the selected one-loop increment includes the "
+            "selection response of GTNS. Use use_GTNS=None (default; GTNS kept, model='EFT') or True.")
     if selection is not None:
         if not isinstance(selection_tables, SelectionLoopTables):
             raise ValueError("selection requires selection_tables=folps.build_selection_tables(nonlinear)")
@@ -73,8 +80,27 @@ def validate_selection_request(calc, *, selection, selection_tables, bA, pars_b,
                 raise NotImplementedError("selection tables must use EdS kernels")
 
 
-def _check_tables_compatible(table, selection_tables):
-    """Concrete-value consistency checks (skipped for traced arrays)."""
+def _same_array(a, b, rtol=1e-12):
+    """True / False for concrete arrays; None when either is traced (cannot be compared by value)."""
+    if a is b:
+        return True
+    if not (_is_concrete(a) and _is_concrete(b)):
+        return None
+    a, b = _np.asarray(a, dtype=float), _np.asarray(b, dtype=float)
+    return a.shape == b.shape and bool(_np.allclose(a, b, rtol=rtol, atol=0.0))
+
+
+def _check_tables_compatible(table, selection_tables, table_now=None):
+    """Pairing checks between the legacy (baseline) tables and the selection tables.
+
+    The selected spectrum is ``P_legacy[table] + (P_selected - P_unselected)[selection_tables]``,
+    so both must describe the same linear input.  On concrete arrays this compares directly the
+    wavenumber grid, the linear spectrum of the full table, the grid and spectrum of the no-wiggle
+    table, and ``f0`` (the selection tables store the same arrays as the raw legacy tables when
+    built from the same ``calculate_loop_table`` call, so agreement is to round-off).  Under JAX
+    tracing values cannot be compared: only shapes are checked, and pairing is the caller's
+    responsibility (build both from the same calculator call, as the desilike wrapper does).
+    """
     fk_col = table[2]  # raw legacy table: (k, P_L, f(k)/f0, ...)
     if _is_concrete(fk_col):
         if not _np.allclose(_np.asarray(fk_col, dtype=float), 1.0, rtol=0, atol=1e-12):
@@ -87,6 +113,19 @@ def _check_tables_compatible(table, selection_tables):
         if not _np.isclose(float(f0), float(fs), rtol=1e-12, atol=0):
             raise ValueError(f"growth rate mismatch between legacy table (f0={float(f0)}) and selection tables "
                              f"(f0={float(fs)}); build both from the same calculator call")
+    pairs = [("k grid of the full table", table[0], selection_tables.full.k),
+             ("linear spectrum of the full table", table[1], selection_tables.full.pk)]
+    if table_now is not None:
+        pairs += [("k grid of the no-wiggle table", table_now[0], selection_tables.nowiggle.k),
+                  ("no-wiggle linear spectrum", table_now[1], selection_tables.nowiggle.pk)]
+    for name, a, b in pairs:
+        if _np.shape(a) != _np.shape(b):
+            raise ValueError(f"legacy and selection tables do not match ({name}: shapes {_np.shape(a)} vs "
+                             f"{_np.shape(b)}); build both from the same calculator call")
+        if _same_array(a, b) is False:
+            raise ValueError(f"legacy and selection tables do not match ({name} differs): the selected increment "
+                             "would be added to a baseline for another linear input. Build table/table_now and "
+                             "selection_tables from the same NonLinearPowerSpectrumCalculator.calculate_loop_table call")
 
 
 def selected_rsd_pkmu(calc, k, mu, pars, table, table_now, IR_resummation=True, use_GTNS=None, *,
@@ -124,7 +163,13 @@ def selected_rsd_pkmu(calc, k, mu, pars, table, table_now, IR_resummation=True, 
     pars_eff = list(pars)
     if physical_derivatives is not None:
         for name, val in (("alpha0", alpha0), ("alpha2", alpha2), ("alpha4", alpha4), ("alpha6", ext.alpha6)):
-            if _is_concrete(val) and float(val) != 0.0:
+            # Checked on concrete values only; a traced value cannot be checked and would be silently replaced,
+            # so it is rejected: in this mode the polynomial counterterms are not parameters at all.
+            if not _is_concrete(val):
+                raise TypeError(f"physical_derivatives replaces the polynomial counterterms, so {name} must be a "
+                                "concrete 0 (not a traced/sampled value): do not include alpha0, alpha2, alpha4 or "
+                                "alpha6 among the differentiated or jitted arguments in this mode.")
+            if float(val) != 0.0:
                 raise ValueError(f"physical_derivatives replaces the polynomial counterterms; {name} must be 0 "
                                  f"(got {float(val)}). Never sum both parameterizations of the derivative sector.")
         cpoly = physical_to_polynomial_derivatives(c.b1, c.b_eta, f0, physical_derivatives)
@@ -138,7 +183,7 @@ def selected_rsd_pkmu(calc, k, mu, pars, table, table_now, IR_resummation=True, 
     out = base + ct6 + noise_ext
 
     if selection is not None:
-        _check_tables_compatible(table, selection_tables)
+        _check_tables_compatible(table, selection_tables, table_now)
         Z1 = c.b1 - c.b_eta * f0 * mu ** 2
         Z10 = c0.b1 - c0.b_eta * f0 * mu ** 2
         dZ2 = (Z1 - Z10) * (Z1 + Z10)
@@ -158,8 +203,9 @@ def selected_rsd_pkmu(calc, k, mu, pars, table, table_now, IR_resummation=True, 
     zero_lin[4] = zero_lin[5] = zero_lin[6] = 0.0
     zero_lin[7] = 0.0
     zero_lin[8] = zero_lin[9] = 0.0
-    zl = calc.get_eft_pkmu(k, mu, zero_lin, tab, damping=None)
-    zl_now = calc.get_eft_pkmu(k, mu, zero_lin, tab_now, damping=None)
+    # same options as the legacy EFT path of get_rsd_pkmu (damping_method forced to 'loop+ctr', use_GTNS forwarded)
+    zl = calc.get_eft_pkmu(k, mu, zero_lin, tab, damping=None, damping_method='loop+ctr', use_GTNS=use_GTNS)
+    zl_now = calc.get_eft_pkmu(k, mu, zero_lin, tab_now, damping=None, damping_method='loop+ctr', use_GTNS=use_GTNS)
     loop_base = E * zl + (1 - E) * zl_now
     Z10 = c0.b1 - c0.b_eta * f0 * mu ** 2
     comp = {"tree_baseline": Z10 ** 2 * tree_ir, "loop_baseline": loop_base}
