@@ -1831,7 +1831,7 @@ class RSDMultipolesPowerSpectrumCalculator:
             self, k, mu, pars, table, table_now, IR_resummation=True, damping='lor',
             damping_method=None, use_GTNS=None, *, pars_b=None, cross_nuisance=None, cross_damping_mode="single", bA=None,
             selection=None, selection_tables=None, eft_extension=None, physical_derivatives=None,
-            return_components=False):
+            return_components=False, selection_b=None):
         """Return redshift space P(k, mu) given input tables.
 
         Full one-loop LOS selection (EdS, model='EFT', auto spectra; see
@@ -1846,7 +1846,10 @@ class RSDMultipolesPowerSpectrumCalculator:
         physical_derivatives: folps.PhysicalDerivativeBias, replaces alpha0..alpha6 (never added to them).
         The selected P22 has only its zero-lag constant removed (absorbed in the shot noise).
         return_components: return a dict of named components instead of the total.
-        Nonzero selection with bA, cross spectra, fk tables or model != 'EFT' raises.
+        Nonzero selection with bA, fk tables or model != 'EFT' raises.
+        selection_b: folps.SelectionBias of tracer B of a cross spectrum (pars_b, cross_nuisance);
+        a selected cross spectrum takes both selection (A) and selection_b (B) explicitly, and
+        uses the two-tracer contractions of folps.selection_templates (never the autos).
 
         bA: optional anisotropic linear bias of each tracer, (bA_a, bA_b) (a single value for both): the tree-level kernel of tracer X
         becomes b1_X + f(k) mu^2 + bA_X (mu^2 - 1/3), the linear form of a selection-dependent (e.g. intrinsic-alignment) anisotropic
@@ -1863,17 +1866,19 @@ class RSDMultipolesPowerSpectrumCalculator:
         See :meth:`get_eft_pkmu`. Note use_GTNS is orthogonal to the tree-level damping, so
         damping_method='tree+loop+ctr' with use_GTNS=True damps the tree *and* keeps GTNS.
         """
-        if (selection is not None or eft_extension is not None or physical_derivatives is not None
-                or return_components):
+        if (selection is not None or selection_b is not None or eft_extension is not None
+                or physical_derivatives is not None or return_components):
             from .selection_model import selected_rsd_pkmu, validate_selection_request
             validate_selection_request(
                 self, selection=selection, selection_tables=selection_tables, bA=bA, pars_b=pars_b,
                 damping_method=damping_method, eft_extension=eft_extension,
-                physical_derivatives=physical_derivatives, use_GTNS=use_GTNS)
+                physical_derivatives=physical_derivatives, use_GTNS=use_GTNS, selection_b=selection_b,
+                cross_nuisance=cross_nuisance, return_components=return_components)
             return selected_rsd_pkmu(
                 self, k, mu, pars, table, table_now, IR_resummation, use_GTNS=use_GTNS,
                 selection=selection, selection_tables=selection_tables, eft_extension=eft_extension,
-                physical_derivatives=physical_derivatives, return_components=return_components)
+                physical_derivatives=physical_derivatives, return_components=return_components,
+                pars_b=pars_b, cross_nuisance=cross_nuisance, selection_b=selection_b)
         damping_method = _normalize_damping_method(damping_method)
         if self.model == "EFT":
             # EFT ignores FoG damping entirely (see get_eft_pkmu): tree-level Kaiser undamped, GTNS kept.
@@ -1931,7 +1936,8 @@ class RSDMultipolesPowerSpectrumCalculator:
                       bias_scheme="folps", damping='lor', nmu=6, ells=(0, 2, 4), IR_resummation=True, damping_method=None, use_GTNS=None,
                       *, pars_b=None, cross_nuisance=None, bias_scheme_b=None,
                       cross_damping_mode="single", selection=None, selection_tables=None,
-                      eft_extension=None, physical_derivatives=None, return_components=False):
+                      eft_extension=None, physical_derivatives=None, return_components=False,
+                      selection_b=None):
         """
         Computes the redshift-space power spectrum multipoles P_ell(k).
 
@@ -1954,6 +1960,7 @@ class RSDMultipolesPowerSpectrumCalculator:
             cross_damping_mode (str, optional): Cross FolpsD damping mode,
                 either "single" (default) or "geometric"; ignored in auto mode.
             selection, selection_tables, eft_extension, physical_derivatives,
+            selection_b: SelectionBias of tracer B for a selected cross spectrum.
             return_components: full one-loop LOS selection options,
                 see :meth:`get_rsd_pkmu`. With return_components=True a dict of projected
                 components (each of shape (len(ells), len(kobs))) is returned.
@@ -1978,11 +1985,11 @@ class RSDMultipolesPowerSpectrumCalculator:
         jac, kap, muap = (qpar * qper**2)**(-1), self.k_ap(kobs[:, None], muobs, qpar, qper), self.mu_ap(muobs, qpar, qper)[None, :]
         #print(muap[0])
         selection_kw = {}
-        if (selection is not None or eft_extension is not None or physical_derivatives is not None
-                or return_components):
+        if (selection is not None or selection_b is not None or eft_extension is not None
+                or physical_derivatives is not None or return_components):
             selection_kw = dict(selection=selection, selection_tables=selection_tables,
                                 eft_extension=eft_extension, physical_derivatives=physical_derivatives,
-                                return_components=return_components)
+                                return_components=return_components, selection_b=selection_b)
         pkmu = self.get_rsd_pkmu(
             kap, muap, pars, table, table_now, IR_resummation, damping, damping_method=damping_method, use_GTNS=use_GTNS,
             pars_b=pars_b, cross_nuisance=cross_nuisance,
